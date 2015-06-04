@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# plot graph where features are found
+# view block hashes
 
 from argparse import ArgumentParser
 import math
