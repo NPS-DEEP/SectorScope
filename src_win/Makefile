@@ -10,6 +10,7 @@ installer: $(INSTALLER)
 $(INSTALLER): build_installer.nsi EnvVarUpdate.nsi
 	@echo Making $(INSTALLER)
 	makensis -DVERSION=$(VERSION) build_installer.nsi
+	cp $(INSTALLER) download/$(INSTALLER)
 	echo '**************** INSTALLER IS MADE ****************'
 
 clean:

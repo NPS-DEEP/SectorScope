@@ -15,7 +15,7 @@
 	!error "Invalid usage"
 !endif
 
-!define APPNAME "Block match ${VERSION}"
+!define APPNAME "Block Match ${VERSION}"
 !define REG_SUB_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APPNAME}"
 !define COMPANYNAME "Naval Postgraduate School"
 !define DESCRIPTION "Block Hash Tools"
