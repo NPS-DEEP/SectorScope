@@ -24,29 +24,33 @@ from identified_data_reader import IdentifiedData
 def plot_identified_data(identified_data):
 
     # image size
-    IMAGE_SIZE = 100*100
+    PLOT_SIZE = 100*100
 
     # establish rescaler for going from image offset to data index
-    rescaler = 1.0 * IMAGE_SIZE / (identified_data.image_size * identified_data.block_size)
+    rescaler = PLOT_SIZE / identified_data.image_size
+    print("rescaler")
+    print(rescaler)
 
     # allocate empty data
-    data=numpy.zeros(IMAGE_SIZE)
+    data=numpy.zeros(PLOT_SIZE)
 
     # set data points
     for key in identified_data.forensic_paths:
         subscript = int(key) * rescaler
-        count = len(identified_data.forensic_paths[key].sources)
-        data[subscript] = count
+        # count = len(identified_data.forensic_paths[key])
+        data[subscript] = data[subscript]+1 if data[subscript] < 10 else data[subscript]
     
     # convert data to 2D array
-    data_2d = data.reshape(int(math.sqrt(IMAGE_SIZE)),-1)
+    data_2d = data.reshape(int(math.sqrt(PLOT_SIZE)),-1)
 
     fig, ax = matplotlib.pyplot.subplots()
     print(type(data_2d))
     print(data_2d.shape)
     #cax = ax.imshow(data_2d, cmap=matplotlib.cm.Greys)
-    cax = ax.imshow(data_2d, cmap=matplotlib.cm.Blues)
-    ax.set_title('Matches in %s byte image' %image_size)
+    cax = ax.imshow(data_2d, cmap=matplotlib.cm.Blues, interpolation="nearest")
+    ax.set_title('Block match density in %s byte image' %identified_data.image_size)
+
+    fig.colorbar(cax)
 
     # show
     matplotlib.pyplot.show()
@@ -57,22 +61,27 @@ def plot_identified_data(identified_data):
 
 def get_full_plottable_data(data_dict):
     # image size
-    IMAGE_SIZE = 100*100
+    PLOT_SIZE = 100*100
 
     # establish rescaler for going from image offset to data index
-    rescaler = 1.0 * IMAGE_SIZE / (image_size * block_size)
+    rescaler = 1.0 * PLOT_SIZE / (identified_data.image_size *
+                                  identified_data.block_size)
     
     # allocate empty data
-    data=numpy.zeros(IMAGE_SIZE)
+    data=numpy.zeros(PLOT_SIZE)
 
     # set data points
+    print("data_dict")
+    print(data_dict)
     for key in data_dict:
         subscript = key * rescaler
         value = data_dict[key]
-        data[subscript] = value
+        #data[subscript] = value
+        print("adding subscript %s" % subscript)
+        data[subscript] = 100
     
     # convert data to 2D array
-    full_plottable_data = data.reshape(int(math.sqrt(IMAGE_SIZE)),-1)
+    full_plottable_data = data.reshape(int(math.sqrt(PLOT_SIZE)),-1)
 
     return full_plottable_data
 
@@ -83,8 +92,10 @@ def make_plot(plottable_data):
     print(type(plottable_data))
     print(plottable_data.shape)
     #cax = ax.imshow(plottable_data, cmap=matplotlib.cm.Greys)
+    #matplotlib.pyplot.colorbar()
+    #ax.colorbar()
     cax = ax.imshow(plottable_data, cmap=matplotlib.cm.Blues)
-    ax.set_title('Matches in %s byte image' %image_size)
+    ax.set_title('Matches in %s byte image' %identified_data.image_size)
 
     # show
     matplotlib.pyplot.show()
