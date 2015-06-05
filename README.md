@@ -9,3 +9,6 @@ A GUI for viewing block hashes found using hashdb and bulk_extractor
 ### Linux/Mac Users
 There currently is no installer for the Python scripts.  Please download and run them in a directory of your preference.
 
+# Dependencies
+The Python scripts require Python3.  Please install Python version 3 or newer.
+
