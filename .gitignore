@@ -6,6 +6,9 @@ __pycache__/
 *.swp
 *.swo
 
+# generated installer
+src_win/block_match*.exe
+
 # C extensions
 *.so
 
