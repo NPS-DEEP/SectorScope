@@ -10,58 +10,50 @@ import numpy
 import matplotlib
 import tkinter as Tk
 
-#import matplotlib.pyplot
-#import matplotlib.cm
+import matplotlib.pyplot
+import matplotlib.cm
 
 #import sys
-#import pylab
-#import matplotlib.pyplot
-#import xml.etree.ElementTree as ET
+import pylab
+import matplotlib.pyplot
 
-block_size = 0
-bulk_extractor_dir=""
-image_size=0
+# local import
+#import identified_data_reader
+from identified_data_reader import IdentifiedData
 
-def get_image_size():
-    report_file = os.path.join(bulk_extractor_dir, "report.xml")
-    if not os.path.exists(report_file):
-        print("%s does not exist" % report_file)
-        exit(1)
-    xmldoc = xml.dom.minidom.parse(open(report_file, 'r'))
-    image_size = int((xmldoc.getElementsByTagName("image_size")[0].firstChild.wholeText))
-    return image_size
+def plot_identified_data(identified_data):
 
-def get_data_dict():
-    identified_blocks_file = os.path.join(bulk_extractor_dir, "identified_blocks.txt")
-    if not os.path.exists(identified_blocks_file):
-        print("%s does not exist" % identified_blocks_file)
-        exit(1)
+    # image size
+    IMAGE_SIZE = 100*100
 
-    # read each line
-    data_dict=dict()
-    with open(identified_blocks_file, 'r') as f:
-        for line in f:
-            try:
-                if line[0]=='#' or len(line)==0:
-                    continue
+    # establish rescaler for going from image offset to data index
+    rescaler = 1.0 * IMAGE_SIZE / (identified_data.image_size * identified_data.block_size)
 
-                # get line parts
-                (disk_offset,sector_hash,meta) = line.split("\t")
+    # allocate empty data
+    data=numpy.zeros(IMAGE_SIZE)
 
-                # get data index
-                data_index = int(disk_offset)
+    # set data points
+    for key in identified_data.forensic_paths:
+        subscript = int(key) * rescaler
+        count = len(identified_data.forensic_paths[key].sources)
+        data[subscript] = count
+    
+    # convert data to 2D array
+    data_2d = data.reshape(int(math.sqrt(IMAGE_SIZE)),-1)
 
-                # get data value
-                meta = json.loads(meta)
-                count = int(meta['count'])
-                data_value = 1/count
+    fig, ax = matplotlib.pyplot.subplots()
+    print(type(data_2d))
+    print(data_2d.shape)
+    #cax = ax.imshow(data_2d, cmap=matplotlib.cm.Greys)
+    cax = ax.imshow(data_2d, cmap=matplotlib.cm.Blues)
+    ax.set_title('Matches in %s byte image' %image_size)
 
-                # set data value at index
-                data_dict[data_index] = data_value
+    # show
+    matplotlib.pyplot.show()
 
-            except ValueError:
-                continue
-        return data_dict
+
+
+
 
 def get_full_plottable_data(data_dict):
     # image size
@@ -124,25 +116,27 @@ def start_gui():
 
 # main
 if __name__=="__main__":
+    print()
+    print()
+    print()
 
-    parser = ArgumentParser(prog='plot_rank.py', description='Plot media image grid showing matches')
-    parser.add_argument('-be_dir', help= 'path to the bulk_extractor directory' , default= '/home/bdallen/demo8/temp2')
-    parser.add_argument('-block_size', help= 'Block size in bytes' , default= 4096)
+    parser = ArgumentParser(prog='block_match_viewer.py', description='View associations between hashes and sources')
+    parser.add_argument('-be_dir', help= 'path to the bulk_extractor directory' , default= '/home/bdallen/Kitty/be_kitty_out')
     args = parser.parse_args() 
-    bulk_extractor_dir = args.be_dir
-    block_size = args.block_size
+    be_dir = args.be_dir
 
-    # get image size from report.xml
-    image_size = get_image_size()
+    # read relavent data
+    identified_data = IdentifiedData(be_dir)
 
-    # get hash match entries from identified_blocks.txt
-    data_dict = get_data_dict()
+    # show the plot
+    plot_identified_data(identified_data)
+
 
     # get the full plottable data as a square array
-    full_plottable_data = get_full_plottable_data(data_dict)
+    #full_plottable_data = get_full_plottable_data(data_dict)
 
     # start the GUI
-    start_gui()
+    #start_gui()
 
     ## get the plottable image
     #plottable_image = matplotlib.pylab.
