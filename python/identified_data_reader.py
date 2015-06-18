@@ -32,6 +32,15 @@ class IdentifiedData():
         Args:
           be_dir (str): The bulk_extractor output directory where the
             hashdb scanner scan was run.
+
+        The following resources are accessed:
+          be_dir/report.xml
+          be_dir/hashdb.hdb/settings.xml
+          be_dir/identified_blocks_expanded.txt or be_dir/identified_blocks.txt
+
+        If be_dir/identified_blocks_expanded.txt does not exist, it is
+        created using be_dir/identified_blocks.txt and the other required
+        resources.
         """
 
         self.be_dir = be_dir
