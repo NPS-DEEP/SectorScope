@@ -87,22 +87,22 @@ class IdentifiedData():
         command_line = xmldoc.getElementsByTagName(
                            "command_line")[0].firstChild.wholeText
         i = command_line.find('hashdb_scan_path_or_socket=')
-        if i is -1:
+        if i == -1:
             print("aborting, hash database not found in report.xml")
             exit(1)
         i += 27
-        if command_line[i] is '"':
+        if command_line[i] == '"':
             # db is quoted
             i += 1
             i2 = command_line.find('"', i)
-            if i2 is -1:
+            if i2 == -1:
                 print("aborting, close quote not found in report.xml")
                 exit(1)
             be_report_dict["hashdb_dir"] = command_line[i:i2]
         else:
             # db is quoted so take text to next space
             i2 = command_line.find(' ', i)
-            if i2 is -1:
+            if i2 == -1:
                 be_report_dict["hashdb_dir"] = command_line[i:]
             else:
                 be_report_dict["hashdb_dir"] = command_line[i:i2]

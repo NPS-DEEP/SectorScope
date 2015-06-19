@@ -1,14 +1,13 @@
 import tkinter 
 
-class ImageOverviewPlot():
-    """Prints a banner and plots an image overview of matched blocks
-    given an IdentifiedData data structure.
+class ImageDetailPlot():
+    """Prints a banner and plots an image detail of matched blocks
+    starting at an offset defined in selected_byte_offset.
 
-    Plot points with a higher match density are shown darker than points
-    with a lower match density.
+    Plot points with less sources are shown darker than points with more
+    sources.
 
-    Clicking on a plot point sets the image offset in the IntVar variable
-    provided.
+    Clicking on a plot point sets the hex view byte offset.
 
     Attributes:
       _photo_image(PhotoImage): Exists solely to keep the image from being
@@ -23,19 +22,14 @@ class ImageOverviewPlot():
     # pixels per data point
     POINT_SIZE = 4
 
-    # light to dark blue
-    _colors = ["#ffffff",
-               "#99ffff","#66ffff","#33ffff",
-               "#00ffff","#00ccff","#0099ff","#0066ff","#0033ff",
-               "#0000ff","#0000cc","#000099","#000066"]
-    # white through blue to black, 0 is white, not used, and 15 is black
-    #_colors = ["#ffffff","#ccffff","#99ffff","#66ffff","#33ffff",
-    #           "#00ffff","#00ccff","#0099ff","#0066ff","#0033ff",
-    #           "#0000ff","#0000cc","#000099","#000066","#000033",
-    #           "#000000"]
+    # plot size in pixels
+    PLOT_SIZE = MATRIX_ORDER * POINT_SIZE
 
-    # the data array
-    _data = [0] * (MATRIX_ORDER**2)
+    # white, then dark blue to light
+    _colors = ["#ffffff",
+               "#000066","#000099","#0000cc","#0000ff",
+               "#0033ff","#0066ff","#0099ff","#00ccff","#00ffff",
+               "#000066","#000099","#0000cc","#0000ff"]
 
     # highlight index or -1 for none
     _highlight_index = -1
@@ -44,32 +38,35 @@ class ImageOverviewPlot():
     _selection_index = -1
 
     def __init__(self, master, identified_data,
-                 image_overview_byte_offset_selection):
+                 image_overview_byte_offset_selection,
+                 image_detail_byte_offset_selection):
         """Args:
           master(a UI container): Parent.
           identified_data(IdentifiedData): Identified data about the scan.
-          image_overview_byte_offset_selection(IntVar): Variable to
-            communicate the image byte offset selected upon mouse click.
+          image_overview_byte_offset_selection(IntVar): the byte offset
+            selected in the image overview plot
+          image_detail_byte_offset_selection(IntVar): the byte offset
+            selected in the image detail plot
         """
 
+        # a reference to the identified data
+        self._identified_data = identified_data
+
         # the photo_image
-        PLOT_SIZE = self.MATRIX_ORDER * self.POINT_SIZE
         self._photo_image = tkinter.PhotoImage(
-                                         width=PLOT_SIZE, height=PLOT_SIZE)
-        self._photo_image.put("gray", to=(0, 0, PLOT_SIZE, PLOT_SIZE))
+                                 width=self.PLOT_SIZE, height=self.PLOT_SIZE)
 
-        # set general data and the image
-        self._set_data(identified_data)
-
-        # define the selection variable
+        # the selection variables
         self._image_overview_byte_offset_selection = \
-                                        image_overview_byte_offset_selection
+                                     image_overview_byte_offset_selection
+        self._image_detail_byte_offset_selection = \
+                                     image_detail_byte_offset_selection
 
         # make the containing frame
         f = tkinter.Frame(master)
 
         # add the header text
-        tkinter.Label(f, text='Image Overview') \
+        tkinter.Label(f, text='Image Detail') \
                       .pack(side=tkinter.TOP)
         tkinter.Label(f, text='Image: %s'%identified_data.image_filename) \
                       .pack(side=tkinter.TOP, anchor="w")
@@ -80,7 +77,7 @@ class ImageOverviewPlot():
                                  text='Selected byte offset: not selected')
         self.selected_offset_label.pack(side=tkinter.TOP, anchor="w")
 
-        # add the label containing the overview plot image
+        # add the label containing the plot image
         l = tkinter.Label(f, image=self._photo_image, relief=tkinter.SUNKEN)
         l.pack(side=tkinter.TOP, padx=5,pady=5)
         l.bind('<Any-Motion>', self._handle_mouse_drag)
@@ -91,38 +88,57 @@ class ImageOverviewPlot():
         # pack the frame
         f.pack()
 
+        # listen to changes in _image_overview_byte_offset_selection
+        _image_overview_byte_offset_selection = \
+                                   image_overview_byte_offset_selection
+        image_overview_byte_offset_selection.trace_variable('w', self._set_data)
+
+
     # set variables and the image based on identified_data
-    def _set_data(self, identified_data):
-        """Args:
-          identified_data (IdentifiedData): All the identified data about
-            the scan.
-        """
+    def _set_data(self):
+        print("set_data.a")
+        # clear current settings and data
+        _highlight_index = -1
+        _selection_index = -1
+        self._data = []
+        self._photo_image.put("gray", to=(0, 0, self.PLOT_SIZE, self.PLOT_SIZE))
 
-        # block size
-        self._block_size = identified_data.block_size
+        # value is -1 when not in use
+        if image_overview_byte_offset_selection == -1:
+            return
 
-        # total blocks
-        self._total_blocks = (
+        # starting block number in range
+        self._first_block = int(_image_overview_byte_offset_selection /
+                                _identified_data.block_size)
+
+        # last block number in range, which may be smaller than matrix
+        self._last_block = (
               (identified_data.image_size + (identified_data.block_size - 1))
               // identified_data.block_size)
+        if self._last_block >= self.MATRIX_ORDER**2:
+            self._last_block = self.MATRIX_ORDER**2 - 1
 
-        # blocks per index
-        self._blocks_per_index = self._total_blocks / self.MATRIX_ORDER**2
-        if self._blocks_per_index < 1.0:
-            self._blocks_per_index = 1.0
+        # data
+        self._data = [0] * (self._last_block + 1 - self._first_block)
 
         # set data points
         for key in identified_data.forensic_paths:
             block = int(key) // identified_data.block_size
-            subscript = int(block // self._blocks_per_index)
-            if self._data[subscript] < 12:
-                self._data[subscript] += 1
+            if block < self._first_block or block > self._last_block:
+                # out of range
+                continue
+
+            # set data subscript to count clipped at lightest color used
+            subscript = block - self._first_block
+            count = len(identified_data.forensic_paths[key])
+            if count > 13:
+                count = 13
+            self._data[subscript] = count
 
         # plot the data points
-        for i in range(self.MATRIX_ORDER**2):
-            if i * self._blocks_per_index > self._total_blocks:
-                # index reached end of image
-                break
+        print(len(self._data))
+        #for i in range(len(self._data))
+        for i in range(len(self._data)):
             self._draw_cell(i)
 
     # highlight a cell being hovered over by the mouse
@@ -139,7 +155,7 @@ class ImageOverviewPlot():
         if i != -1:
             # use new selection
             self._draw_cell(i)
-            byte_offset = int(i * self._blocks_per_index) * self._block_size
+            byte_offset = (i + self._first_block) * self._block_size
             self.offset_label['text'] = "Byte offset: %s" % byte_offset
         else:
             # clear to -1
@@ -158,18 +174,16 @@ class ImageOverviewPlot():
         self._selection_index = i
         if i != -1:
             # new selection
-            print("image_overview_plot setting selection", 
-                             self._image_overview_byte_offset_selection.get())
-#            self._image_overview_byte_offset_selection.set(int(
-#                              i * self._blocks_per_index) * self._block_size)
+            self._image_detail_byte_offset_selection = \
+                                  (i + self._first_block) * self._block_size
             self._draw_cell(i)
             self.selected_offset_label['text'] = \
-                              "Selected byte offset: %s" % \
-                              self._image_overview_byte_offset_selection.get()
+                                 "Selected byte offset: %s" % \
+                                 self._image_detail_byte_offset_selection
 
         else:
             # clear to -1
-            self._image_overview_byte_offset_selection.set(-1)
+            self._image_detail_byte_offset_selection = -1
             self.selected_offset_label['text'] = \
                                      "Selected byte offset: Not selected"
 
@@ -208,7 +222,7 @@ class ImageOverviewPlot():
         i = x + y * self.MATRIX_ORDER
 
         # set index to -1 if outside of image range
-        if i * self._blocks_per_index > self._total_blocks:
+        if i >= len(self._data):
             i = -1
 
         # return validated index

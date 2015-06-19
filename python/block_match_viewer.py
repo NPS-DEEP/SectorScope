@@ -12,6 +12,7 @@ import tkinter
 #import identified_data_reader
 from identified_data_reader import IdentifiedData
 from image_overview_plot import ImageOverviewPlot
+from image_detail_plot import ImageDetailPlot
 
 def handle_mouse_click(e):
     print("e",e.x,e.y)
@@ -37,9 +38,15 @@ if __name__=="__main__":
     root = tkinter.Tk()
     root.title("Block Match Viewer")
 
-    selected_offset = tkinter.IntVar()
-    image_overview_plot = ImageOverviewPlot(root, identified_data, 
-                                            selected_offset)
+    image_overview_byte_offset_selection = tkinter.IntVar()
+    image_detail_byte_offset_selection = tkinter.IntVar()
+    f = tkinter.Frame(root)
+    image_overview_plot = ImageOverviewPlot(f, identified_data, 
+                                    image_overview_byte_offset_selection)
+    image_detail_plot = ImageDetailPlot(f, identified_data, 
+                                    image_overview_byte_offset_selection,
+                                    image_detail_byte_offset_selection)
+    f.pack(side=tkinter.LEFT)
 
     ## media image canvas for the image overview and image detail plots
     #media_canvas = tkinter.Canvas(root, width=1100, height=600)
