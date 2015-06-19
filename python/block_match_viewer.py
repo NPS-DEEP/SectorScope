@@ -37,9 +37,9 @@ if __name__=="__main__":
     root = tkinter.Tk()
     root.title("Block Match Viewer")
 
-    #selected_offset = tkinter.IntVar()
+    selected_offset = tkinter.IntVar()
     image_overview_plot = ImageOverviewPlot(root, identified_data, 
-                                            selected_offset = None)
+                                            selected_offset)
 
     ## media image canvas for the image overview and image detail plots
     #media_canvas = tkinter.Canvas(root, width=1100, height=600)
