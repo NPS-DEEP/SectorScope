@@ -82,14 +82,14 @@ class ImageOverviewPlot():
 
         # add the label containing the overview plot image
         l = tkinter.Label(f, image=self._photo_image, relief=tkinter.SUNKEN)
-        l.pack(side=tkinter.TOP, padx=5,pady=5)
+        l.pack(side=tkinter.TOP)
         l.bind('<Any-Motion>', self._handle_mouse_drag)
         l.bind('<Button-1>', self._handle_mouse_click)
         l.bind('<Enter>', self._handle_mouse_drag)
         #l.bind('<Leave>', self._handle_leave_window)
 
         # pack the frame
-        f.pack()
+        f.pack(side=tkinter.LEFT, padx=8, pady=8)
 
     # set variables and the image based on identified_data
     def _set_data(self, identified_data):
@@ -158,10 +158,8 @@ class ImageOverviewPlot():
         self._selection_index = i
         if i != -1:
             # new selection
-            print("image_overview_plot setting selection", 
-                             self._image_overview_byte_offset_selection.get())
-#            self._image_overview_byte_offset_selection.set(int(
-#                              i * self._blocks_per_index) * self._block_size)
+            self._image_overview_byte_offset_selection.set(int(
+                              i * self._blocks_per_index) * self._block_size)
             self._draw_cell(i)
             self.selected_offset_label['text'] = \
                               "Selected byte offset: %s" % \

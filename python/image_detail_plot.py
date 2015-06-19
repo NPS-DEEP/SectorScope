@@ -14,6 +14,8 @@ class ImageDetailPlot():
         garbage collected.
       _image_overview_byte_offset_selection(IntVar): Setting this alerts
         listeners to the new selection.
+      _image_detail_byte_offset_selection(IntVar): Setting this alerts
+        listeners to the new selection.
     """
 
     # order of the 2D square matrix
@@ -27,7 +29,7 @@ class ImageDetailPlot():
 
     # white, then dark blue to light
     _colors = ["#ffffff",
-               "#000066","#000099","#0000cc","#0000ff",
+               "#000033","#000066","#000099","#0000cc","#0000ff",
                "#0033ff","#0066ff","#0099ff","#00ccff","#00ffff",
                "#000066","#000099","#0000cc","#0000ff"]
 
@@ -36,6 +38,9 @@ class ImageDetailPlot():
 
     # selection index or -1 for none
     _selection_index = -1
+
+    # data
+    _data = []
 
     def __init__(self, master, identified_data,
                  image_overview_byte_offset_selection,
@@ -79,65 +84,65 @@ class ImageDetailPlot():
 
         # add the label containing the plot image
         l = tkinter.Label(f, image=self._photo_image, relief=tkinter.SUNKEN)
-        l.pack(side=tkinter.TOP, padx=5,pady=5)
+        l.pack(side=tkinter.TOP)
         l.bind('<Any-Motion>', self._handle_mouse_drag)
         l.bind('<Button-1>', self._handle_mouse_click)
         l.bind('<Enter>', self._handle_mouse_drag)
         #l.bind('<Leave>', self._handle_leave_window)
 
         # pack the frame
-        f.pack()
+        f.pack(side=tkinter.LEFT, padx=8, pady=8)
 
         # listen to changes in _image_overview_byte_offset_selection
-        _image_overview_byte_offset_selection = \
+        self._image_overview_byte_offset_selection = \
                                    image_overview_byte_offset_selection
         image_overview_byte_offset_selection.trace_variable('w', self._set_data)
 
 
     # set variables and the image based on identified_data
-    def _set_data(self):
-        print("set_data.a")
+    def _set_data(self, *args):
+        # parameter *args is required by IntVar callback
+
         # clear current settings and data
-        _highlight_index = -1
-        _selection_index = -1
+        self._highlight_index = -1
+        self._selection_index = -1
         self._data = []
         self._photo_image.put("gray", to=(0, 0, self.PLOT_SIZE, self.PLOT_SIZE))
 
         # value is -1 when not in use
-        if image_overview_byte_offset_selection == -1:
+        if self._image_overview_byte_offset_selection.get() == -1:
             return
 
         # starting block number in range
-        self._first_block = int(_image_overview_byte_offset_selection /
-                                _identified_data.block_size)
+        self._first_block = int(
+                         self._image_overview_byte_offset_selection.get() /
+                         self._identified_data.block_size)
 
         # last block number in range, which may be smaller than matrix
-        self._last_block = (
-              (identified_data.image_size + (identified_data.block_size - 1))
-              // identified_data.block_size)
-        if self._last_block >= self.MATRIX_ORDER**2:
-            self._last_block = self.MATRIX_ORDER**2 - 1
+        self._last_block = ((self._identified_data.image_size +
+                            (self._identified_data.block_size - 1))
+                            // self._identified_data.block_size)
+        if self._last_block >= self._first_block + self.MATRIX_ORDER**2:
+            self._last_block = self._first_block + self.MATRIX_ORDER**2 - 1
 
-        # data
+        # allocate sized data array
         self._data = [0] * (self._last_block + 1 - self._first_block)
 
         # set data points
-        for key in identified_data.forensic_paths:
-            block = int(key) // identified_data.block_size
+        for key in self._identified_data.forensic_paths:
+            block = int(key) // self._identified_data.block_size
             if block < self._first_block or block > self._last_block:
                 # out of range
                 continue
 
             # set data subscript to count clipped at lightest color used
             subscript = block - self._first_block
-            count = len(identified_data.forensic_paths[key])
-            if count > 13:
-                count = 13
+            count = len(self._identified_data.forensic_paths[key])
+            if count > 14:
+                count = 14
             self._data[subscript] = count
 
         # plot the data points
-        print(len(self._data))
-        #for i in range(len(self._data))
         for i in range(len(self._data)):
             self._draw_cell(i)
 
@@ -155,7 +160,8 @@ class ImageDetailPlot():
         if i != -1:
             # use new selection
             self._draw_cell(i)
-            byte_offset = (i + self._first_block) * self._block_size
+            byte_offset = (i + self._first_block) * \
+                          self._identified_data.block_size
             self.offset_label['text'] = "Byte offset: %s" % byte_offset
         else:
             # clear to -1
@@ -174,16 +180,16 @@ class ImageDetailPlot():
         self._selection_index = i
         if i != -1:
             # new selection
-            self._image_detail_byte_offset_selection = \
-                                  (i + self._first_block) * self._block_size
+            self._image_detail_byte_offset_selection.set(
+                  (i + self._first_block) * self._identified_data.block_size)
             self._draw_cell(i)
             self.selected_offset_label['text'] = \
-                                 "Selected byte offset: %s" % \
-                                 self._image_detail_byte_offset_selection
+                               "Selected byte offset: %s" % \
+                               self._image_detail_byte_offset_selection.get()
 
         else:
             # clear to -1
-            self._image_detail_byte_offset_selection = -1
+            self._image_detail_byte_offset_selection.set(-1)
             self.selected_offset_label['text'] = \
                                      "Selected byte offset: Not selected"
 
