@@ -13,6 +13,7 @@ import tkinter
 from identified_data_reader import IdentifiedData
 from image_overview_plot import ImageOverviewPlot
 from image_detail_plot import ImageDetailPlot
+from image_hex_view import ImageHexView
 
 def handle_mouse_click(e):
     print("e",e.x,e.y)
@@ -38,30 +39,43 @@ if __name__=="__main__":
     root = tkinter.Tk()
     root.title("Block Match Viewer")
 
+    # tkinter action variables
     image_overview_byte_offset_selection = tkinter.IntVar()
     image_detail_byte_offset_selection = tkinter.IntVar()
-    f = tkinter.Frame(root)
-    image_overview_plot = ImageOverviewPlot(f, identified_data, 
+
+    # layouts
+
+    image_frame = tkinter.Frame(root)
+
+    # image_frame holds the density and detail plots above and hex view below
+
+    # the image and database labels at the top
+    label_frame = tkinter.Frame(image_frame)
+    tkinter.Label(label_frame,
+                  text='Image: %s'%identified_data.image_filename) \
+                      .pack(side=tkinter.TOP, anchor="w")
+    tkinter.Label(label_frame,
+                  text='Database: %s'%identified_data.hashdb_dir) \
+                      .pack(side=tkinter.TOP, anchor="w")
+    label_frame.pack(side=tkinter.TOP, padx=8, pady=8)
+
+    # the density and detail plots in the middle
+    image_plot_frame = tkinter.Frame(image_frame)
+    image_overview_plot = ImageOverviewPlot(image_plot_frame, identified_data, 
                                     image_overview_byte_offset_selection)
-    image_detail_plot = ImageDetailPlot(f, identified_data, 
+    image_detail_plot = ImageDetailPlot(image_plot_frame, identified_data, 
                                     image_overview_byte_offset_selection,
                                     image_detail_byte_offset_selection)
-    f.pack(side=tkinter.LEFT)
+    image_plot_frame.pack(side=tkinter.TOP)
 
-    ## media image canvas for the image overview and image detail plots
-    #media_canvas = tkinter.Canvas(root, width=1100, height=600)
-    #media_canvas.pack(fill=tkinter.BOTH)
+    # the hex image view below
+    image_hex_view_frame = tkinter.Frame(image_frame)
+    image_hex_view = ImageHexView(image_hex_view_frame,
+                                  identified_data.image_filename,
+                                  image_detail_byte_offset_selection)
+    image_hex_view_frame.pack()
 
-    ## add the image overview plot to the image canvas
-    #image_overview_plot = ImageOverviewPlot()
-    #image_overview_plot.set(identified_data)
-    #media_canvas.create_image(20, 20, image=image_overview_plot.photo_image,
-    #                          anchor=tkinter.NW)
-
-    ## zz
-    ##image_overview_plot.photo_image.bind('Any-Motion', handle_mouse_click)
-    #media_canvas.bind('<Any-Motion>', handle_mouse_click)
+    image_frame.pack(side=tkinter.TOP)
 
     root.mainloop()
-
 

@@ -1,13 +1,14 @@
 import tkinter 
+from forensic_path import offset_string
 
 class ImageDetailPlot():
     """Prints a banner and plots an image detail of matched blocks
-    starting at an offset defined in selected_byte_offset.
+    starting at an offset defined by _image_overview_byte_offset_selection
 
     Plot points with less sources are shown darker than points with more
     sources.
 
-    Clicking on a plot point sets the hex view byte offset.
+    Clicking on a plot point sets _image_detail_byte_offset_selection
 
     Attributes:
       _photo_image(PhotoImage): Exists solely to keep the image from being
@@ -71,10 +72,8 @@ class ImageDetailPlot():
         f = tkinter.Frame(master)
 
         # add the header text
-        tkinter.Label(f, text='Image Detail') \
+        tkinter.Label(f, text='Image Count Detail') \
                       .pack(side=tkinter.TOP)
-        tkinter.Label(f, text='Image: %s'%identified_data.image_filename) \
-                      .pack(side=tkinter.TOP, anchor="w")
         self.offset_label = tkinter.Label(f,
                                  text='Byte offset: not selected')
         self.offset_label.pack(side=tkinter.TOP, anchor="w")
@@ -88,7 +87,7 @@ class ImageDetailPlot():
         l.bind('<Any-Motion>', self._handle_mouse_drag)
         l.bind('<Button-1>', self._handle_mouse_click)
         l.bind('<Enter>', self._handle_mouse_drag)
-        #l.bind('<Leave>', self._handle_leave_window)
+        l.bind('<Leave>', self._handle_leave_window)
 
         # pack the frame
         f.pack(side=tkinter.LEFT, padx=8, pady=8)
@@ -105,7 +104,7 @@ class ImageDetailPlot():
 
         # clear current settings and data
         self._highlight_index = -1
-        self._selection_index = -1
+        self._set_selection_index(-1)
         self._data = []
         self._photo_image.put("gray", to=(0, 0, self.PLOT_SIZE, self.PLOT_SIZE))
 
@@ -162,7 +161,8 @@ class ImageDetailPlot():
             self._draw_cell(i)
             byte_offset = (i + self._first_block) * \
                           self._identified_data.block_size
-            self.offset_label['text'] = "Byte offset: %s" % byte_offset
+            self.offset_label['text'] = "Byte offset: " \
+                                                + offset_string(byte_offset)
         else:
             # clear to -1
             self.offset_label['text'] = "Byte offset: Not selected"
@@ -183,9 +183,9 @@ class ImageDetailPlot():
             self._image_detail_byte_offset_selection.set(
                   (i + self._first_block) * self._identified_data.block_size)
             self._draw_cell(i)
-            self.selected_offset_label['text'] = \
-                               "Selected byte offset: %s" % \
-                               self._image_detail_byte_offset_selection.get()
+            self.selected_offset_label['text'] = "Selected byte offset: " \
+                               + offset_string(
+                               self._image_detail_byte_offset_selection.get())
 
         else:
             # clear to -1
@@ -239,9 +239,16 @@ class ImageDetailPlot():
         self._set_highlight_index(i)
 
     def _handle_leave_window(self, e):
-        i = self._mouse_to_index(e)
-        print("LEAVE is currently suppressed",i)
+        # disregard incorrect leave event observed during click on Fedora
+        # with Xfce
+        if e.x >= 0 and e.x < self.PLOT_SIZE \
+                       and e.y >= 0 and e.y < self.PLOT_SIZE:
+            return
 
+        # handle leave
+        self._set_highlight_index(-1)
+
+ 
     def _handle_mouse_click(self, e):
         i = self._mouse_to_index(e)
         self._set_selection_index(i)

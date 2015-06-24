@@ -1,4 +1,5 @@
 import tkinter 
+from forensic_path import offset_string
 
 class ImageOverviewPlot():
     """Prints a banner and plots an image overview of matched blocks
@@ -22,6 +23,9 @@ class ImageOverviewPlot():
 
     # pixels per data point
     POINT_SIZE = 4
+
+    # plot size in pixels
+    PLOT_SIZE = MATRIX_ORDER * POINT_SIZE
 
     # light to dark blue
     _colors = ["#ffffff",
@@ -53,10 +57,9 @@ class ImageOverviewPlot():
         """
 
         # the photo_image
-        PLOT_SIZE = self.MATRIX_ORDER * self.POINT_SIZE
-        self._photo_image = tkinter.PhotoImage(
-                                         width=PLOT_SIZE, height=PLOT_SIZE)
-        self._photo_image.put("gray", to=(0, 0, PLOT_SIZE, PLOT_SIZE))
+        self._photo_image = tkinter.PhotoImage(width=self.PLOT_SIZE,
+                                               height=self.PLOT_SIZE)
+        self._photo_image.put("gray", to=(0, 0, self.PLOT_SIZE, self.PLOT_SIZE))
 
         # set general data and the image
         self._set_data(identified_data)
@@ -69,10 +72,8 @@ class ImageOverviewPlot():
         f = tkinter.Frame(master)
 
         # add the header text
-        tkinter.Label(f, text='Image Overview') \
+        tkinter.Label(f, text='Image Density Overview') \
                       .pack(side=tkinter.TOP)
-        tkinter.Label(f, text='Image: %s'%identified_data.image_filename) \
-                      .pack(side=tkinter.TOP, anchor="w")
         self.offset_label = tkinter.Label(f,
                                  text='Byte offset: not selected')
         self.offset_label.pack(side=tkinter.TOP, anchor="w")
@@ -86,7 +87,7 @@ class ImageOverviewPlot():
         l.bind('<Any-Motion>', self._handle_mouse_drag)
         l.bind('<Button-1>', self._handle_mouse_click)
         l.bind('<Enter>', self._handle_mouse_drag)
-        #l.bind('<Leave>', self._handle_leave_window)
+        l.bind('<Leave>', self._handle_leave_window)
 
         # pack the frame
         f.pack(side=tkinter.LEFT, padx=8, pady=8)
@@ -140,7 +141,8 @@ class ImageOverviewPlot():
             # use new selection
             self._draw_cell(i)
             byte_offset = int(i * self._blocks_per_index) * self._block_size
-            self.offset_label['text'] = "Byte offset: %s" % byte_offset
+            self.offset_label['text'] = "Byte offset: " + \
+                                                  offset_string(byte_offset)
         else:
             # clear to -1
             self.offset_label['text'] = "Byte offset: Not selected"
@@ -158,12 +160,11 @@ class ImageOverviewPlot():
         self._selection_index = i
         if i != -1:
             # new selection
-            self._image_overview_byte_offset_selection.set(int(
-                              i * self._blocks_per_index) * self._block_size)
+            offset = int(i * self._blocks_per_index) * self._block_size
+            self._image_overview_byte_offset_selection.set(offset)
             self._draw_cell(i)
             self.selected_offset_label['text'] = \
-                              "Selected byte offset: %s" % \
-                              self._image_overview_byte_offset_selection.get()
+                        "Selected byte offset: " + offset_string(offset)
 
         else:
             # clear to -1
@@ -217,8 +218,14 @@ class ImageOverviewPlot():
         self._set_highlight_index(i)
 
     def _handle_leave_window(self, e):
-        i = self._mouse_to_index(e)
-        print("LEAVE is currently suppressed",i)
+        # disregard incorrect leave event observed during click on Fedora
+        # with Xfce
+        if e.x >= 0 and e.x < self.PLOT_SIZE \
+                       and e.y >= 0 and e.y < self.PLOT_SIZE:
+            return
+
+        # handle leave
+        self._set_highlight_index(-1)
 
     def _handle_mouse_click(self, e):
         i = self._mouse_to_index(e)
