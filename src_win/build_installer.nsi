@@ -81,10 +81,17 @@ Section "${APPNAME}"
 	# link the uninstaller to the start menu
 	createShortCut "$SMPROGRAMS\${APPNAME}\Uninstall ${APPNAME}.lnk" "$INSTDIR\uninstall.exe"
 
-	# install
+	# install executables
         file "../python/be_scan.py"
         file "../python/block_match_viewer.py"
+
+        # install support code
+        file "../python/be_image_reader.py"
+        file "../python/forensic_path.py"
         file "../python/identified_data_reader.py"
+        file "../python/image_detail_plot.py"
+        file "../python/image_hex_view.py"
+        file "../python/image_overview_plot.py"
 
 sectionEnd
 
@@ -133,13 +140,19 @@ Function un.FailableDelete
 FunctionEnd
 
 section "uninstall"
-	# manage uninstalling these because they may be open
+	# manage uninstalling executables because they may be open
 	StrCpy $0 "$INSTDIR\be_scan.py"
 	Call un.FailableDelete
 	StrCpy $0 "$INSTDIR\block_match_viewer.py"
 	Call un.FailableDelete
-	StrCpy $0 "$INSTDIR\identified_data_reader.py"
-	Call un.FailableDelete
+
+        # uninstall support code
+        delete "$INSTDIR\be_image_reader.py"
+        delete "$INSTDIR\forensic_path.py"
+        delete "$INSTDIR\identified_data_reader.py"
+        delete "$INSTDIR\image_detail_plot.py"
+        delete "$INSTDIR\image_hex_view.py"
+        delete "$INSTDIR\image_overview_plot.py"
 
 	# uninstall Start Menu launcher shortcuts
 	delete "$SMPROGRAMS\${APPNAME}\uninstall ${APPNAME}.lnk"

@@ -1,7 +1,7 @@
 # Run this Makefile to build the Windows Installer to install the
 # block match Python scripts and to set PATH to find them.
 
-VERSION = 0.0.1
+VERSION = 0.0.2
 
 INSTALLER = block_match-$(VERSION)-windowsinstaller.exe
 
