@@ -118,9 +118,9 @@ class ImageDetailPlot():
                          self._identified_data.block_size)
 
         # last block number in range, which may be smaller than matrix
-        self._last_block = ((self._identified_data.image_size +
+        self._last_block = (((self._identified_data.image_size +
                             (self._identified_data.block_size - 1))
-                            // self._identified_data.block_size)
+                            // self._identified_data.block_size)) - 1
         if self._last_block >= self._first_block + self.MATRIX_ORDER**2:
             self._last_block = self._first_block + self.MATRIX_ORDER**2 - 1
 

@@ -48,7 +48,7 @@ class ImageHexView():
         scrollbar.pack(side=tkinter.RIGHT, fill=tkinter.Y)
 
         # add the label containing the plot image
-        self._hex_text = tkinter.Text(hex_frame, height=24, width=80, bd=0,
+        self._hex_text = tkinter.Text(hex_frame, height=24, width=88, bd=0,
                                 yscrollcommand=scrollbar.set)
         self._hex_text.pack()
 
@@ -82,7 +82,7 @@ class ImageHexView():
                                  "Image offset: " + offset_string(offset)
 
         # read page of image bytes starting at offset
-        PAGESIZE = 16385 # 2^14
+        PAGESIZE = 16384 # 2^14
         LINESIZE = 16
         buf = self._image_reader.read(offset, PAGESIZE)
 

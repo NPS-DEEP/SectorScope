@@ -14,6 +14,7 @@ from identified_data_reader import IdentifiedData
 from image_overview_plot import ImageOverviewPlot
 from image_detail_plot import ImageDetailPlot
 from image_hex_view import ImageHexView
+from forensic_path import offset_string
 
 def handle_mouse_click(e):
     print("e",e.x,e.y)
@@ -52,7 +53,10 @@ if __name__=="__main__":
     # the image and database labels at the top
     label_frame = tkinter.Frame(image_frame)
     tkinter.Label(label_frame,
-                  text='Image: %s'%identified_data.image_filename) \
+                  text='Image: %s' % identified_data.image_filename) \
+                      .pack(side=tkinter.TOP, anchor="w")
+    tkinter.Label(label_frame, text='Image size: %s ' %
+                      offset_string(identified_data.image_size)) \
                       .pack(side=tkinter.TOP, anchor="w")
     tkinter.Label(label_frame,
                   text='Database: %s'%identified_data.hashdb_dir) \
