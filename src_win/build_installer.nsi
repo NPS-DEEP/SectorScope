@@ -30,7 +30,7 @@ SetCompressor lzma
  
 RequestExecutionLevel admin
  
-InstallDir "$PROGRAMFILES\${APPNAME}"
+InstallDir "$PROGRAMFILES64\${APPNAME}"
  
 Name "${APPNAME}"
 	outFile "block_match-${VERSION}-windowsinstaller.exe"
