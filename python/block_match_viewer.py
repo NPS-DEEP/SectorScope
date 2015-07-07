@@ -43,7 +43,7 @@ if __name__=="__main__":
     root = tkinter.Tk()
     root.title("Block Match Viewer")
     root.minsize(width=400,height=300)
-    root.maxsize(width=START_WIDTH+20,height=START_HEIGHT+20)
+    root.maxsize(width=START_WIDTH+25,height=START_HEIGHT+25)
 
     # the tkinter action variables
     image_overview_byte_offset_selection = tkinter.IntVar()
