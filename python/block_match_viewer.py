@@ -11,6 +11,7 @@ import tkinter
 # local import
 #import identified_data_reader
 from identified_data_reader import IdentifiedData
+from scrolled_canvas import ScrolledCanvas
 from image_overview_plot import ImageOverviewPlot
 from image_detail_plot import ImageDetailPlot
 from image_hex_view import ImageHexView
@@ -36,17 +37,25 @@ if __name__=="__main__":
     # read relevant data
     identified_data = IdentifiedData(be_dir)
 
-    # show the plot
+    # initialize Tk, get tkinter.Tk class instance, set title
+    START_WIDTH = 660
+    START_HEIGHT = 800
     root = tkinter.Tk()
     root.title("Block Match Viewer")
+    root.minsize(width=400,height=300)
+    root.maxsize(width=START_WIDTH+20,height=START_HEIGHT+20)
 
-    # tkinter action variables
+    # the tkinter action variables
     image_overview_byte_offset_selection = tkinter.IntVar()
     image_detail_byte_offset_selection = tkinter.IntVar()
+    hide_nonprobative_blocks = tkinter.BooleanVar()
 
-    # layouts
+    # the top-level frame inside a scroll window
+    top_frame = ScrolledCanvas(root,
+             canvas_width=START_WIDTH, canvas_height=START_HEIGHT,
+             frame_width=START_WIDTH, frame_height=START_HEIGHT).scrolled_frame
 
-    image_frame = tkinter.Frame(root)
+    image_frame = top_frame
 
     # image_frame holds the density and detail plots above and hex view below
 
@@ -61,7 +70,8 @@ if __name__=="__main__":
     tkinter.Label(label_frame,
                   text='Database: %s'%identified_data.hashdb_dir) \
                       .pack(side=tkinter.TOP, anchor="w")
-    label_frame.pack(side=tkinter.TOP, padx=8, pady=8)
+    #label_frame.pack(side=tkinter.TOP, padx=8, pady=8)
+    label_frame.pack(side=tkinter.TOP)
 
     # the density and detail plots in the middle
     image_plot_frame = tkinter.Frame(image_frame)
@@ -78,8 +88,6 @@ if __name__=="__main__":
                                   identified_data.image_filename,
                                   image_detail_byte_offset_selection)
     image_hex_view_frame.pack()
-
-    image_frame.pack(side=tkinter.TOP)
 
     root.mainloop()
 

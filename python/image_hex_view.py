@@ -41,7 +41,8 @@ class ImageHexView():
         self.image_offset_label.pack(side=tkinter.TOP, anchor="w")
 
         # add the frame to contain the hex text and the scrollbar
-        hex_frame = tkinter.Frame(outer_frame, bd=2, relief=tkinter.SUNKEN)
+        #hex_frame = tkinter.Frame(outer_frame, bd=2, relief=tkinter.SUNKEN)
+        hex_frame = tkinter.Frame(outer_frame, bd=1, relief=tkinter.SUNKEN)
 
         # scrollbar
         scrollbar = tkinter.Scrollbar(hex_frame, bd=0)

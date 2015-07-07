@@ -23,7 +23,7 @@ class ImageDetailPlot():
     MATRIX_ORDER = 100
 
     # pixels per data point
-    POINT_SIZE = 4
+    POINT_SIZE = 3
 
     # plot size in pixels
     PLOT_SIZE = MATRIX_ORDER * POINT_SIZE
@@ -239,13 +239,6 @@ class ImageDetailPlot():
         self._set_highlight_index(i)
 
     def _handle_leave_window(self, e):
-        # disregard incorrect leave event observed during click on Fedora
-        # with Xfce
-        if e.x >= 0 and e.x < self.PLOT_SIZE \
-                       and e.y >= 0 and e.y < self.PLOT_SIZE:
-            return
-
-        # handle leave
         self._set_highlight_index(-1)
 
  
