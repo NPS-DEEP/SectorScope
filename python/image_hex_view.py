@@ -49,8 +49,11 @@ class ImageHexView():
         scrollbar.pack(side=tkinter.RIGHT, fill=tkinter.Y)
 
         # add the label containing the plot image
-        self._hex_text = tkinter.Text(hex_frame, height=24, width=88, bd=0,
-                                yscrollcommand=scrollbar.set)
+        HEX_TEXT_WIDTH=94  # 88 is good for Linux, 94 is good for Windows
+        HEX_TEXT_HEIGHT=24
+        self._hex_text = tkinter.Text(hex_frame, width=HEX_TEXT_WIDTH,
+                                      height=HEX_TEXT_HEIGHT, bd=0,
+                                      yscrollcommand=scrollbar.set)
         self._hex_text.pack()
 
         scrollbar.config(command=self._hex_text.yview)

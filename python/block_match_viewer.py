@@ -38,7 +38,7 @@ if __name__=="__main__":
     identified_data = IdentifiedData(be_dir)
 
     # initialize Tk, get tkinter.Tk class instance, set title
-    START_WIDTH = 660
+    START_WIDTH = 700
     START_HEIGHT = 800
     root = tkinter.Tk()
     root.title("Block Match Viewer")
