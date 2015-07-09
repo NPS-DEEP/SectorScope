@@ -41,7 +41,6 @@ class ScrolledCanvas():
         root_yscrollbar.config(command=_canvas.yview)
 
         self.scrolled_frame = tkinter.Frame(_canvas)
-        #self.scrolled_frame = tkinter.Frame(_canvas, background="blue")
 
         window_id = _canvas.create_window(0, 0,
                                 width=frame_width, height=frame_height,

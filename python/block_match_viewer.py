@@ -48,7 +48,7 @@ if __name__=="__main__":
     # the tkinter action variables
     image_overview_byte_offset_selection = tkinter.IntVar()
     image_detail_byte_offset_selection = tkinter.IntVar()
-    hide_nonprobative_blocks = tkinter.BooleanVar()
+    skip_flagged_blocks = tkinter.BooleanVar()
 
     # the top-level frame inside a scroll window
     top_frame = ScrolledCanvas(root,

@@ -1,7 +1,7 @@
 # Run this Makefile to build the block_match Windows Installer and
 # the .zip distribution.  Both are copied into the download directory.
 
-VERSION = 0.0.3
+VERSION = 0.0.4
 
 SOURCES = ../python/*.py
 
