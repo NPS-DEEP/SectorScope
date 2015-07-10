@@ -12,13 +12,11 @@ import tkinter
 #import identified_data_reader
 from identified_data_reader import IdentifiedData
 from scrolled_canvas import ScrolledCanvas
+from settings_view import SettingsView
 from image_overview_plot import ImageOverviewPlot
 from image_detail_plot import ImageDetailPlot
 from image_hex_view import ImageHexView
 from forensic_path import offset_string
-
-def handle_mouse_click(e):
-    print("e",e.x,e.y)
 
 # main
 if __name__=="__main__":
@@ -40,54 +38,56 @@ if __name__=="__main__":
     # initialize Tk, get tkinter.Tk class instance, set title
     START_WIDTH = 700
     START_HEIGHT = 800
-    root = tkinter.Tk()
-    root.title("Block Match Viewer")
-    root.minsize(width=400,height=300)
-    root.maxsize(width=START_WIDTH+25,height=START_HEIGHT+25)
+    root_window = tkinter.Tk()
+    root_window.title("Block Match Viewer")
+    root_window.minsize(width=400,height=300)
+    root_window.maxsize(width=START_WIDTH+25,height=START_HEIGHT+25)
 
-    # the tkinter action variables
-    image_overview_byte_offset_selection = tkinter.IntVar()
-    image_detail_byte_offset_selection = tkinter.IntVar()
-    skip_flagged_blocks = tkinter.BooleanVar()
+    # the tkinter action trace variables
+    image_overview_byte_offset_selection_trace_var = tkinter.IntVar()
+    image_detail_byte_offset_selection_trace_var = tkinter.IntVar()
+    max_hashes_trace_var = tkinter.IntVar()
+    skip_flagged_blocks_trace_var = tkinter.BooleanVar()
 
     # the top-level frame inside a scroll window
-    top_frame = ScrolledCanvas(root,
+    root_frame = ScrolledCanvas(root_window,
              canvas_width=START_WIDTH, canvas_height=START_HEIGHT,
              frame_width=START_WIDTH, frame_height=START_HEIGHT).scrolled_frame
 
-    image_frame = top_frame
-
     # image_frame holds the density and detail plots above and hex view below
+    image_frame = root_frame
 
-    # the image and database labels at the top
-    label_frame = tkinter.Frame(image_frame)
-    tkinter.Label(label_frame,
-                  text='Image: %s' % identified_data.image_filename) \
-                      .pack(side=tkinter.TOP, anchor="w")
-    tkinter.Label(label_frame, text='Image size: %s ' %
-                      offset_string(identified_data.image_size)) \
-                      .pack(side=tkinter.TOP, anchor="w")
-    tkinter.Label(label_frame,
-                  text='Database: %s'%identified_data.hashdb_dir) \
-                      .pack(side=tkinter.TOP, anchor="w")
-    #label_frame.pack(side=tkinter.TOP, padx=8, pady=8)
-    label_frame.pack(side=tkinter.TOP)
+    # the view settings and source data at the top
+    settings_view = SettingsView(image_frame, identified_data,
+                                 max_hashes_trace_var,
+                                 skip_flagged_blocks_trace_var)
+    settings_view.frame.pack(side=tkinter.TOP, padx=8, pady=8, anchor="w")
 
     # the density and detail plots in the middle
     image_plot_frame = tkinter.Frame(image_frame)
+    image_plot_frame.pack(side=tkinter.TOP, anchor="w")
+
     image_overview_plot = ImageOverviewPlot(image_plot_frame, identified_data, 
-                                    image_overview_byte_offset_selection)
+                             image_overview_byte_offset_selection_trace_var)
+    image_overview_plot.frame.pack(side=tkinter.LEFT, padx=8, pady=8)
+
     image_detail_plot = ImageDetailPlot(image_plot_frame, identified_data, 
-                                    image_overview_byte_offset_selection,
-                                    image_detail_byte_offset_selection)
-    image_plot_frame.pack(side=tkinter.TOP)
+                             image_overview_byte_offset_selection_trace_var,
+                             image_detail_byte_offset_selection_trace_var)
+    image_detail_plot.frame.pack(side=tkinter.LEFT, padx=8, pady=8)
 
     # the hex image view below
-    image_hex_view_frame = tkinter.Frame(image_frame)
-    image_hex_view = ImageHexView(image_hex_view_frame,
+    image_hex_view = ImageHexView(image_frame,
                                   identified_data.image_filename,
-                                  image_detail_byte_offset_selection)
-    image_hex_view_frame.pack()
+                                  image_detail_byte_offset_selection_trace_var)
+    image_hex_view.frame.pack(side=tkinter.LEFT, padx=8, pady=8)
 
-    root.mainloop()
+#    # the hex image view below
+#    image_hex_view_frame = tkinter.Frame(image_frame)
+#    image_hex_view = ImageHexView(image_hex_view_frame,
+#                                  identified_data.image_filename,
+#                                  image_detail_byte_offset_selection_trace_var)
+#    image_hex_view_frame.pack(side=tkinter.TOP, anchor="w")
+
+    root_window.mainloop()
 

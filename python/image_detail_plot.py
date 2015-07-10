@@ -3,20 +3,22 @@ from forensic_path import offset_string
 
 class ImageDetailPlot():
     """Prints a banner and plots an image detail of matched blocks
-    starting at an offset defined by _image_overview_byte_offset_selection
+    starting at an offset defined by
+    _image_overview_byte_offset_selection_trace_var.
 
     Plot points with less sources are shown darker than points with more
     sources.
 
-    Clicking on a plot point sets _image_detail_byte_offset_selection
+    Clicking on a plot point sets _image_detail_byte_offset_selection_trace_var.
 
     Attributes:
+      frame(Frame): the containing frame for this plot.
       _photo_image(PhotoImage): Exists solely to keep the image from being
         garbage collected.
-      _image_overview_byte_offset_selection(IntVar): Setting this alerts
-        listeners to the new selection.
-      _image_detail_byte_offset_selection(IntVar): Setting this alerts
-        listeners to the new selection.
+      _image_overview_byte_offset_selection_trace_var(IntVar): Setting this
+        alerts listeners to the new selection.
+      _image_detail_byte_offset_selection_trace_var(IntVar): Setting this
+        alerts listeners to the new selection.
     """
 
     # order of the 2D square matrix
@@ -44,15 +46,15 @@ class ImageDetailPlot():
     _data = []
 
     def __init__(self, master, identified_data,
-                 image_overview_byte_offset_selection,
-                 image_detail_byte_offset_selection):
+                 image_overview_byte_offset_selection_trace_var,
+                 image_detail_byte_offset_selection_trace_var):
         """Args:
           master(a UI container): Parent.
           identified_data(IdentifiedData): Identified data about the scan.
-          image_overview_byte_offset_selection(IntVar): the byte offset
-            selected in the image overview plot
-          image_detail_byte_offset_selection(IntVar): the byte offset
-            selected in the image detail plot
+          image_overview_byte_offset_selection_trace_var(IntVar): the
+            byte offset selected in the image overview plot
+          image_detail_byte_offset_selection_trace_var(IntVar): the byte
+            offset selected in the image detail plot
         """
 
         # a reference to the identified data
@@ -63,40 +65,38 @@ class ImageDetailPlot():
                                  width=self.PLOT_SIZE, height=self.PLOT_SIZE)
 
         # the selection variables
-        self._image_overview_byte_offset_selection = \
-                                     image_overview_byte_offset_selection
-        self._image_detail_byte_offset_selection = \
-                                     image_detail_byte_offset_selection
+        self._image_overview_byte_offset_selection_trace_var = \
+                               image_overview_byte_offset_selection_trace_var
+        self._image_detail_byte_offset_selection_trace_var = \
+                               image_detail_byte_offset_selection_trace_var
 
         # make the containing frame
-        f = tkinter.Frame(master)
+        self.frame = tkinter.Frame(master)
 
         # add the header text
-        tkinter.Label(f, text='Image Count Detail') \
+        tkinter.Label(self.frame, text='Image Count Detail') \
                       .pack(side=tkinter.TOP)
-        self.offset_label = tkinter.Label(f,
+        self.offset_label = tkinter.Label(self.frame,
                                  text='Byte offset: not selected')
         self.offset_label.pack(side=tkinter.TOP, anchor="w")
-        self.selected_offset_label = tkinter.Label(f,
+        self.selected_offset_label = tkinter.Label(self.frame,
                                  text='Selected byte offset: not selected')
         self.selected_offset_label.pack(side=tkinter.TOP, anchor="w")
 
         # add the label containing the plot image
-        l = tkinter.Label(f, image=self._photo_image, relief=tkinter.SUNKEN)
+        l = tkinter.Label(self.frame, image=self._photo_image,
+                          relief=tkinter.SUNKEN)
         l.pack(side=tkinter.TOP)
         l.bind('<Any-Motion>', self._handle_mouse_drag)
         l.bind('<Button-1>', self._handle_mouse_click)
         l.bind('<Enter>', self._handle_mouse_drag)
         l.bind('<Leave>', self._handle_leave_window)
 
-        # pack the frame
-        f.pack(side=tkinter.LEFT, padx=8, pady=8)
-
-        # listen to changes in _image_overview_byte_offset_selection
-        self._image_overview_byte_offset_selection = \
-                                   image_overview_byte_offset_selection
-        image_overview_byte_offset_selection.trace_variable('w', self._set_data)
-
+        # listen to changes in _image_overview_byte_offset_selection_trace_var
+        self._image_overview_byte_offset_selection_trace_var = \
+                             image_overview_byte_offset_selection_trace_var
+        image_overview_byte_offset_selection_trace_var.trace_variable(
+                                                       'w', self._set_data)
 
     # set variables and the image based on identified_data
     def _set_data(self, *args):
@@ -109,13 +109,13 @@ class ImageDetailPlot():
         self._photo_image.put("gray", to=(0, 0, self.PLOT_SIZE, self.PLOT_SIZE))
 
         # value is -1 when not in use
-        if self._image_overview_byte_offset_selection.get() == -1:
+        if self._image_overview_byte_offset_selection_trace_var.get() == -1:
             return
 
         # starting block number in range
         self._first_block = int(
-                         self._image_overview_byte_offset_selection.get() /
-                         self._identified_data.block_size)
+                 self._image_overview_byte_offset_selection_trace_var.get() /
+                 self._identified_data.block_size)
 
         # last block number in range, which may be smaller than matrix
         self._last_block = (((self._identified_data.image_size +
@@ -180,16 +180,16 @@ class ImageDetailPlot():
         self._selection_index = i
         if i != -1:
             # new selection
-            self._image_detail_byte_offset_selection.set(
+            self._image_detail_byte_offset_selection_trace_var.set(
                   (i + self._first_block) * self._identified_data.block_size)
             self._draw_cell(i)
             self.selected_offset_label['text'] = "Selected byte offset: " \
-                               + offset_string(
-                               self._image_detail_byte_offset_selection.get())
+                    + offset_string(
+                    self._image_detail_byte_offset_selection_trace_var.get())
 
         else:
             # clear to -1
-            self._image_detail_byte_offset_selection.set(-1)
+            self._image_detail_byte_offset_selection_trace_var.set(-1)
             self.selected_offset_label['text'] = \
                                      "Selected byte offset: Not selected"
 

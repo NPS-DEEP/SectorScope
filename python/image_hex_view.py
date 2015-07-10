@@ -7,7 +7,8 @@ class ImageHexView():
     media image.
 
     Attributes:
-      _image_filename (string): The media image whose bytes are being read
+      frame(Frame): the containing frame for this view.
+       _image_filename (string): The media image whose bytes are being read
         and viewed.
       _image_detail_byte_offset_selection (IntVar): This variable has the
         currently selected image offset.
@@ -31,18 +32,39 @@ class ImageHexView():
         self._image_reader = BEImageReader(image_filename)
 
         # make the containing frame
-        outer_frame = tkinter.Frame(master)
+        self.frame = tkinter.Frame(master)
 
         # add the header text
-        tkinter.Label(outer_frame, text='Image Hex View') \
+        tkinter.Label(self.frame, text='Image Hex View') \
                       .pack(side=tkinter.TOP)
-        self.image_offset_label = tkinter.Label(outer_frame,
+        self.image_offset_label = tkinter.Label(self.frame,
                                  text='Image offset: not selected')
         self.image_offset_label.pack(side=tkinter.TOP, anchor="w")
 
+        # add the line for the block MD5 frame containing several parts
+        md5_frame = tkinter.Frame(self.frame)
+        md5_frame.pack(side=tkinter.TOP, anchor="w")
+
+        # md5_frame "block hash" text
+        tkinter.Label(md5_frame, text='Block Hash:').pack(side=tkinter.LEFT,
+                                                          anchor="w")
+
+        # md5_frame block hash value
+        md5_entry = tkinter.Entry(md5_frame, width=40, state="readonly")
+        md5_entry.pack(side=tkinter.LEFT)
+
+        # md5_frame "Remove" button
+        remove_button = tkinter.Button(md5_frame, text="Remove",
+                                       command=self._handle_remove_hash)
+        remove_button.pack(side=tkinter.LEFT, padx=16, pady=4)
+
+        # md5_frame "..." detail button
+        detail_button = tkinter.Button(md5_frame, text="...",
+                                       command=self._handle_hash_detail)
+        detail_button.pack(side=tkinter.LEFT, pady=4)
+
         # add the frame to contain the hex text and the scrollbar
-        #hex_frame = tkinter.Frame(outer_frame, bd=2, relief=tkinter.SUNKEN)
-        hex_frame = tkinter.Frame(outer_frame, bd=1, relief=tkinter.SUNKEN)
+        hex_frame = tkinter.Frame(self.frame, bd=1, relief=tkinter.SUNKEN)
 
         # scrollbar
         scrollbar = tkinter.Scrollbar(hex_frame, bd=0)
@@ -59,12 +81,8 @@ class ImageHexView():
         scrollbar.config(command=self._hex_text.yview)
         hex_frame.pack()
 
-        # pack the outer frame
-        outer_frame.pack(side=tkinter.LEFT, padx=8, pady=8)
-
         # listen to changes in _image_detail_byte_offset_selection
         image_detail_byte_offset_selection.trace_variable('w', self._set_data)
-
 
     # set variables and the image based on identified_data
     def _set_data(self, *args):
@@ -129,3 +147,10 @@ class ImageHexView():
             # add this composed line
             self._hex_text.insert(tkinter.END, line)
 
+    def _handle_remove_hash(self):
+        # TBD
+        print("handle_remove_hash, TBD")
+
+    def _handle_hash_detail(self):
+        # TBD
+        print("handle_hash_detail, TBD")

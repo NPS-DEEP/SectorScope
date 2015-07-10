@@ -12,10 +12,11 @@ class ImageOverviewPlot():
     provided.
 
     Attributes:
+      frame(Frame): the containing frame for this plot.
       _photo_image(PhotoImage): Exists solely to keep the image from being
         garbage collected.
-      _image_overview_byte_offset_selection(IntVar): Setting this alerts
-        listeners to the new selection.
+      _image_overview_byte_offset_selection_trace_var(IntVar): Setting this
+        alerts listeners to the new selection.
     """
 
     # order of the 2D square matrix
@@ -48,11 +49,11 @@ class ImageOverviewPlot():
     _selection_index = -1
 
     def __init__(self, master, identified_data,
-                 image_overview_byte_offset_selection):
+                 image_overview_byte_offset_selection_trace_var):
         """Args:
           master(a UI container): Parent.
           identified_data(IdentifiedData): Identified data about the scan.
-          image_overview_byte_offset_selection(IntVar): Variable to
+          image_overview_byte_offset_selection_trace_var(IntVar): Variable to
             communicate the image byte offset selected upon mouse click.
         """
 
@@ -65,32 +66,30 @@ class ImageOverviewPlot():
         self._set_data(identified_data)
 
         # define the selection variable
-        self._image_overview_byte_offset_selection = \
-                                        image_overview_byte_offset_selection
+        self._image_overview_byte_offset_selection_trace_var = \
+                              image_overview_byte_offset_selection_trace_var
 
         # make the containing frame
-        f = tkinter.Frame(master)
+        self.frame = tkinter.Frame(master)
 
         # add the header text
-        tkinter.Label(f, text='Image Density Overview') \
+        tkinter.Label(self.frame, text='Image Density Overview') \
                       .pack(side=tkinter.TOP)
-        self.offset_label = tkinter.Label(f,
+        self.offset_label = tkinter.Label(self.frame,
                                  text='Byte offset: not selected')
         self.offset_label.pack(side=tkinter.TOP, anchor="w")
-        self.selected_offset_label = tkinter.Label(f,
+        self.selected_offset_label = tkinter.Label(self.frame,
                                  text='Selected byte offset: not selected')
         self.selected_offset_label.pack(side=tkinter.TOP, anchor="w")
 
         # add the label containing the overview plot image
-        l = tkinter.Label(f, image=self._photo_image, relief=tkinter.SUNKEN)
+        l = tkinter.Label(self.frame, image=self._photo_image,
+                          relief=tkinter.SUNKEN)
         l.pack(side=tkinter.TOP)
         l.bind('<Any-Motion>', self._handle_mouse_drag)
         l.bind('<Button-1>', self._handle_mouse_click)
         l.bind('<Enter>', self._handle_mouse_drag)
         l.bind('<Leave>', self._handle_leave_window)
-
-        # pack the frame
-        f.pack(side=tkinter.LEFT, padx=8, pady=8)
 
     # set variables and the image based on identified_data
     def _set_data(self, identified_data):
@@ -161,14 +160,14 @@ class ImageOverviewPlot():
         if i != -1:
             # new selection
             offset = int(i * self._blocks_per_index) * self._block_size
-            self._image_overview_byte_offset_selection.set(offset)
+            self._image_overview_byte_offset_selection_trace_var.set(offset)
             self._draw_cell(i)
             self.selected_offset_label['text'] = \
                         "Selected byte offset: " + offset_string(offset)
 
         else:
             # clear to -1
-            self._image_overview_byte_offset_selection.set(-1)
+            self._image_overview_byte_offset_selection_trace_var.set(-1)
             self.selected_offset_label['text'] = \
                                      "Selected byte offset: Not selected"
 
