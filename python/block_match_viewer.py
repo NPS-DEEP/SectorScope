@@ -16,6 +16,7 @@ from settings_view import SettingsView
 from image_overview_plot import ImageOverviewPlot
 from image_detail_plot import ImageDetailPlot
 from image_hex_view import ImageHexView
+from sources_view import SourcesView
 from forensic_path import offset_string
 
 # main
@@ -36,7 +37,7 @@ if __name__=="__main__":
     identified_data = IdentifiedData(be_dir)
 
     # initialize Tk, get tkinter.Tk class instance, set title
-    START_WIDTH = 700
+    START_WIDTH = 1000
     START_HEIGHT = 800
     root_window = tkinter.Tk()
     root_window.title("Block Match Viewer")
@@ -54,8 +55,9 @@ if __name__=="__main__":
              canvas_width=START_WIDTH, canvas_height=START_HEIGHT,
              frame_width=START_WIDTH, frame_height=START_HEIGHT).scrolled_frame
 
-    # image_frame holds the density and detail plots above and hex view below
-    image_frame = root_frame
+    # root_frame.image_frame holds media image windows on the left
+    image_frame = tkinter.Frame(root_frame)
+    image_frame.pack(side=tkinter.LEFT, anchor="n")
 
     # the view settings and source data at the top
     settings_view = SettingsView(image_frame, identified_data,
@@ -79,15 +81,13 @@ if __name__=="__main__":
     # the hex image view below
     image_hex_view = ImageHexView(image_frame,
                                   identified_data.image_filename,
+                                  identified_data.block_size,
                                   image_detail_byte_offset_selection_trace_var)
-    image_hex_view.frame.pack(side=tkinter.LEFT, padx=8, pady=8)
+    image_hex_view.frame.pack(side=tkinter.LEFT, padx=8, pady=8, anchor="w")
 
-#    # the hex image view below
-#    image_hex_view_frame = tkinter.Frame(image_frame)
-#    image_hex_view = ImageHexView(image_hex_view_frame,
-#                                  identified_data.image_filename,
-#                                  image_detail_byte_offset_selection_trace_var)
-#    image_hex_view_frame.pack(side=tkinter.TOP, anchor="w")
+    # root_frame.source_frame holds source views on the right
+    sources_view = SourcesView(root_frame, identified_data)
+    sources_view.frame.pack(side=tkinter.LEFT, padx=8, pady=8, anchor="n")
 
     root_window.mainloop()
 
