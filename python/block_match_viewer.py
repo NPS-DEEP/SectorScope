@@ -1,6 +1,13 @@
 #!/usr/bin/env python3
 # view block hashes
 
+"""Note that the image_detail_plot view is currently hardcoded to require
+a sector size of 512 bytes, see image_detail_plot.py.  This is hardcoded
+because bulk_extractor does not support placing this information into
+identified_blocks.txt and because smaller sector sizes may prevent the
+ability to display all blocks.
+"""
+
 from argparse import ArgumentParser
 import math
 import xml.dom.minidom

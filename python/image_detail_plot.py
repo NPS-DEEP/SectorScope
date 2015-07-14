@@ -112,30 +112,30 @@ class ImageDetailPlot():
         if self._image_overview_byte_offset_selection_trace_var.get() == -1:
             return
 
-        # starting block number in range
-        self._first_block = int(
+        # starting sector number in range
+        self._first_sector = int(
                  self._image_overview_byte_offset_selection_trace_var.get() /
-                 self._identified_data.block_size)
+                 self._identified_data.sector_size)
 
-        # last block number in range, which may be smaller than matrix
-        self._last_block = (((self._identified_data.image_size +
-                            (self._identified_data.block_size - 1))
-                            // self._identified_data.block_size)) - 1
-        if self._last_block >= self._first_block + self.MATRIX_ORDER**2:
-            self._last_block = self._first_block + self.MATRIX_ORDER**2 - 1
+        # last sector number in range, likely smaller than the matrix
+        self._last_sector = (((self._identified_data.image_size +
+                             (self._identified_data.sector_size - 1))
+                             // self._identified_data.sector_size)) - 1
+        if self._last_sector >= self._first_sector + self.MATRIX_ORDER**2:
+            self._last_sector = self._first_sector + self.MATRIX_ORDER**2 - 1
 
         # allocate sized data array
-        self._data = [0] * (self._last_block + 1 - self._first_block)
+        self._data = [0] * (self._last_sector + 1 - self._first_sector)
 
         # set data points
         for key in self._identified_data.forensic_paths:
-            block = int(key) // self._identified_data.block_size
-            if block < self._first_block or block > self._last_block:
+            sector = int(key) // self._identified_data.sector_size
+            if sector < self._first_sector or sector > self._last_sector:
                 # out of range
                 continue
 
             # set data subscript to count clipped at lightest color used
-            subscript = block - self._first_block
+            subscript = sector - self._first_sector
             count = len(self._identified_data.forensic_paths[key])
             if count > 14:
                 count = 14
@@ -159,8 +159,8 @@ class ImageDetailPlot():
         if i != -1:
             # use new selection
             self._draw_cell(i)
-            byte_offset = (i + self._first_block) * \
-                          self._identified_data.block_size
+            byte_offset = (i + self._first_sector) * \
+                          self._identified_data.sector_size
             self.offset_label['text'] = "Byte offset: " \
                                                 + offset_string(byte_offset)
         else:
@@ -181,7 +181,7 @@ class ImageDetailPlot():
         if i != -1:
             # new selection
             self._image_detail_byte_offset_selection_trace_var.set(
-                  (i + self._first_block) * self._identified_data.block_size)
+                  (i + self._first_sector) * self._identified_data.sector_size)
             self._draw_cell(i)
             self.selected_offset_label['text'] = "Selected byte offset: " \
                     + offset_string(

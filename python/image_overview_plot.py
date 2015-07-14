@@ -98,29 +98,29 @@ class ImageOverviewPlot():
             the scan.
         """
 
-        # block size
-        self._block_size = identified_data.block_size
+        # sector size
+        self._sector_size = identified_data.sector_size
 
-        # total blocks
-        self._total_blocks = (
-              (identified_data.image_size + (identified_data.block_size - 1))
-              // identified_data.block_size)
+        # total sectors
+        self._total_sectors = (
+              (identified_data.image_size + (identified_data.sector_size - 1))
+              // identified_data.sector_size)
 
-        # blocks per index
-        self._blocks_per_index = self._total_blocks / self.MATRIX_ORDER**2
-        if self._blocks_per_index < 1.0:
-            self._blocks_per_index = 1.0
+        # sectors per index
+        self._sectors_per_index = self._total_sectors / self.MATRIX_ORDER**2
+        if self._sectors_per_index < 1.0:
+            self._sectors_per_index = 1.0
 
         # set data points
         for key in identified_data.forensic_paths:
-            block = int(key) // identified_data.block_size
-            subscript = int(block // self._blocks_per_index)
+            sector = int(key) // identified_data.sector_size
+            subscript = int(sector // self._sectors_per_index)
             if self._data[subscript] < 12:
                 self._data[subscript] += 1
 
         # plot the data points
         for i in range(self.MATRIX_ORDER**2):
-            if i * self._blocks_per_index > self._total_blocks:
+            if i * self._sectors_per_index > self._total_sectors:
                 # index reached end of image
                 break
             self._draw_cell(i)
@@ -139,7 +139,7 @@ class ImageOverviewPlot():
         if i != -1:
             # use new selection
             self._draw_cell(i)
-            byte_offset = int(i * self._blocks_per_index) * self._block_size
+            byte_offset = int(i * self._sectors_per_index) * self._sector_size
             self.offset_label['text'] = "Byte offset: " + \
                                                   offset_string(byte_offset)
         else:
@@ -159,7 +159,7 @@ class ImageOverviewPlot():
         self._selection_index = i
         if i != -1:
             # new selection
-            offset = int(i * self._blocks_per_index) * self._block_size
+            offset = int(i * self._sectors_per_index) * self._sector_size
             self._image_overview_byte_offset_selection_trace_var.set(offset)
             self._draw_cell(i)
             self.selected_offset_label['text'] = \
@@ -206,7 +206,7 @@ class ImageOverviewPlot():
         i = x + y * self.MATRIX_ORDER
 
         # set index to -1 if outside of image range
-        if i * self._blocks_per_index > self._total_blocks:
+        if i * self._sectors_per_index > self._total_sectors:
             i = -1
 
         # return validated index

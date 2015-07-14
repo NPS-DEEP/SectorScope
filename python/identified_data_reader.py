@@ -17,6 +17,9 @@ class IdentifiedData():
       image_filename (str): Full path of the media image filename.
       hashdb_dir (str): Full path to the hash database directory.
       block_size (int): Block size used by the hashdb database.
+      sector_size (int): Sector size used by the hashdb database,
+        hardcoded to 512 since it is not available in identified_blocks.txt
+        and 512 is currently always the expected value.
       forensic_paths (dict<forensic path str,
                       array<(source ID int, source byte offset int)>>):
         Dictionary where keys are forensic paths and values are arrays
@@ -58,6 +61,9 @@ class IdentifiedData():
         hashdb_settings_dict = self._read_settings_file(
                                 os.path.join(self.hashdb_dir,"settings.xml"))
         self.block_size = hashdb_settings_dict["block_size"]
+
+        # set sector size, currently hardcoded
+        self.sector_size = 512
 
         # establish the path to the identified blocks expanded file
         self._identified_blocks_expanded_file = os.path.join(
