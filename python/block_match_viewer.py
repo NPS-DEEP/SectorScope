@@ -1,13 +1,6 @@
 #!/usr/bin/env python3
 # view block hashes
 
-"""Note that the image_detail_plot view is currently hardcoded to require
-a sector size of 512 bytes, see image_detail_plot.py.  This is hardcoded
-because bulk_extractor does not support placing this information into
-identified_blocks.txt and because smaller sector sizes may prevent the
-ability to display all blocks.
-"""
-
 from argparse import ArgumentParser
 import math
 import xml.dom.minidom
@@ -18,10 +11,10 @@ import tkinter
 # local import
 #import identified_data_reader
 from identified_data_reader import IdentifiedData
+from data_preferences import DataPreferences
 from scrolled_canvas import ScrolledCanvas
 from settings_view import SettingsView
-from image_overview_plot import ImageOverviewPlot
-from image_detail_plot import ImageDetailPlot
+from hash_zoom_bar import HashZoomBar
 from image_hex_view import ImageHexView
 from sources_view import SourcesView
 from forensic_path import offset_string
@@ -42,6 +35,7 @@ if __name__=="__main__":
 
     # read relevant data
     identified_data = IdentifiedData(be_dir)
+    data_preferences = DataPreferences()
 
     # initialize Tk, get tkinter.Tk class instance, set title
     START_WIDTH = 1000
@@ -72,18 +66,9 @@ if __name__=="__main__":
                                  skip_flagged_blocks_trace_var)
     settings_view.frame.pack(side=tkinter.TOP, padx=8, pady=8, anchor="w")
 
-    # the density and detail plots in the middle
-    image_plot_frame = tkinter.Frame(image_frame)
-    image_plot_frame.pack(side=tkinter.TOP, anchor="w")
-
-    image_overview_plot = ImageOverviewPlot(image_plot_frame, identified_data, 
-                             image_overview_byte_offset_selection_trace_var)
-    image_overview_plot.frame.pack(side=tkinter.LEFT, padx=8, pady=8)
-
-    image_detail_plot = ImageDetailPlot(image_plot_frame, identified_data, 
-                             image_overview_byte_offset_selection_trace_var,
-                             image_detail_byte_offset_selection_trace_var)
-    image_detail_plot.frame.pack(side=tkinter.LEFT, padx=8, pady=8)
+    # the hash zoom bar in the middle
+    hash_zoom_bar = HashZoomBar(image_frame, identified_data, data_preferences)
+    hash_zoom_bar.frame.pack(side=tkinter.TOP, padx=8, pady=8, anchor="w")
 
     # the hex image view below
     image_hex_view = ImageHexView(image_frame,
