@@ -46,10 +46,9 @@ if __name__=="__main__":
     root_window.maxsize(width=START_WIDTH+25,height=START_HEIGHT+25)
 
     # the tkinter action trace variables
-    image_overview_byte_offset_selection_trace_var = tkinter.IntVar()
-    image_detail_byte_offset_selection_trace_var = tkinter.IntVar()
     max_hashes_trace_var = tkinter.IntVar()
     skip_flagged_blocks_trace_var = tkinter.BooleanVar()
+    byte_offset_selection_trace_var = tkinter.IntVar()
 
     # the top-level frame inside a scroll window
     root_frame = ScrolledCanvas(root_window,
@@ -67,14 +66,15 @@ if __name__=="__main__":
     settings_view.frame.pack(side=tkinter.TOP, padx=8, pady=8, anchor="w")
 
     # the hash zoom bar in the middle
-    hash_zoom_bar = HashZoomBar(image_frame, identified_data, data_preferences)
+    hash_zoom_bar = HashZoomBar(image_frame, identified_data, data_preferences,
+                                byte_offset_selection_trace_var)
     hash_zoom_bar.frame.pack(side=tkinter.TOP, padx=8, pady=8, anchor="w")
 
     # the hex image view below
     image_hex_view = ImageHexView(image_frame,
                                   identified_data.image_filename,
                                   identified_data.block_size,
-                                  image_detail_byte_offset_selection_trace_var)
+                                  byte_offset_selection_trace_var)
     image_hex_view.frame.pack(side=tkinter.LEFT, padx=8, pady=8, anchor="w")
 
     # root_frame.source_frame holds source views on the right
