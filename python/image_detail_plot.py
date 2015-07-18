@@ -237,6 +237,7 @@ class ImageDetailPlot():
     def _handle_mouse_drag(self, e):
         i = self._mouse_to_index(e)
         self._set_highlight_index(i)
+        print(e.x)
 
     def _handle_leave_window(self, e):
         self._set_highlight_index(-1)
