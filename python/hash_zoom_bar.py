@@ -2,7 +2,7 @@ import tkinter
 from forensic_path import offset_string
 
 class HashZoomBar():
-    """Renders the zoom bar widget based on data, settings, and zoom.
+    """Renders the zoom bar widget based on data, filter values, and zoom.
 
     See http://almende.github.io/chap-links-library/js/timeline/examples/example28_custom_controls.html
     for an example of zoom and move behavior.
@@ -12,8 +12,8 @@ class HashZoomBar():
       _photo_image(PhotoImage): The image on which the plot is rendered.
       _byte_offset_selection_trace_var(IntVar): Setting this alerts
         listeners to the new selection.
-      _hash_counts(dict of <hash, (count, non_probative_count)>): count
-        and calculated non-probative count for each hash.
+      _hash_counts(dict of <hash, (count, filter_count)>): count
+        and calculated filter count for each hash.
     """
 
     # number of buckets across the zoom bar
@@ -24,7 +24,7 @@ class HashZoomBar():
 
     # zoom bar size in pixels
     ZOOM_BAR_WIDTH = NUM_BUCKETS * BUCKET_WIDTH
-    ZOOM_BAR_HEIGHT = 260
+    ZOOM_BAR_HEIGHT = 261 # make divisible by 3 for 3 even bar rows
 
     # cursor byte offset
     _is_valid_cursor = False
@@ -34,25 +34,19 @@ class HashZoomBar():
     _is_valid_selection = False
     _selection_offset = -1 # so it won't initially show
 
-    def __init__(self, master, identified_data,
-                 skipped_sources, skipped_hashes, max_count,
+    def __init__(self, master, identified_data, filters,
                  byte_offset_selection_trace_var):
         """Args:
           master(a UI container): Parent.
           identified_data(IdentifiedData): Identified data about the scan.
-          skipped_sources: List of sources to treate as non-probative.
-          skipped_hashes: List of hashes to treat as non-probative.
-          max_count(int): Max count of duplicates before considering
-            hash as non-probative.
+          filters(Filters): Filters that impact the view.
           byte_offset_selection_trace_var(tkinter Var): Variable to
             communicate selection change.
         """
 
         # data variables
         self._identified_data = identified_data
-        self._skipped_sources = skipped_sources
-        self._skipped_hashes = skipped_hashes
-        self._max_count = max_count
+        self._filters = filters
         self._byte_offset_selection_trace_var = byte_offset_selection_trace_var
 
         # data constants
@@ -87,10 +81,10 @@ class HashZoomBar():
         f.pack(side=tkinter.TOP)
         tkinter.Label(f,text="   ",background="#000066").pack(side=tkinter.LEFT)
         tkinter.Label(f,text="All matches      ").pack(side=tkinter.LEFT)
-        tkinter.Label(f,text="   ",background="#004400").pack(side=tkinter.LEFT)
-        tkinter.Label(f,text="Non-probative matches      ").pack(side=tkinter.LEFT)
         tkinter.Label(f,text="   ",background="#660000").pack(side=tkinter.LEFT)
-        tkinter.Label(f,text="Remainder      ").pack(side=tkinter.LEFT)
+        tkinter.Label(f,text="Filtered matches removed      ").pack(side=tkinter.LEFT)
+        tkinter.Label(f,text="   ",background="#004400").pack(side=tkinter.LEFT)
+        tkinter.Label(f,text="Filtered matches only").pack(side=tkinter.LEFT)
 
         # add the byte offset label
         self._byte_offset_label = tkinter.Label(self.frame)
@@ -128,55 +122,72 @@ class HashZoomBar():
         l.bind("<Button-4>", self._handle_mouse_wheel)
         l.bind("<Button-5>", self._handle_mouse_wheel)
 
+        # bind filter change events
+        filters.set_callback(self._handle_filter_change)
+
+        self._calculate_hash_counts()
+        self._calculate_bucket_data()
+        self._draw()
+
+    # this function is registered to and called by Filters
+    def _handle_filter_change(self, *args):
         self._calculate_hash_counts()
         self._calculate_bucket_data()
         self._draw()
 
     def _calculate_hash_counts(self):
+
+        # optimization: make local references to filter variables
+        max_hashes = self._filters.max_hashes
+        filter_flagged_blocks = self._filters.filter_flagged_blocks
+        skipped_sources = self._filters.skipped_sources
+        skipped_hashes = self._filters.skipped_hashes
+
         # calculate _hash_counts based on identified data
-        # _hash_counts is dict<hash, (count, non_probative_count)>
+        # _hash_counts is dict<hash, (count, filter_count)>
         self._hash_counts = dict()
         for block_hash, sources in self._identified_data.hashes.items():
             count = len(sources)
-            non_probative_count = 0
+            filter_count = 0
 
-            # determine non_probative_count
+            # determine filter_count
 
-            # exceeds max_count
-            if self._max_count != 0 and count > self._max_count:
-                non_probative_count = count
+            # count exceeds max_hashes
+            if max_hashes != 0 and count > max_hashes:
+                filter_count = count
                 continue
 
             # hash is marked
-            if block_hash in self._skipped_hashes:
-                non_probative_count = count
+            if block_hash in skipped_hashes:
+                filter_count = count
                 continue
 
-            # a source is marked
+            # a source is flagged or a source is marked
             for source in sources:
-                if "label" in source:
+                if filter_flagged_blocks and "label" in source:
                     # source has a label flag
-                    non_probative_count += 1
+                    filter_count += 1
                     continue
-                if source["source_id"] in self._skipped_sources:
+                if source["source_id"] in skipped_sources:
                     print("zzzzzzz needs to happen")
                     # source is to be skipped
-                    non_probative_count += 1
+                    filter_count += 1
                     continue
 
-            # set the count and non_probative_count for the hash
-            self._hash_counts[block_hash] = (count, non_probative_count)
+            # set the count and filter_count for the hash
+            self._hash_counts[block_hash] = (count, filter_count)
         
 
     def _calculate_bucket_data(self):
-        # buckets for hashes per bucket, sources per bucket,
-        # and buckets for non-probative and the potentially probative remainder
+        """Buckets show hashes per bucket and sources per bucket.  Bucket
+        types show all, filter removed, and filter only matches.
+        """
         self._hash_buckets = [0] * (self.NUM_BUCKETS)
         self._source_buckets = [0] * (self.NUM_BUCKETS)
-        self._non_probative_hash_buckets = [0] * (self.NUM_BUCKETS)
-        self._non_probative_source_buckets = [0] * (self.NUM_BUCKETS)
-        self._remainder_hash_buckets = [0] * (self.NUM_BUCKETS)
-        self._remainder_source_buckets = [0] * (self.NUM_BUCKETS)
+        self._filter_removed_hash_buckets = [0] * (self.NUM_BUCKETS)
+        self._filter_removed_source_buckets = [0] * (self.NUM_BUCKETS)
+        self._filter_only_hash_buckets = [0] * (self.NUM_BUCKETS)
+        self._filter_only_source_buckets = [0] * (self.NUM_BUCKETS)
 
         # calculate the histogram
         for forensic_path, block_hash in \
@@ -192,18 +203,16 @@ class HashZoomBar():
             bucket = int(bucket)
 
             # set values for buckets
-            count, non_probative_count = self._hash_counts[block_hash]
+            count, filter_count = self._hash_counts[block_hash]
 
             self._hash_buckets[bucket] += 1
             self._source_buckets[bucket] += count
-            if non_probative_count > 0:
-                self._non_probative_hash_buckets[bucket] += 1
-                self._non_probative_source_buckets[bucket] += \
-                                                        non_probative_count
+            if filter_count > 0:
+                self._filter_removed_hash_buckets[bucket] += 1
+                self._filter_removed_source_buckets[bucket] += filter_count
             else:
-                self._remainder_hash_buckets[bucket] += 1
-                self._remainder_source_buckets[bucket] += \
-                                                        non_probative_count
+                self._filter_only_hash_buckets[bucket] += 1
+                self._filter_only_source_buckets[bucket] += filter_count
 
     # redraw everything
     def _draw(self):
@@ -261,13 +270,13 @@ class HashZoomBar():
     # draw one bar as part of a bucket
     def _draw_bar(self, color, count, i, j):
         # i is bucket number
-        # j is bar set, either 2, 1, or 0
+        # j is bar row number, either 2, 1, or 0
         # x is pixel coordinate
         x=(i * self.BUCKET_WIDTH)
         y0 = int(self.ZOOM_BAR_HEIGHT / 3 * j)
         y1 = int(self.BUCKET_WIDTH * count)
-        if y1 > int(self.ZOOM_BAR_HEIGHT / 3.05):
-            y1 = int(self.ZOOM_BAR_HEIGHT / 3.05)
+        if y1 > int(self.ZOOM_BAR_HEIGHT / 3) - 1:
+            y1 = int(self.ZOOM_BAR_HEIGHT / 3) - 1
 
         self._photo_image.put(color, to=(
              x,
@@ -281,10 +290,10 @@ class HashZoomBar():
         # draw bars
         self._draw_bar("#0000aa", self._source_buckets[i], i, 2)
         self._draw_bar("#000066", self._hash_buckets[i], i, 2)
-        self._draw_bar("#006600", self._non_probative_source_buckets[i], i, 1)
-        self._draw_bar("#004400", self._non_probative_hash_buckets[i], i, 1)
-        self._draw_bar("#aa0000", self._remainder_source_buckets[i], i, 0)
-        self._draw_bar("#660000", self._remainder_hash_buckets[i], i, 0)
+        self._draw_bar("#aa0000", self._filter_only_source_buckets[i], i, 1)
+        self._draw_bar("#660000", self._filter_only_hash_buckets[i], i, 1)
+        self._draw_bar("#006600", self._filter_removed_source_buckets[i], i, 0)
+        self._draw_bar("#004400", self._filter_removed_hash_buckets[i], i, 0)
 
     # draw one gray bucket for out-of-range data
     def _draw_gray_bucket(self, i):

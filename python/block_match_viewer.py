@@ -11,8 +11,10 @@ import tkinter
 # local import
 #import identified_data_reader
 from identified_data_reader import IdentifiedData
+from filters import Filters
 from scrolled_canvas import ScrolledCanvas
-from settings_view import SettingsView
+from filter_view import FilterView
+from identified_data_summary_view import IdentifiedDataSummaryView
 from hash_zoom_bar import HashZoomBar
 from image_hex_view import ImageHexView
 from sources_view import SourcesView
@@ -35,11 +37,6 @@ if __name__=="__main__":
     # read relevant data
     identified_data = IdentifiedData(be_dir)
 
-    # control over what is considered non-probative
-    skipped_sources = dict()
-    skipped_hashes = dict()
-    max_count = 0
-
     # initialize Tk, get tkinter.Tk class instance, set title
     START_WIDTH = 1000
     START_HEIGHT = 800
@@ -48,10 +45,11 @@ if __name__=="__main__":
     root_window.minsize(width=400,height=300)
     root_window.maxsize(width=START_WIDTH+25,height=START_HEIGHT+25)
 
-    # the tkinter action trace variables
-    max_hashes_trace_var = tkinter.IntVar()
-    skip_flagged_blocks_trace_var = tkinter.BooleanVar()
+    # the tkinter action trace variable for byte offset selection
     byte_offset_selection_trace_var = tkinter.IntVar()
+
+    # the filters including the filter_changed trace variable
+    filters = Filters()
 
     # the top-level frame inside a scroll window
     root_frame = ScrolledCanvas(root_window,
@@ -62,19 +60,26 @@ if __name__=="__main__":
     image_frame = tkinter.Frame(root_frame)
     image_frame.pack(side=tkinter.LEFT, anchor="n")
 
-    # the view settings and source data at the top
-    settings_view = SettingsView(image_frame, identified_data,
-                                 max_hashes_trace_var,
-                                 skip_flagged_blocks_trace_var)
-    settings_view.frame.pack(side=tkinter.TOP, padx=8, pady=8, anchor="w")
+    # the filter and identified data summary views in image_frame at the top
+    filter_and_summary_frame = tkinter.Frame(image_frame)
+    filter_and_summary_frame.pack(side=tkinter.TOP, padx=8, pady=8,
+                                      anchor="w")
 
-    # the hash zoom bar in the middle
-    hash_zoom_bar = HashZoomBar(image_frame, identified_data, 
-                                skipped_sources, skipped_hashes, max_count,
+    # the filter view in filter_and_summary_frame on left
+    filter_view = FilterView(filter_and_summary_frame, filters)
+    filter_view.frame.pack(side=tkinter.LEFT, padx=8, pady=8)
+
+    # the summary view in filter_and_summary_frame on right
+    identified_data_summary_view = IdentifiedDataSummaryView(
+                                  filter_and_summary_frame, identified_data)
+    identified_data_summary_view.frame.pack(side=tkinter.LEFT, padx=40)
+
+    # the hash zoom bar in image_frame in the middle
+    hash_zoom_bar = HashZoomBar(image_frame, identified_data, filters,
                                 byte_offset_selection_trace_var)
     hash_zoom_bar.frame.pack(side=tkinter.TOP, padx=8, pady=8, anchor="w")
 
-    # the hex image view below
+    # the hex image view in image_frame below
     image_hex_view = ImageHexView(image_frame,
                                   identified_data.image_filename,
                                   identified_data.block_size,
@@ -82,7 +87,7 @@ if __name__=="__main__":
     image_hex_view.frame.pack(side=tkinter.LEFT, padx=8, pady=8, anchor="w")
 
     # root_frame.source_frame holds source views on the right
-    sources_view = SourcesView(root_frame, identified_data)
+    sources_view = SourcesView(root_frame, identified_data, filters)
     sources_view.frame.pack(side=tkinter.LEFT, padx=8, pady=8, anchor="n")
 
     root_window.mainloop()

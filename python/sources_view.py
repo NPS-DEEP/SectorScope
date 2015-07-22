@@ -6,16 +6,14 @@ class SourcesView():
 
     Attributes:
       frame(Frame): the containing frame for this view.
-      _max_hashes_trace_var (IntVar): Update view on change.
-      _skip_flagged_blocks_trace_var (IntVar): Update view on change.
     """
 
-    def __init__(self, master, identified_data, trace_vars=[]):
+    def __init__(self, master, identified_data, filters):
         """Args:
           master(a UI container): Parent.
           identified_data(IdentifiedData): All data related to the block
             hash scan.
-          trace_vars (list of trace vars): Update views when anything changes.
+          filters(Filters): the filters that controll the view.
         """
 
         # make the containing frame
