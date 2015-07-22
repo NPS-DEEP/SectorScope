@@ -31,7 +31,7 @@ class SourcesView():
 
         # add the sources frame to contain the scrollable source list
         SOURCE_PIXEL_HEIGHT = 32
-        frame_height = len(identified_data.identified_sources) * \
+        frame_height = len(identified_data.source_details) * \
                                                 SOURCE_PIXEL_HEIGHT
         sources_canvas = ScrolledCanvas(canvas_frame,
                               canvas_width=400, canvas_height=800,

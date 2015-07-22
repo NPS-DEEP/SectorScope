@@ -12,20 +12,19 @@ class HashZoomBar():
       _photo_image(PhotoImage): The image on which the plot is rendered.
       _byte_offset_selection_trace_var(IntVar): Setting this alerts
         listeners to the new selection.
+      _hash_counts(dict of <hash, (count, non_probative_count)>): count
+        and calculated non-probative count for each hash.
     """
 
     # number of buckets across the zoom bar
-    NUM_BUCKETS = 200
+    NUM_BUCKETS = 220
 
     # pixels per bucket
     BUCKET_WIDTH = 3
 
-    # maximum histogram height
-    MAX_HISTOGRAM_HEIGHT = BUCKET_WIDTH * 10
-
     # zoom bar size in pixels
     ZOOM_BAR_WIDTH = NUM_BUCKETS * BUCKET_WIDTH
-    ZOOM_BAR_HEIGHT = (20 + MAX_HISTOGRAM_HEIGHT) * 2
+    ZOOM_BAR_HEIGHT = 260
 
     # cursor byte offset
     _is_valid_cursor = False
@@ -35,18 +34,25 @@ class HashZoomBar():
     _is_valid_selection = False
     _selection_offset = -1 # so it won't initially show
 
-    def __init__(self, master, identified_data, data_preferences,
+    def __init__(self, master, identified_data,
+                 skipped_sources, skipped_hashes, max_count,
                  byte_offset_selection_trace_var):
         """Args:
           master(a UI container): Parent.
           identified_data(IdentifiedData): Identified data about the scan.
-          selection_data(SelectionData): Various selected data.
-          trace_vars(list of Var): Variables to communicate selection change.
+          skipped_sources: List of sources to treate as non-probative.
+          skipped_hashes: List of hashes to treat as non-probative.
+          max_count(int): Max count of duplicates before considering
+            hash as non-probative.
+          byte_offset_selection_trace_var(tkinter Var): Variable to
+            communicate selection change.
         """
 
         # data variables
         self._identified_data = identified_data
-        self._data_preferences = data_preferences
+        self._skipped_sources = skipped_sources
+        self._skipped_hashes = skipped_hashes
+        self._max_count = max_count
         self._byte_offset_selection_trace_var = byte_offset_selection_trace_var
 
         # data constants
@@ -75,6 +81,16 @@ class HashZoomBar():
         # add the title
         tkinter.Label(self.frame, text="Image Match Histogram").pack(
                                                        side=tkinter.TOP)
+
+        # add the color legend
+        f = tkinter.Frame(self.frame)
+        f.pack(side=tkinter.TOP)
+        tkinter.Label(f,text="   ",background="#000066").pack(side=tkinter.LEFT)
+        tkinter.Label(f,text="All matches      ").pack(side=tkinter.LEFT)
+        tkinter.Label(f,text="   ",background="#004400").pack(side=tkinter.LEFT)
+        tkinter.Label(f,text="Non-probative matches      ").pack(side=tkinter.LEFT)
+        tkinter.Label(f,text="   ",background="#660000").pack(side=tkinter.LEFT)
+        tkinter.Label(f,text="Remainder      ").pack(side=tkinter.LEFT)
 
         # add the byte offset label
         self._byte_offset_label = tkinter.Label(self.frame)
@@ -112,27 +128,88 @@ class HashZoomBar():
         l.bind("<Button-4>", self._handle_mouse_wheel)
         l.bind("<Button-5>", self._handle_mouse_wheel)
 
+        self._calculate_hash_counts()
         self._calculate_bucket_data()
         self._draw()
 
+    def _calculate_hash_counts(self):
+        # calculate _hash_counts based on identified data
+        # _hash_counts is dict<hash, (count, non_probative_count)>
+        self._hash_counts = dict()
+        for block_hash, sources in self._identified_data.hashes.items():
+            count = len(sources)
+            non_probative_count = 0
+
+            # determine non_probative_count
+
+            # exceeds max_count
+            if self._max_count != 0 and count > self._max_count:
+                non_probative_count = count
+                continue
+
+            # hash is marked
+            if block_hash in self._skipped_hashes:
+                non_probative_count = count
+                continue
+
+            # a source is marked
+            for source in sources:
+                if "label" in source:
+                    # source has a label flag
+                    non_probative_count += 1
+                    continue
+                if source["source_id"] in self._skipped_sources:
+                    print("zzzzzzz needs to happen")
+                    # source is to be skipped
+                    non_probative_count += 1
+                    continue
+
+            # set the count and non_probative_count for the hash
+            self._hash_counts[block_hash] = (count, non_probative_count)
+        
+
     def _calculate_bucket_data(self):
-        # create the bucket data
-        self._data = [0] * (self.NUM_BUCKETS)
-        self._filtered_data = [0] * (self.NUM_BUCKETS)
+        # buckets for hashes per bucket, sources per bucket,
+        # and buckets for non-probative and the potentially probative remainder
+        self._hash_buckets = [0] * (self.NUM_BUCKETS)
+        self._source_buckets = [0] * (self.NUM_BUCKETS)
+        self._non_probative_hash_buckets = [0] * (self.NUM_BUCKETS)
+        self._non_probative_source_buckets = [0] * (self.NUM_BUCKETS)
+        self._remainder_hash_buckets = [0] * (self.NUM_BUCKETS)
+        self._remainder_source_buckets = [0] * (self.NUM_BUCKETS)
 
         # calculate the histogram
-        for key in self._identified_data.forensic_paths:
-            offset = int(key)
-            bucket = int((offset - self._start_offset) /
-                (self._bytes_per_pixel * self.BUCKET_WIDTH))
-            if (bucket >= 0 and bucket < self.NUM_BUCKETS):
-                self._data[bucket] += 1
+        for forensic_path, block_hash in \
+                               self._identified_data.forensic_paths.items():
+            offset = int(forensic_path)
+            bucket = (offset - self._start_offset) / \
+                (self._bytes_per_pixel * self.BUCKET_WIDTH)
+            if (bucket < 0 or bucket >= self.NUM_BUCKETS):
+                # offset is out of range of buckets
+                continue
+
+            # get bucket number as int
+            bucket = int(bucket)
+
+            # set values for buckets
+            count, non_probative_count = self._hash_counts[block_hash]
+
+            self._hash_buckets[bucket] += 1
+            self._source_buckets[bucket] += count
+            if non_probative_count > 0:
+                self._non_probative_hash_buckets[bucket] += 1
+                self._non_probative_source_buckets[bucket] += \
+                                                        non_probative_count
+            else:
+                self._remainder_hash_buckets[bucket] += 1
+                self._remainder_source_buckets[bucket] += \
+                                                        non_probative_count
 
     # redraw everything
     def _draw(self):
         self._draw_bar_text()
         self._draw_buckets()
-        self._draw_markers()
+        self._draw_marker_lines()
 
     def _draw_bar_text(self):
  
@@ -170,9 +247,6 @@ class HashZoomBar():
         # draw the buckets
         for i in range(self.NUM_BUCKETS):
 
-            # x pixel coordinate
-            x=(i * self.BUCKET_WIDTH)
-
             # get byte offset for bucket
             byte_offset = int(self._start_offset + self._bytes_per_pixel * \
                           i * self.BUCKET_WIDTH)
@@ -180,21 +254,50 @@ class HashZoomBar():
 
             # bucket view depends on whether byte offset is in range
             if byte_offset >= 0 and byte_offset < self.IMAGE_SIZE:
-                # bucket is in media image range so draw the bucket view
-                y = self._data[i] * self.BUCKET_WIDTH # square
-                if y > self.MAX_HISTOGRAM_HEIGHT:
-                    y = self.MAX_HISTOGRAM_HEIGHT
-                self._photo_image.put("#000066",
-                      to=(x, self.ZOOM_BAR_HEIGHT - y,
-                          x+self.BUCKET_WIDTH, self.ZOOM_BAR_HEIGHT))
+                self._draw_bucket(i)
             else:
-                # out of range so fill bucket area gray
-                y = self.MAX_HISTOGRAM_HEIGHT
-                self._photo_image.put("gray", to=(x, 0, x+self.BUCKET_WIDTH,
+                self._draw_gray_bucket(i)
+
+    # draw one bar as part of a bucket
+    def _draw_bar(self, color, count, i, j):
+        # i is bucket number
+        # j is bar set, either 2, 1, or 0
+        # x is pixel coordinate
+        x=(i * self.BUCKET_WIDTH)
+        y0 = int(self.ZOOM_BAR_HEIGHT / 3 * j)
+        y1 = int(self.BUCKET_WIDTH * count)
+        if y1 > int(self.ZOOM_BAR_HEIGHT / 3.05):
+            y1 = int(self.ZOOM_BAR_HEIGHT / 3.05)
+
+        self._photo_image.put(color, to=(
+             x,
+             self.ZOOM_BAR_HEIGHT - y0,
+             x+self.BUCKET_WIDTH,
+             self.ZOOM_BAR_HEIGHT - (y0 + y1)))
+
+    # draw one bucket
+    def _draw_bucket(self, i):
+
+        # draw bars
+        self._draw_bar("#0000aa", self._source_buckets[i], i, 2)
+        self._draw_bar("#000066", self._hash_buckets[i], i, 2)
+        self._draw_bar("#006600", self._non_probative_source_buckets[i], i, 1)
+        self._draw_bar("#004400", self._non_probative_hash_buckets[i], i, 1)
+        self._draw_bar("#aa0000", self._remainder_source_buckets[i], i, 0)
+        self._draw_bar("#660000", self._remainder_hash_buckets[i], i, 0)
+
+    # draw one gray bucket for out-of-range data
+    def _draw_gray_bucket(self, i):
+        # x pixel coordinate
+        x=(i * self.BUCKET_WIDTH)
+
+        # out of range so fill bucket area gray
+        self._photo_image.put("gray", to=(x, 0, x+self.BUCKET_WIDTH,
                                                     self.ZOOM_BAR_HEIGHT))
 
+
     # draw the selection and cursor markers
-    def _draw_markers(self):
+    def _draw_marker_lines(self):
 
         # cursor marker
         if self._is_valid_cursor:

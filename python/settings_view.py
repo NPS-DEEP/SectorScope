@@ -6,10 +6,6 @@ class SettingsView():
 
     Attributes:
       frame(Frame): the containing frame for this view.
-       _max_hashes_trace_var(IntVar): Setting this alerts listeners to
-        the maximum hashes selection value.
-      _skip_flagged_blocks_trace_var(BooleanVar): Setting this alerts
-        listeners whether flagged blocks are to be skipped.
     """
 
     def __init__(self, master, identified_data,
@@ -19,13 +15,10 @@ class SettingsView():
           identified_data(IdentifiedData): Identified data about the scan.
           max_hashes_trace_var(IntVar): Variable to communicate the
             maximum hashes allowed setting.
-          skip_flagged_blocks_trace_var(BooleanVar): Variable to communicate
-            whether flagged blocks are to be skipped.
         """
 
         # define the selection variables
         self._max_hashes_trace_var = max_hashes_trace_var
-        self._skip_flagged_blocks_trace_var = skip_flagged_blocks_trace_var 
 
         # make the containing frame
         self.frame = tkinter.Frame(master)
@@ -49,13 +42,6 @@ class SettingsView():
                                    self._handle_max_hashes_selection)
         self.max_hashes_entry.bind('<FocusOut>',
                                    self._handle_max_hashes_selection)
-
-        # put skip_flagged_blocks checkbutton below in settings_frame
-        self.skip_flagged_blocks_checkbutton = tkinter.Checkbutton(
-                               settings_frame, text="Skip Flagged Blocks",
-                               variable=self._skip_flagged_blocks_trace_var,
-                               bd=0,padx=0,pady=0)
-        self.skip_flagged_blocks_checkbutton.pack(side=tkinter.TOP, anchor="w")
 
         # make the sources frame to the right
         sources_frame = tkinter.Frame(self.frame)

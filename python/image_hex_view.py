@@ -137,7 +137,7 @@ class ImageHexView():
         m.update(buf[:self._block_size])
         if len(buf) < self._block_size:
             # zero-extend the short block
-            m.update(['\0'] * self._block_size - len(buf))
+            m.update(bytearray(self._block_size - len(buf)))
 
         # set the value
         self._hash_label['text'] = m.hexdigest()

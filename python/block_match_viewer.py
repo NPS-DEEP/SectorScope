@@ -11,7 +11,6 @@ import tkinter
 # local import
 #import identified_data_reader
 from identified_data_reader import IdentifiedData
-from data_preferences import DataPreferences
 from scrolled_canvas import ScrolledCanvas
 from settings_view import SettingsView
 from hash_zoom_bar import HashZoomBar
@@ -35,7 +34,11 @@ if __name__=="__main__":
 
     # read relevant data
     identified_data = IdentifiedData(be_dir)
-    data_preferences = DataPreferences()
+
+    # control over what is considered non-probative
+    skipped_sources = dict()
+    skipped_hashes = dict()
+    max_count = 0
 
     # initialize Tk, get tkinter.Tk class instance, set title
     START_WIDTH = 1000
@@ -66,7 +69,8 @@ if __name__=="__main__":
     settings_view.frame.pack(side=tkinter.TOP, padx=8, pady=8, anchor="w")
 
     # the hash zoom bar in the middle
-    hash_zoom_bar = HashZoomBar(image_frame, identified_data, data_preferences,
+    hash_zoom_bar = HashZoomBar(image_frame, identified_data, 
+                                skipped_sources, skipped_hashes, max_count,
                                 byte_offset_selection_trace_var)
     hash_zoom_bar.frame.pack(side=tkinter.TOP, padx=8, pady=8, anchor="w")
 
