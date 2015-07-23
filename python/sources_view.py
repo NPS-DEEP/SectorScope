@@ -39,10 +39,10 @@ class SourcesView():
         select_clear_frame.pack()
         tkinter.Button(select_clear_frame, text="Clear All",
                        command=self._handle_clear_all_checkbuttons).pack(
-                                              side=tkinter.LEFT)
+                                              side=tkinter.LEFT, padx=8)
         tkinter.Button(select_clear_frame, text="Set All",
                        command=self._handle_set_all_checkbuttons).pack(
-                                              side=tkinter.LEFT)
+                                              side=tkinter.LEFT, padx=8)
 
         # add the column titles
         tkinter.Label(self.frame, text='ID, %Matched, #Matched, Size, Repository, File') \

@@ -80,9 +80,7 @@ if __name__=="__main__":
     hash_zoom_bar.frame.pack(side=tkinter.TOP, padx=8, pady=8, anchor="w")
 
     # the hex image view in image_frame below
-    image_hex_view = ImageHexView(image_frame,
-                                  identified_data.image_filename,
-                                  identified_data.block_size,
+    image_hex_view = ImageHexView(image_frame, identified_data, filters,
                                   byte_offset_selection_trace_var)
     image_hex_view.frame.pack(side=tkinter.LEFT, padx=8, pady=8, anchor="w")
 

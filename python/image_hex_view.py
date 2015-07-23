@@ -9,31 +9,24 @@ class ImageHexView():
 
     Attributes:
       frame(Frame): the containing frame for this view.
-      _image_filename (string): The media image whose bytes are being read
-        and viewed.
-      _block_size(int): The block size the database is using
-      _image_detail_byte_offset_selection_trace_var (IntVar): This variable
-        has the currently selected image offset.
       _image_reader (BEImageReader): an optimized bulk_extractor media
         image reader.
     """
 
-    def __init__(self, master, image_filename, block_size,
-                 image_detail_byte_offset_selection):
+    def __init__(self, master, identified_data, filters, byte_offset_selection):
         """Args:
           master(a UI container): Parent.
-          image_filename(string): media image filename
-          block_size(int): The block size the database is using
-          image_detail_byte_offset_selection(IntVar): the byte offset
-            selected in the image detail plot
+          identified_data(IdentifiedData): Identified data about the scan.
+          filters(Filters): Filters that impact the view.
+          byte_offset_selection(IntVar): the byte offset selected in the
+            image detail plot
         """
         # variables
         self.PAGESIZE = 16384 # 2^14
-        self._image_filename = image_filename
-        self._block_size = block_size
-        self._image_detail_byte_offset_selection = \
-                                          image_detail_byte_offset_selection
-        self._image_reader = BEImageReader(image_filename)
+        self._identified_data = identified_data
+        self._filters = filters
+        self._byte_offset_selection = byte_offset_selection
+        self._image_reader = BEImageReader(identified_data.image_filename)
 
         # make the containing frame
         self.frame = tkinter.Frame(master)
@@ -59,14 +52,14 @@ class ImageHexView():
         self._hash_label.pack(side=tkinter.LEFT)
 
         # hash_frame "Filter Hash" button
-        tkinter.Button(hash_frame, text="Filter",
-                       command=self._handle_filter_hash).pack(
-                                       side=tkinter.LEFT, padx=16, pady=4)
+        self._filter_hash_button = tkinter.Button(hash_frame, text="Filter",
+                  state=tkinter.DISABLED, command=self._handle_filter_hash)
+        self._filter_hash_button.pack(side=tkinter.LEFT, padx=16, pady=4)
 
         # hash_frame "Unfilter Hash" button
-        tkinter.Button(hash_frame, text="Unfilter",
-                       command=self._handle_unfilter_hash).pack(
-                                       side=tkinter.LEFT, pady=4)
+        self._unfilter_hash_button = tkinter.Button(hash_frame, text="Unfilter",
+                  state=tkinter.DISABLED, command=self._handle_unfilter_hash)
+        self._unfilter_hash_button.pack(side=tkinter.LEFT, pady=4)
 
         # add the frame to contain the hex text and the scrollbar
         hex_frame = tkinter.Frame(self.frame, bd=1, relief=tkinter.SUNKEN)
@@ -86,19 +79,26 @@ class ImageHexView():
         scrollbar.config(command=self._hex_text.yview)
         hex_frame.pack()
 
-        # listen to changes in _image_detail_byte_offset_selection
-        image_detail_byte_offset_selection.trace_variable('w', self._set_data)
+        # listen to changes in _byte_offset_selection
+        byte_offset_selection.trace_variable('w', self._handle_set_data)
 
-    # set variables and the image based on identified_data
-    def _set_data(self, *args):
+    # set variables and the image based on identified_data when
+    # byte_offset_selection changes
+    def _handle_set_data(self, *args):
+        print("hsd")
         # parameter *args is required by IntVar callback
 
-        # get offset from _image_detail_byte_offset_selection
-        offset = self._image_detail_byte_offset_selection.get()
+        # local reference for optimization
+        block_size = self._identified_data.block_size
+
+        # get offset from _byte_offset_selection
+        offset = self._byte_offset_selection.get()
 
         # clear views if no data
         if offset == -1:
             self._set_no_data()
+            self._filter_hash_button.config(state=tkinter.DISABLED)
+            self._unfilter_hash_button.config(state=tkinter.DISABLED)
             return
 
         # set offset value
@@ -107,8 +107,29 @@ class ImageHexView():
         # read page of image bytes starting at offset
         buf = self._image_reader.read(offset, self.PAGESIZE)
 
-        # set hash value
-        self._set_hash_value(buf)
+        # calculate the MD5 hexdigest from buf
+        m = hashlib.md5()
+        m.update(buf[:block_size])
+        if len(buf) < block_size:
+            # zero-extend the short block
+            m.update(bytearray(block_size - len(buf)))
+        md5_hexdigest = m.hexdigest()
+
+        # put the hexdigest in the hash label
+        self._hash_label['text'] = m.hexdigest()
+
+        # set enabled state of the filter button
+        if md5_hexdigest not in self._filters.filtered_hashes and \
+           md5_hexdigest in self._identified_data.hashes:
+            self._filter_hash_button.config(state=tkinter.NORMAL)
+        else:
+            self._filter_hash_button.config(state=tkinter.DISABLED)
+
+        # set enabled state of the unfilter button
+        if md5_hexdigest in self._filters.filtered_hashes:
+            self._unfilter_hash_button.config(state=tkinter.NORMAL)
+        else:
+            self._unfilter_hash_button.config(state=tkinter.DISABLED)
 
         # set hex view
         self._set_hex_view(offset, buf)
@@ -130,17 +151,6 @@ class ImageHexView():
         # write new offset at top
         self.image_offset_label['text'] = \
                                  "Image offset: " + offset_string(offset)
-
-    def _set_hash_value(self, buf):
-        # calculate the MD5 from buf
-        m = hashlib.md5()
-        m.update(buf[:self._block_size])
-        if len(buf) < self._block_size:
-            # zero-extend the short block
-            m.update(bytearray(self._block_size - len(buf)))
-
-        # set the value
-        self._hash_label['text'] = m.hexdigest()
 
     def _set_hex_view(self, offset, buf):
         # format bytes into the hex text view
@@ -184,6 +194,7 @@ class ImageHexView():
             self._hex_text.insert(tkinter.END, line)
 
     def _handle_filter_hash(self):
+#        self._filters.filtered_hashes.append(
         # TBD
         print("handle_remove_hash, TBD")
 
