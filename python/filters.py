@@ -6,8 +6,8 @@ class Filters():
     Attributes:
       max_hashes (int): Maximum duplicates allowed before disregarding the hash.
       filter_flagged_blocks (bool): Whether to filter flagged hashes.
-      skipped_sources (array<int>): Sectors to skip.
-      skipped_hashes (array<str>): Hashes to skip.
+      filtered_sources (array<int>): Sectors to filter.
+      filtered_hashes (array<str>): Hashes to filter.
 
     Requirement:
       Tk must be initialized before Filters for tkinter.Variable to work.
@@ -17,8 +17,8 @@ class Filters():
         # filters
         self.max_hashes = 0
         self.filter_flagged_blocks = True
-        self.skipped_sources = []
-        self.skipped_hashes = []
+        self.filtered_sources = []
+        self.filtered_hashes = []
 
         # the signal variable
         # Note that Tk must already be initialized for tkinter.Variable to work.
@@ -27,6 +27,7 @@ class Filters():
     """Call this function to alert that the filter changed."""
     def fire_change(self):
         print("filters.fire.a")
+        # _filter_changed is only used as a signal.  Its value is always true.
         self._filter_changed.set(True)
         print("filters.fire.b")
 

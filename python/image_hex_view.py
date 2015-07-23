@@ -58,15 +58,15 @@ class ImageHexView():
                                          width=40, anchor="w")
         self._hash_label.pack(side=tkinter.LEFT)
 
-        # hash_frame "Remove" button
-        remove_button = tkinter.Button(hash_frame, text="Remove",
-                                       command=self._handle_remove_hash)
-        remove_button.pack(side=tkinter.LEFT, padx=16, pady=4)
+        # hash_frame "Filter Hash" button
+        tkinter.Button(hash_frame, text="Filter",
+                       command=self._handle_filter_hash).pack(
+                                       side=tkinter.LEFT, padx=16, pady=4)
 
-        # hash_frame "..." detail button
-        detail_button = tkinter.Button(hash_frame, text="...",
-                                       command=self._handle_hash_detail)
-        detail_button.pack(side=tkinter.LEFT, pady=4)
+        # hash_frame "Unfilter Hash" button
+        tkinter.Button(hash_frame, text="Unfilter",
+                       command=self._handle_unfilter_hash).pack(
+                                       side=tkinter.LEFT, pady=4)
 
         # add the frame to contain the hex text and the scrollbar
         hex_frame = tkinter.Frame(self.frame, bd=1, relief=tkinter.SUNKEN)
@@ -183,10 +183,10 @@ class ImageHexView():
             # add this composed line
             self._hex_text.insert(tkinter.END, line)
 
-    def _handle_remove_hash(self):
+    def _handle_filter_hash(self):
         # TBD
         print("handle_remove_hash, TBD")
 
-    def _handle_hash_detail(self):
+    def _handle_unfilter_hash(self):
         # TBD
         print("handle_hash_detail, TBD")

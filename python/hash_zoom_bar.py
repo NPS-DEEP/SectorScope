@@ -17,7 +17,7 @@ class HashZoomBar():
     """
 
     # number of buckets across the zoom bar
-    NUM_BUCKETS = 220
+    NUM_BUCKETS = 224
 
     # pixels per bucket
     BUCKET_WIDTH = 3
@@ -122,7 +122,7 @@ class HashZoomBar():
         l.bind("<Button-4>", self._handle_mouse_wheel)
         l.bind("<Button-5>", self._handle_mouse_wheel)
 
-        # bind filter change events
+        # register to receive filter change events
         filters.set_callback(self._handle_filter_change)
 
         self._calculate_hash_counts()
@@ -140,8 +140,8 @@ class HashZoomBar():
         # optimization: make local references to filter variables
         max_hashes = self._filters.max_hashes
         filter_flagged_blocks = self._filters.filter_flagged_blocks
-        skipped_sources = self._filters.skipped_sources
-        skipped_hashes = self._filters.skipped_hashes
+        filtered_sources = self._filters.filtered_sources
+        filtered_hashes = self._filters.filtered_hashes
 
         # calculate _hash_counts based on identified data
         # _hash_counts is dict<hash, (count, filter_count)>
@@ -157,20 +157,19 @@ class HashZoomBar():
                 filter_count = count
                 continue
 
-            # hash is marked
-            if block_hash in skipped_hashes:
+            # hash is filtered
+            if block_hash in filtered_hashes:
                 filter_count = count
                 continue
 
-            # a source is flagged or a source is marked
+            # a source is flagged or a source itself is filtered
             for source in sources:
                 if filter_flagged_blocks and "label" in source:
                     # source has a label flag
                     filter_count += 1
                     continue
-                if source["source_id"] in skipped_sources:
-                    print("zzzzzzz needs to happen")
-                    # source is to be skipped
+                if source["source_id"] in filtered_sources:
+                    # source is to be filtered
                     filter_count += 1
                     continue
 
