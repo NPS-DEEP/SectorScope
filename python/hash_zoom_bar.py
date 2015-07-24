@@ -155,27 +155,25 @@ class HashZoomBar():
             # count exceeds max_hashes
             if max_hashes != 0 and count > max_hashes:
                 filter_count = count
-                continue
 
             # hash is filtered
-            if block_hash in filtered_hashes:
+            elif block_hash in filtered_hashes:
                 filter_count = count
-                continue
 
             # a source is flagged or a source itself is filtered
-            for source in sources:
-                if filter_flagged_blocks and "label" in source:
-                    # source has a label flag
-                    filter_count += 1
-                    continue
-                if source["source_id"] in filtered_sources:
-                    # source is to be filtered
-                    filter_count += 1
-                    continue
+            else:
+                for source in sources:
+                    if filter_flagged_blocks and "label" in source:
+                        # source has a label flag
+                        filter_count += 1
+                        continue
+                    if source["source_id"] in filtered_sources:
+                        # source is to be filtered
+                        filter_count += 1
+                        continue
 
             # set the count and filter_count for the hash
             self._hash_counts[block_hash] = (count, filter_count)
-        
 
     def _calculate_bucket_data(self):
         """Buckets show hashes per bucket and sources per bucket.  Bucket
@@ -194,7 +192,7 @@ class HashZoomBar():
             offset = int(forensic_path)
             bucket = (offset - self._start_offset) / \
                 (self._bytes_per_pixel * self.BUCKET_WIDTH)
-            if (bucket < 0 or bucket >= self.NUM_BUCKETS):
+            if bucket < 0 or bucket >= self.NUM_BUCKETS:
                 # offset is out of range of buckets
                 continue
 

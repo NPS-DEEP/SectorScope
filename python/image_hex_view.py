@@ -51,15 +51,20 @@ class ImageHexView():
                                          width=40, anchor="w")
         self._hash_label.pack(side=tkinter.LEFT)
 
-        # hash_frame "Filter Hash" button
-        self._filter_hash_button = tkinter.Button(hash_frame, text="Filter",
-                  state=tkinter.DISABLED, command=self._handle_filter_hash)
-        self._filter_hash_button.pack(side=tkinter.LEFT, padx=16, pady=4)
+        # hash filter "Filter:" text
+        tkinter.Label(hash_frame, text="Filter:").pack(side=tkinter.LEFT)
 
-        # hash_frame "Unfilter Hash" button
-        self._unfilter_hash_button = tkinter.Button(hash_frame, text="Unfilter",
-                  state=tkinter.DISABLED, command=self._handle_unfilter_hash)
-        self._unfilter_hash_button.pack(side=tkinter.LEFT, pady=4)
+        # hash_frame "Add Hash to Filter" button
+        self._add_hash_button = tkinter.Button(hash_frame, text="Add",
+                                state=tkinter.DISABLED,
+                                command=self._handle_add_hash_to_filter)
+        self._add_hash_button.pack(side=tkinter.LEFT, padx=8, pady=4)
+
+        # hash_frame "Remove Hash from Filter" button
+        self._remove_hash_button = tkinter.Button(hash_frame, text="Remove",
+                                state=tkinter.DISABLED,
+                                command=self._handle_remove_hash_from_filter)
+        self._remove_hash_button.pack(side=tkinter.LEFT, padx=8, pady=4)
 
         # add the frame to contain the hex text and the scrollbar
         hex_frame = tkinter.Frame(self.frame, bd=1, relief=tkinter.SUNKEN)
@@ -85,11 +90,7 @@ class ImageHexView():
     # set variables and the image based on identified_data when
     # byte_offset_selection changes
     def _handle_set_data(self, *args):
-        print("hsd")
         # parameter *args is required by IntVar callback
-
-        # local reference for optimization
-        block_size = self._identified_data.block_size
 
         # get offset from _byte_offset_selection
         offset = self._byte_offset_selection.get()
@@ -97,8 +98,8 @@ class ImageHexView():
         # clear views if no data
         if offset == -1:
             self._set_no_data()
-            self._filter_hash_button.config(state=tkinter.DISABLED)
-            self._unfilter_hash_button.config(state=tkinter.DISABLED)
+            self._add_hash_button.config(state=tkinter.DISABLED)
+            self._remove_hash_button.config(state=tkinter.DISABLED)
             return
 
         # set offset value
@@ -107,32 +108,31 @@ class ImageHexView():
         # read page of image bytes starting at offset
         buf = self._image_reader.read(offset, self.PAGESIZE)
 
-        # calculate the MD5 hexdigest from buf
-        m = hashlib.md5()
-        m.update(buf[:block_size])
-        if len(buf) < block_size:
-            # zero-extend the short block
-            m.update(bytearray(block_size - len(buf)))
-        md5_hexdigest = m.hexdigest()
+        # set the selected hash
+        self._selected_hash = self._calculate_block_hash(buf)
 
-        # put the hexdigest in the hash label
-        self._hash_label['text'] = m.hexdigest()
+        # put the hash in the hash label
+        self._hash_label['text'] = self._selected_hash
 
-        # set enabled state of the filter button
-        if md5_hexdigest not in self._filters.filtered_hashes and \
-           md5_hexdigest in self._identified_data.hashes:
-            self._filter_hash_button.config(state=tkinter.NORMAL)
-        else:
-            self._filter_hash_button.config(state=tkinter.DISABLED)
-
-        # set enabled state of the unfilter button
-        if md5_hexdigest in self._filters.filtered_hashes:
-            self._unfilter_hash_button.config(state=tkinter.NORMAL)
-        else:
-            self._unfilter_hash_button.config(state=tkinter.DISABLED)
+        # set state for buttons
+        self._set_add_and_remove_button_states()
 
         # set hex view
         self._set_hex_view(offset, buf)
+
+    def _set_add_and_remove_button_states(self):
+        # set enabled state of the add hash button
+        if self._selected_hash not in self._filters.filtered_hashes and \
+           self._selected_hash in self._identified_data.hashes:
+            self._add_hash_button.config(state=tkinter.NORMAL)
+        else:
+            self._add_hash_button.config(state=tkinter.DISABLED)
+
+        # set enabled state of the remove hash button
+        if self._selected_hash in self._filters.filtered_hashes:
+            self._remove_hash_button.config(state=tkinter.NORMAL)
+        else:
+            self._remove_hash_button.config(state=tkinter.DISABLED)
 
     def _set_no_data(self):
         # clear image offset text
@@ -151,6 +151,18 @@ class ImageHexView():
         # write new offset at top
         self.image_offset_label['text'] = \
                                  "Image offset: " + offset_string(offset)
+
+    def _calculate_block_hash(self, buf):
+        # calculate the MD5 from the block of data in buf
+        block_size = self._identified_data.block_size
+        m = hashlib.md5()
+        m.update(buf[:block_size])
+        if len(buf) < block_size:
+            # zero-extend the short block
+            m.update(bytearray(block_size - len(buf)))
+
+        # return the hash
+        return m.hexdigest()
 
     def _set_hex_view(self, offset, buf):
         # format bytes into the hex text view
@@ -193,11 +205,13 @@ class ImageHexView():
             # add this composed line
             self._hex_text.insert(tkinter.END, line)
 
-    def _handle_filter_hash(self):
-#        self._filters.filtered_hashes.append(
-        # TBD
-        print("handle_remove_hash, TBD")
+    def _handle_add_hash_to_filter(self):
+        self._filters.filtered_hashes.append(self._selected_hash)
+        self._set_add_and_remove_button_states()
+        self._filters.fire_change()
 
-    def _handle_unfilter_hash(self):
-        # TBD
-        print("handle_hash_detail, TBD")
+    def _handle_remove_hash_from_filter(self):
+        self._filters.filtered_hashes.remove(self._selected_hash)
+        self._set_add_and_remove_button_states()
+        self._filters.fire_change()
+

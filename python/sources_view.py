@@ -45,7 +45,7 @@ class SourcesView():
                                               side=tkinter.LEFT, padx=8)
 
         # add the column titles
-        tkinter.Label(self.frame, text='ID, %Matched, #Matched, Size, Repository, File') \
+        tkinter.Label(self.frame, text='ID, %Match, #Match, Size, Repository, File') \
                                             .pack(side=tkinter.TOP, anchor="w")
 
         # make the frame to hold the canvas
@@ -99,7 +99,7 @@ class SourcesView():
 
             # hash is filtered
             if block_hash in filtered_hashes:
-                filter_count = count
+                filter_count = len(sources)
                 continue
 
             # a source is flagged or a source is marked

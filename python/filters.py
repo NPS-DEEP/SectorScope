@@ -26,10 +26,8 @@ class Filters():
 
     """Call this function to alert that the filter changed."""
     def fire_change(self):
-        print("filters.fire.a")
-        # _filter_changed is only used as a signal.  Its value is always true.
+        # _filter_changed is used as a signal.  Its value is always true.
         self._filter_changed.set(True)
-        print("filters.fire.b")
 
     """Register function f to be called on filter change."""
     def set_callback(self, f):
