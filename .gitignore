@@ -6,6 +6,12 @@ __pycache__/
 *.swp
 *.swo
 
+# documentation
+viewer_um.aux
+viewer_um.out
+viewer_um.pdf
+structure.aux
+
 # generated installer and zip
 src_win/block_match*.exe
 src_win/block_match*.zip

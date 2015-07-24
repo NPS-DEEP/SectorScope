@@ -1,0 +1,53 @@
+\documentclass[11pt,fleqn]{article} % Default font size and left-justified equations
+
+%\usepackage{standalone}
+
+\usepackage{todonotes}
+\usepackage{color}
+% use \todo{note} OR \missingfigure{Add my picture here}
+
+\include{structure}
+
+\setcounter{secnumdepth}{5}
+\setcounter{tocdepth}{5}
+ 
+%\usepackage{arabtex}
+
+\usepackage{verbatim}
+
+\raggedbottom
+
+\begin{document}
+
+%define macros for commonly used terms that require special formatting
+\newcommand \bmv {\textit{Block Match Viewer}\xspace}
+\newcommand \hash {\textit{hashdb}\xspace}
+\newcommand \hdb {\textit{hashdb}\xspace}
+\newcommand \bulk {\textbf{bulk\_extractor}\xspace}
+\newcommand \mdd {\textbf{md5deep}\xspace}
+\newcommand \fiwalk {\textbf{fiwalk}\xspace}
+
+\hypersetup{%
+    pdfborder = {0 0 0}
+}
+
+\lstdefinestyle{customfile}{
+basicstyle=\footnotesize\ttfamily, frame=single, float=htpb}
+
+\input{./title.tex}
+
+\pagenumbering{roman}
+\setlength{\parindent}{0pt} %remove indenting from whole document
+\newpage
+\thispagestyle{empty}
+\mbox{}
+\newpage
+
+
+\section{Introduction}
+\subsection {Overview of \hash}
+\bmv is a tool for viewing blocks that match blacklist block hashes stored in a \hdb database.\\
+
+Text TBD.
+Please see \bmv Wiki page at Website \url{https://github.com/NPS-DEEP/block_match/wiki}.
+\end{document}
