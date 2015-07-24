@@ -17,7 +17,7 @@ class HashZoomBar():
     """
 
     # number of buckets across the zoom bar
-    NUM_BUCKETS = 210
+    NUM_BUCKETS = 240
 
     # pixels per bucket
     BUCKET_WIDTH = 3
