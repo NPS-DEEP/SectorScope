@@ -17,14 +17,14 @@ class HashZoomBar():
     """
 
     # number of buckets across the zoom bar
-    NUM_BUCKETS = 240
+    NUM_BUCKETS = 220
 
     # pixels per bucket
     BUCKET_WIDTH = 3
 
     # zoom bar size in pixels
     ZOOM_BAR_WIDTH = NUM_BUCKETS * BUCKET_WIDTH
-    ZOOM_BAR_HEIGHT = 261 # make divisible by 3 for 3 even bar rows
+    ZOOM_BAR_HEIGHT = 261 # make divisible by 3 so bar rows align
 
     # cursor byte offset
     _is_valid_cursor = False
@@ -264,6 +264,11 @@ class HashZoomBar():
             else:
                 self._draw_gray_bucket(i)
 
+        # draw horizontal separator lines between the three bucket groups
+        for i in (1,2):
+            y = int(self.ZOOM_BAR_HEIGHT / 3 * i)
+            self._photo_image.put("black", to=(0, y-1, self.ZOOM_BAR_WIDTH, y))
+
     # draw one bar as part of a bucket
     def _draw_bar(self, color, count, i, j):
         # i is bucket number
@@ -272,8 +277,8 @@ class HashZoomBar():
         x=(i * self.BUCKET_WIDTH)
         y0 = int(self.ZOOM_BAR_HEIGHT / 3 * j)
         y1 = int(self.BUCKET_WIDTH * count)
-        if y1 > int(self.ZOOM_BAR_HEIGHT / 3) - 1:
-            y1 = int(self.ZOOM_BAR_HEIGHT / 3) - 1
+        if y1 > int(self.ZOOM_BAR_HEIGHT / 3):
+            y1 = int(self.ZOOM_BAR_HEIGHT / 3)
 
         self._photo_image.put(color, to=(
              x,
