@@ -52,7 +52,7 @@ class SourcesView():
         canvas_frame = tkinter.Frame(self.frame, bd=1, relief=tkinter.SUNKEN)
         canvas_frame.pack()
 
-        # add the sources frame to contain the scrollable source list
+        # add the sources_frame which will contain the scrollable source list
         SOURCE_PIXEL_HEIGHT = 26
         frame_height = len(identified_data.source_details) * \
                                  SOURCE_PIXEL_HEIGHT + SOURCE_PIXEL_HEIGHT
