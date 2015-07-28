@@ -217,9 +217,6 @@ class HashZoomBar():
         self._draw_buckets()
         self._draw_marker_lines()
 
-        # reduce latency observed on Windows
-        self.frame.update_idletasks()
-
     def _draw_bar_text(self):
  
         # put in the offset start and stop text
