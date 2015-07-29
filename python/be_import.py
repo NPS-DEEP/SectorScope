@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Use this to scan for hashes in a media image.
+# Use this to import hashes from a directory into a hash database.
 # Relative paths will be replaced with absolute paths.
 
 from argparse import ArgumentParser
@@ -8,28 +8,39 @@ import os
 
 if __name__=="__main__":
 
-    parser = ArgumentParser(prog='be_scan.py', description="Scan media image 'image' for block hashes matching hashes in the hashdb database at 'hashdb_dir' and put the output in new bulk_extractor directory 'be_dir'.")
-    parser.add_argument('image', help= 'path to the media image')
-    parser.add_argument('hashdb_dir', help= 'path to the hashdb directory')
+    parser = ArgumentParser(prog='be_import.py', description="Import block hashes recursively from files under directory 'source_dir' into hash database hashdb.hdb under new bulk_extractor directory 'be_dir'.")
+    parser.add_argument('source_dir', help= 'path to the source directory')
     parser.add_argument('be_dir', help= 'path to the new bulk_extractor directory to be created')
     parser.add_argument('-p', '--block_size', type=str, default='512',
             help= 'partition size of blocks to hash, default=512')
     parser.add_argument('-a', '--sector_size', type=str, default='512',
             help= 'aligned sector boundary to scan along, default=512')
+    parser.add_argument('-r', '--repository_name', type=str,
+            help= "repository name, defaults to the full path to the 'source_dir' source directory provided")
     args = parser.parse_args()
 
     # get absolute paths
-    hashdb_dir = os.path.abspath(args.hashdb_dir)
+    source_dir = os.path.abspath(args.source_dir)
     be_dir = os.path.abspath(args.be_dir)
-    image = os.path.abspath(args.image)
 
-    # run bulk_extractor scan
+    # get repository name
+    print("a", args.repository_name)
+    if args.repository_name is None:
+        repository_name = be_dir
+    else:
+        repository_name = args.repository_name
+    print("b", repository_name)
+
+    # run bulk_extractor import
     cmd = ["bulk_extractor", "-E", "hashdb",
-           "-S", "hashdb_mode=scan",
+           "-S", "hashdb_mode=import",
            "-S", "hashdb_block_size=%s" % args.block_size,
-           "-S", "hashdb_scan_sector_size=%s" % args.sector_size,
-           "-S", "hashdb_scan_path_or_socket=%s" % hashdb_dir,
-           "-o", be_dir, image]
+           "-S", "hashdb_import_sector_size=%s" % args.sector_size,
+           "-S", "hashdb_import_repository_name=%s" % repository_name,
+           "-o", be_dir,
+           "-R", source_dir]
+
+    print(cmd)
 
     with subprocess.Popen(cmd, stdout=subprocess.PIPE, bufsize=1,
                           universal_newlines=True) as p:
