@@ -132,6 +132,8 @@ FunctionEnd
 
 section "uninstall"
 	# manage uninstalling executable code because they may be open
+	StrCpy $0 "$INSTDIR\be_import.py"
+	Call un.FailableDelete
 	StrCpy $0 "$INSTDIR\be_scan.py"
 	Call un.FailableDelete
 	StrCpy $0 "$INSTDIR\block_match_viewer.py"
