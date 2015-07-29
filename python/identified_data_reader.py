@@ -78,7 +78,7 @@ class IdentifiedData():
         be_report_dict = dict()
 
         if not os.path.exists(be_report_file):
-            print("%s does not exist" % be_report_file)
+            print("Error: file %s does not exist.  Aborting." % be_report_file)
             exit(1)
         xmldoc = xml.dom.minidom.parse(open(be_report_file, 'r'))
 

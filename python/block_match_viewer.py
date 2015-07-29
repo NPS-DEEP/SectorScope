@@ -22,15 +22,11 @@ from forensic_path import offset_string
 
 # main
 if __name__=="__main__":
-    print()
-    print()
-    print()
 
     parser = ArgumentParser(prog='block_match_viewer.py',
-               description='View associations between hashes and sources')
-    parser.add_argument('-be_dir',
-                        help= 'path to the bulk_extractor directory',
-                        default= '/home/bdallen/Kitty/be_kitty_out')
+               description="View associations between scanned hashes and their sources for the bulk_extractor directory at path 'be_dir'.")
+    parser.add_argument('be_dir',
+                help= 'path to the bulk_extractor directory')
     args = parser.parse_args() 
     be_dir = args.be_dir
 
