@@ -39,12 +39,13 @@ if __name__=="__main__":
            "-o", be_dir,
            "-R", source_dir]
 
-    print("command:", cmd)
+    print("Command:", cmd)
 
     try:
         with subprocess.Popen(cmd, stdout=subprocess.PIPE, bufsize=1) as p:
             for line in p.stdout:
-                print("bulk_extractor:", line.decode(sys.stdout.encoding), end='')
+                print("bulk_extractor:", line.decode(sys.stdout.encoding),
+                                                                      end='')
     except FileNotFoundError:
         print("Error: bulk_extractor not found.  Please check that bulk_extractor is installed.")
         exit(1)
@@ -52,7 +53,6 @@ if __name__=="__main__":
     if p.returncode == 0:
         print("Done.")
     else:
-        print("error runnining bulk_extractor")
-        print("error in command:", cmd)
+        print("Error runnining bulk_extractor")
         exit(1)
  

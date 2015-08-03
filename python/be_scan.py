@@ -5,6 +5,7 @@
 from argparse import ArgumentParser
 import subprocess
 import os
+import sys
 
 if __name__=="__main__":
 
@@ -24,22 +25,28 @@ if __name__=="__main__":
     image = os.path.abspath(args.image)
 
     # run bulk_extractor scan
-    cmd = ["bulk_extractor", "-E", "hashdb",
+    cmd = ["bulk_extractor", "-E", "hashdbz",
            "-S", "hashdb_mode=scan",
            "-S", "hashdb_block_size=%s" % args.block_size,
            "-S", "hashdb_scan_sector_size=%s" % args.sector_size,
            "-S", "hashdb_scan_path_or_socket=%s" % hashdb_dir,
            "-o", be_dir, image]
 
-    with subprocess.Popen(cmd, stdout=subprocess.PIPE, bufsize=1,
-                          universal_newlines=True) as p:
-        for line in p.stdout:
-            print("bulk_extractor:", line, end='')
+    print("Command:", cmd)
+
+    try:
+        with subprocess.Popen(cmd, stdout=subprocess.PIPE, bufsize=1) as p:
+            for line in p.stdout:
+                print("bulk_extractor:", line.decode(sys.stdout.encoding),
+                                                                      end='')
+
+    except FileNotFoundError:
+        print("Error: bulk_extractor not found.  Please check that bulk_extractor is installed.")
+        exit(1)
 
     if p.returncode == 0:
         print("Done.")
     else:
-        print("error runnining bulk_extractor")
-        print("error in command:", cmd)
+        print("Error runnining bulk_extractor")
         exit(1)
  
