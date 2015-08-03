@@ -7,14 +7,14 @@ __pycache__/
 *.swo
 
 # documentation
-viewer_um.aux
-viewer_um.out
-viewer_um.pdf
+block_match_viewer_um.aux
+block_match_viewer_um.out
+block_match_viewer_um.pdf
 structure.aux
 
 # generated installer and zip
-src_win/block_match*.exe
-src_win/block_match*.zip
+dist/NPS-block_match*.exe
+dist/NPS-block_match*.zip
 
 # C extensions
 *.so
@@ -24,7 +24,6 @@ src_win/block_match*.zip
 env/
 build/
 develop-eggs/
-dist/
 downloads/
 eggs/
 .eggs/

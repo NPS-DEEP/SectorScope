@@ -1,10 +1,12 @@
-# NSIS script for creating the Windows block match installer file.
+# NSIS script for creating the Windows NPS-block_match installer file.
 #
 # Installs the following:
 #   .py scripts
+#   pdf document
 #   path
 #   uninstaller
 #   uninstaller shurtcut
+#   start menu shortcut for pdf document
 #   registry information including uninstaller information
 
 # Assign VERSION externally with -DVERSION=<ver>
@@ -22,9 +24,9 @@
 
 # These will be displayed by the "Click here for support information" link in "Add/Remove Programs"
 # It is possible to use "mailto:" links here to open the email client
-!define HELPURL "//https://github.com/BruceMty/block_match" # "Support Information" link
-!define UPDATEURL "//https://github.com/BruceMty/block_match" # "Product Updates" link
-!define ABOUTURL "//https://github.com/BruceMty/block_match" # "Publisher" link
+!define HELPURL "//https://github.com/NPS-DEEP/NPS-block_match" # "Support Information" link
+!define UPDATEURL "//https://github.com/NPS-DEEP/NPS-block_match" # "Product Updates" link
+!define ABOUTURL "//https://github.com/NPS-DEEP/NPS-block_match" # "Publisher" link
 
 SetCompressor lzma
  
@@ -33,7 +35,7 @@ RequestExecutionLevel admin
 InstallDir "$PROGRAMFILES64\${APPNAME}"
  
 Name "${APPNAME}"
-	outFile "block_match-${VERSION}-windowsinstaller.exe"
+	outFile "NPS-block_match-${VERSION}-windowsinstaller.exe"
  
 !include LogicLib.nsh
 !include EnvVarUpdate.nsi
@@ -83,6 +85,13 @@ Section "${APPNAME}"
 
         # install all .py files
         file "../python/*.py"
+
+        # install PDF doc
+        setOutPath "$INSTDIR\pdf"
+        file "block_match_viewer_um.pdf"
+
+        # install shortcut to PDF doc
+        createShortCut "$SMPROGRAMS\${APPNAME}\Block Match Viewer Users Manual.lnk" "$INSTDIR\pdf\block_match_viewer_um.pdf"
 
 sectionEnd
 
@@ -138,11 +147,17 @@ section "uninstall"
 	Call un.FailableDelete
 	StrCpy $0 "$INSTDIR\block_match_viewer.py"
 	Call un.FailableDelete
+	StrCpy $0 "$INSTDIR\pdf\block_match_viewer_um.pdf"
+	Call un.FailableDelete
 
         # uninstall all support code
         delete "$INSTDIR\*.py"
 
+        # uninstall the pdf directory
+        rmdir "$INSTDIR\pdf"
+
 	# uninstall Start Menu launcher shortcuts
+	delete "$SMPROGRAMS\${APPNAME}\Block Match Viewer Users Manual.lnk"
 	delete "$SMPROGRAMS\${APPNAME}\uninstall ${APPNAME}.lnk"
 	rmDir "$SMPROGRAMS\${APPNAME}"
 
