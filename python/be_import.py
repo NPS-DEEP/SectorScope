@@ -5,6 +5,7 @@
 from argparse import ArgumentParser
 import subprocess
 import os
+import sys
 
 if __name__=="__main__":
 
@@ -24,12 +25,10 @@ if __name__=="__main__":
     be_dir = os.path.abspath(args.be_dir)
 
     # get repository name
-    print("a", args.repository_name)
     if args.repository_name is None:
         repository_name = be_dir
     else:
         repository_name = args.repository_name
-    print("b", repository_name)
 
     # run bulk_extractor import
     cmd = ["bulk_extractor", "-E", "hashdb",
@@ -40,12 +39,15 @@ if __name__=="__main__":
            "-o", be_dir,
            "-R", source_dir]
 
-    print(cmd)
+    print("command:", cmd)
 
-    with subprocess.Popen(cmd, stdout=subprocess.PIPE, bufsize=1,
-                          universal_newlines=True) as p:
-        for line in p.stdout:
-            print("bulk_extractor:", line, end='')
+    try:
+        with subprocess.Popen(cmd, stdout=subprocess.PIPE, bufsize=1) as p:
+            for line in p.stdout:
+                print("bulk_extractor:", line.decode(sys.stdout.encoding), end='')
+    except FileNotFoundError:
+        print("Error: bulk_extractor not found.  Please check that bulk_extractor is installed.")
+        exit(1)
 
     if p.returncode == 0:
         print("Done.")
