@@ -1,8 +1,8 @@
 import tkinter 
 from forensic_path import offset_string
 
-class HashZoomBar():
-    """Renders the zoom bar widget based on data, filter values, and zoom.
+class HashHistogramBar():
+    """Renders the histogram bar widget based on data, filter values, and zoom.
 
     See http://almende.github.io/chap-links-library/js/timeline/examples/example28_custom_controls.html
     for an example of zoom and move behavior.
@@ -16,15 +16,15 @@ class HashZoomBar():
         and calculated filter count for each hash.
     """
 
-    # number of buckets across the zoom bar
+    # number of buckets across the histogram bar
     NUM_BUCKETS = 220
 
     # pixels per bucket
     BUCKET_WIDTH = 3
 
-    # zoom bar size in pixels
-    ZOOM_BAR_WIDTH = NUM_BUCKETS * BUCKET_WIDTH
-    ZOOM_BAR_HEIGHT = 261 # make divisible by 3 so bar rows align
+    # histogram bar size in pixels
+    HISTOGRAM_BAR_WIDTH = NUM_BUCKETS * BUCKET_WIDTH
+    HISTOGRAM_BAR_HEIGHT = 261 # make divisible by 3 so bar rows align
 
     # cursor byte offset
     _is_valid_cursor = False
@@ -33,6 +33,12 @@ class HashZoomBar():
     # selection byte offset
     _is_valid_selection = False
     _selection_offset = -1 # so it won't initially show
+
+    # mouse button 1 state
+    _mouse_b1_pressed = False
+    _mouse_b1_dragged = False
+    _mouse_b1_down_x = None
+    _mouse_b1_down_start_offset = None
 
     def __init__(self, master, identified_data, filters,
                  byte_offset_selection_trace_var):
@@ -55,7 +61,7 @@ class HashZoomBar():
 
         # initial zoomed-out position variables
         self._start_offset = 0
-        self._bytes_per_pixel = self.IMAGE_SIZE / self.ZOOM_BAR_WIDTH
+        self._bytes_per_pixel = self.IMAGE_SIZE / self.HISTOGRAM_BAR_WIDTH
 
         # bytes per pixel may be fractional but not less than one
         # sector per bucket
@@ -63,10 +69,10 @@ class HashZoomBar():
             self._bytes_per_pixel = self.SECTOR_SIZE / self.BUCKET_WIDTH
 
         # the photo_image
-        self._photo_image = tkinter.PhotoImage(width=self.ZOOM_BAR_WIDTH,
-                                               height=self.ZOOM_BAR_HEIGHT)
-        self._photo_image.put("gray", to=(0, 0, self.ZOOM_BAR_WIDTH,
-                                                self.ZOOM_BAR_HEIGHT))
+        self._photo_image = tkinter.PhotoImage(width=self.HISTOGRAM_BAR_WIDTH,
+                                               height=self.HISTOGRAM_BAR_HEIGHT)
+        self._photo_image.put("gray", to=(0, 0, self.HISTOGRAM_BAR_WIDTH,
+                                                self.HISTOGRAM_BAR_HEIGHT))
 
         # make the containing frame
         self.frame = tkinter.Frame(master)
@@ -94,7 +100,7 @@ class HashZoomBar():
         self._selected_byte_offset_label = tkinter.Label(self.frame)
         self._selected_byte_offset_label.pack(side=tkinter.TOP, anchor="w")
 
-        # add the label containing the zoom bar PhotoImage
+        # add the label containing the histogram bar PhotoImage
         l = tkinter.Label(self.frame, image=self._photo_image,
                           relief=tkinter.SUNKEN)
         l.pack(side=tkinter.TOP)
@@ -110,7 +116,8 @@ class HashZoomBar():
 
         # bind mouse motion events
         l.bind('<Any-Motion>', self._handle_mouse_move)
-        l.bind('<Button-1>', self._handle_mouse_click)
+        l.bind('<Button-1>', self._handle_b1_mouse_press)
+        l.bind('<ButtonRelease-1>', self._handle_b1_mouse_release)
         l.bind('<Enter>', self._handle_enter_window)
         l.bind('<Leave>', self._handle_leave_window)
 
@@ -213,16 +220,16 @@ class HashZoomBar():
 
     # redraw everything
     def _draw(self):
-        self._draw_bar_text()
+        self._draw_text()
         self._draw_buckets()
         self._draw_marker_lines()
 
-    def _draw_bar_text(self):
+    def _draw_text(self):
  
         # put in the offset start and stop text
         self._start_offset_label["text"] = offset_string(self._start_offset)
         stop_offset = int(self._start_offset +
-                          self._bytes_per_pixel * self.ZOOM_BAR_WIDTH)
+                          self._bytes_per_pixel * self.HISTOGRAM_BAR_WIDTH)
         self._stop_offset_label["text"] = offset_string(stop_offset)
 
         # put in the cursor byte offset text
@@ -230,7 +237,7 @@ class HashZoomBar():
             self._byte_offset_label["text"] = "Byte offset: " \
                                + offset_string(self._cursor_offset)
         else:
-            # clear to -1
+            # clear
             self._byte_offset_label['text'] = "Byte offset: Not selected"
 
         # put in the selection byte offset text
@@ -239,7 +246,7 @@ class HashZoomBar():
                                "Byte offset selection: " \
                                + offset_string(self._selection_offset)
         else:
-            # clear to -1
+            # clear
             self._selected_byte_offset_label['text'] = \
                                "Byte offset selection: Not selected"
 
@@ -247,8 +254,8 @@ class HashZoomBar():
     def _draw_buckets(self):
 
         # clear any previous content
-        self._photo_image.put("white", to=(0,0,self.ZOOM_BAR_WIDTH,
-                                               self.ZOOM_BAR_HEIGHT))
+        self._photo_image.put("white", to=(0,0,self.HISTOGRAM_BAR_WIDTH,
+                                               self.HISTOGRAM_BAR_HEIGHT))
 
         # draw the buckets
         for i in range(self.NUM_BUCKETS):
@@ -266,27 +273,28 @@ class HashZoomBar():
 
         # draw horizontal separator lines between the three bucket groups
         for i in (1,2):
-            y = int(self.ZOOM_BAR_HEIGHT / 3 * i)
-            self._photo_image.put("black", to=(0, y-1, self.ZOOM_BAR_WIDTH, y))
+            y = int(self.HISTOGRAM_BAR_HEIGHT / 3 * i)
+            self._photo_image.put("black",
+                                  to=(0, y-1, self.HISTOGRAM_BAR_WIDTH, y))
 
-    # draw one bar as part of a bucket
+    # draw one bar for one bucket
     def _draw_bar(self, color, count, i, j):
         # i is bucket number
         # j is bar row number, either 2, 1, or 0
         # x is pixel coordinate
         x=(i * self.BUCKET_WIDTH)
-        y0 = int(self.ZOOM_BAR_HEIGHT / 3 * j)
+        y0 = int(self.HISTOGRAM_BAR_HEIGHT / 3 * j)
         y1 = int(self.BUCKET_WIDTH * count)
-        if y1 > int(self.ZOOM_BAR_HEIGHT / 3):
-            y1 = int(self.ZOOM_BAR_HEIGHT / 3)
+        if y1 > int(self.HISTOGRAM_BAR_HEIGHT / 3):
+            y1 = int(self.HISTOGRAM_BAR_HEIGHT / 3)
 
         self._photo_image.put(color, to=(
              x,
-             self.ZOOM_BAR_HEIGHT - y0,
+             self.HISTOGRAM_BAR_HEIGHT - y0,
              x+self.BUCKET_WIDTH,
-             self.ZOOM_BAR_HEIGHT - (y0 + y1)))
+             self.HISTOGRAM_BAR_HEIGHT - (y0 + y1)))
 
-    # draw one bucket
+    # draw all bars for one bucket
     def _draw_bucket(self, i):
 
         # draw bars
@@ -304,7 +312,7 @@ class HashZoomBar():
 
         # out of range so fill bucket area gray
         self._photo_image.put("gray", to=(x, 0, x+self.BUCKET_WIDTH,
-                                                    self.ZOOM_BAR_HEIGHT))
+                                                  self.HISTOGRAM_BAR_HEIGHT))
 
 
     # draw the selection and cursor markers
@@ -313,14 +321,16 @@ class HashZoomBar():
         # cursor marker
         if self._is_valid_cursor:
             x = self._offset_to_pixel(self._cursor_offset)
-            self._photo_image.put("red", to=(x, 0, x+1, self.ZOOM_BAR_HEIGHT))
+            if x >= 0 and x < self.HISTOGRAM_BAR_WIDTH:
+                self._photo_image.put("red",
+                                      to=(x, 0, x+1, self.HISTOGRAM_BAR_HEIGHT))
 
         # selection marker
         if self._is_valid_selection:
             x = self._offset_to_pixel(self._selection_offset)
-            if x >= 0 and x < self.ZOOM_BAR_WIDTH:
+            if x >= 0 and x < self.HISTOGRAM_BAR_WIDTH:
                 self._photo_image.put("red3",
-                                      to=(x, 0, x+1, self.ZOOM_BAR_HEIGHT))
+                                      to=(x, 0, x+1, self.HISTOGRAM_BAR_HEIGHT))
 
     # convert mouse coordinate to byte offset
     def _mouse_to_offset(self, e):
@@ -330,7 +340,7 @@ class HashZoomBar():
         # return offset rounded down
         return byte_offset - byte_offset % self.SECTOR_SIZE
 
-    def _in_range(self, offset):
+    def _in_image_range(self, offset):
         return offset >= 0 and offset < self.IMAGE_SIZE
 
     # convert byte offset to pixel
@@ -340,22 +350,43 @@ class HashZoomBar():
         return pixel
 
     def _handle_enter_window(self, e):
-        self._cursor_offset = self._mouse_to_offset(e)
-        self._is_valid_cursor = self._in_range(self._cursor_offset)
-        self._draw()
+        self._handle_mouse_move(e)
 
     def _handle_leave_window(self, e):
         self._is_valid_cursor = False
         self._draw()
 
     def _handle_mouse_move(self, e):
-        self._cursor_offset = self._mouse_to_offset(e)
-        self._is_valid_cursor = self._in_range(self._cursor_offset)
+
+        # maybe pan
+        if self._mouse_b1_pressed:
+
+            # pan
+            self._mouse_b1_dragged = True
+            self._pan(e.x)
+
+            # recalculate bucket data
+            self._calculate_bucket_data()
+
+        # always move cursor
+        self._set_cursor(e)
         self._draw()
 
-    def _handle_mouse_click(self, e):
-        self._selection_offset = self._mouse_to_offset(e)
-        self._is_valid_selection = self._in_range(self._cursor_offset)
+    def _handle_b1_mouse_press(self, e):
+        self._mouse_b1_dragged = False
+        self._mouse_b1_pressed = True
+        self._mouse_b1_down_x = e.x
+        self._mouse_b1_down_start_offset = self._start_offset
+
+    def _handle_b1_mouse_release(self, e):
+        self._mouse_b1_pressed = False
+
+        # drag, so no action
+        if self._mouse_b1_dragged:
+            return
+
+        # mouse click
+        self._set_selection(e)
         self._draw()
         if self._is_valid_selection:
             self._byte_offset_selection_trace_var.set(self._selection_offset)
@@ -363,6 +394,11 @@ class HashZoomBar():
             self._byte_offset_selection_trace_var.set(-1)
 
     def _handle_mouse_wheel(self, e):
+        # drag, so no action
+        if self._mouse_b1_pressed:
+            return
+
+        # zoom
         if e.num == 4 or e.delta == 120:
             self._zoom_in()
         elif e.num == 5 or e.delta == -120:
@@ -371,24 +407,10 @@ class HashZoomBar():
             print("Unexpected _mouse_wheel")
 
     def _zoom_in(self):
-        """Recalculate _start_offset and _bytes_per_bucket and then redraw."""
-        before = self._bytes_per_pixel
+        """zoom and then redraw."""
 
-        # get the zoom origin pixel
-        zoom_origin_pixel = self._offset_to_pixel(self._cursor_offset)
-
-        # calculate the bytes per pixel
-        change = 0.33
-        self._bytes_per_pixel = self._bytes_per_pixel * (1 - change)
-
-        # do not let bytes per pixel get too small
-        if self._bytes_per_pixel * self.BUCKET_WIDTH < self.SECTOR_SIZE:
-            self._bytes_per_pixel = self.SECTOR_SIZE / self.BUCKET_WIDTH
-
-        # calculate the new start offset based on offset at cursor
-        self._start_offset = int(self._cursor_offset -
-                                 self._bytes_per_pixel * zoom_origin_pixel)
-        self._start_offset -= self._start_offset % self.SECTOR_SIZE
+        # zoom in
+        self._zoom(0.67)
 
         # recalculate bucket data
         self._calculate_bucket_data()
@@ -397,23 +419,48 @@ class HashZoomBar():
         self._draw()
 
     def _zoom_out(self):
-        """Recalculate _start_offset and _bytes_per_bucket and then redraw."""
+        """zoom and then redraw."""
 
-        # get the zoom origin pixel
-        zoom_origin_pixel = self._offset_to_pixel(self._cursor_offset)
-
-        # calculate the bytes per pixel
-        change = 0.33
-        self._bytes_per_pixel = self._bytes_per_pixel / (1 - change)
-
-        # calculate the new start offset based on offset at cursor
-        self._start_offset = int(self._cursor_offset -
-                                 self._bytes_per_pixel * zoom_origin_pixel)
-        self._start_offset -= self._start_offset % self.SECTOR_SIZE
+        # zoom out
+        self._zoom(1.0 / 0.67)
 
         # recalculate bucket data
         self._calculate_bucket_data()
 
         # redraw
         self._draw()
+
+    def _set_cursor(self, e):
+        self._cursor_offset = self._mouse_to_offset(e)
+        self._is_valid_cursor = self._in_image_range(self._cursor_offset)
+
+    def _set_selection(self, e):
+        self._selection_offset = self._mouse_to_offset(e)
+        self._is_valid_selection = self._in_image_range(self._cursor_offset)
+
+    def _pan(self, x):
+            self._start_offset = int(self._mouse_b1_down_start_offset - 
+                     self._bytes_per_pixel * (x - self._mouse_b1_down_x))
+            self._start_offset -= self._start_offset % self.SECTOR_SIZE
+
+    def _zoom(self, ratio):
+        """Recalculate _start_offset and _bytes_per_bucket."""
+
+        # get the zoom origin pixel
+        zoom_origin_pixel = self._offset_to_pixel(self._cursor_offset)
+
+        # calculate the bytes per pixel
+        self._bytes_per_pixel = self._bytes_per_pixel * (ratio)
+
+        # do not let bytes per pixel get too small
+        if self._bytes_per_pixel * self.BUCKET_WIDTH < self.SECTOR_SIZE:
+            self._bytes_per_pixel = self.SECTOR_SIZE / self.BUCKET_WIDTH
+
+        # calculate the new start offset
+        self._start_offset = int(self._cursor_offset -
+                                 self._bytes_per_pixel * zoom_origin_pixel)
+        self._start_offset -= self._start_offset % self.SECTOR_SIZE
+
+        # also set the new mouse down start offset
+        self._mouse_b1_down_start_offset = self._start_offset
 

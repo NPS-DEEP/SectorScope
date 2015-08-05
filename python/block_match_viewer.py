@@ -15,7 +15,7 @@ from filters import Filters
 from scrolled_canvas import ScrolledCanvas
 from filter_view import FilterView
 from identified_data_summary_view import IdentifiedDataSummaryView
-from hash_zoom_bar import HashZoomBar
+from hash_histogram_bar import HashHistogramBar
 from image_hex_view import ImageHexView
 from sources_view import SourcesView
 from forensic_path import offset_string
@@ -70,10 +70,10 @@ if __name__=="__main__":
                                   filter_and_summary_frame, identified_data)
     identified_data_summary_view.frame.pack(side=tkinter.LEFT, padx=40)
 
-    # the hash zoom bar in image_frame in the middle
-    hash_zoom_bar = HashZoomBar(image_frame, identified_data, filters,
+    # the hash histogram bar in image_frame in the middle
+    hash_histogram_bar = HashHistogramBar(image_frame, identified_data, filters,
                                 byte_offset_selection_trace_var)
-    hash_zoom_bar.frame.pack(side=tkinter.TOP, padx=8, pady=8, anchor="w")
+    hash_histogram_bar.frame.pack(side=tkinter.TOP, padx=8, pady=8, anchor="w")
 
     # the hex image view in image_frame below
     image_hex_view = ImageHexView(image_frame, identified_data, filters,
