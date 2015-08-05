@@ -461,6 +461,3 @@ class HashHistogramBar():
                                  self._bytes_per_pixel * zoom_origin_pixel)
         self._start_offset -= self._start_offset % self.SECTOR_SIZE
 
-        # also set the new mouse down start offset
-        self._mouse_b1_down_start_offset = self._start_offset
-
