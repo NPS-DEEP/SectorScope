@@ -25,7 +25,7 @@ if __name__=="__main__":
     image = os.path.abspath(args.image)
 
     # run bulk_extractor scan
-    cmd = ["bulk_extractor", "-E", "hashdbz",
+    cmd = ["bulk_extractor", "-E", "hashdb",
            "-S", "hashdb_mode=scan",
            "-S", "hashdb_block_size=%s" % args.block_size,
            "-S", "hashdb_scan_sector_size=%s" % args.sector_size,
