@@ -257,19 +257,22 @@ class HashHistogramBar():
         self._photo_image.put("white", to=(0,0,self.HISTOGRAM_BAR_WIDTH,
                                                self.HISTOGRAM_BAR_HEIGHT))
 
-        # draw the buckets
-        for i in range(self.NUM_BUCKETS):
+        # valid bucket boundaries map inside the image
+        leftmost_bucket = max(int((0 - self._start_offset) /
+                          (self._bytes_per_pixel * self.BUCKET_WIDTH)),
+                          0)
+        rightmost_bucket = min(int((self.IMAGE_SIZE - self._start_offset) /
+                          (self._bytes_per_pixel * self.BUCKET_WIDTH)),
+                          self.NUM_BUCKETS)
 
-            # get byte offset for bucket
-            byte_offset = int(self._start_offset + self._bytes_per_pixel * \
-                          i * self.BUCKET_WIDTH)
-            byte_offset -= byte_offset % self.SECTOR_SIZE
+        # draw the buckets
+        for bucket in range(self.NUM_BUCKETS):
 
             # bucket view depends on whether byte offset is in range
-            if byte_offset >= 0 and byte_offset < self.IMAGE_SIZE:
-                self._draw_bucket(i)
+            if bucket >= leftmost_bucket and bucket < rightmost_bucket:
+                self._draw_bucket(bucket)
             else:
-                self._draw_gray_bucket(i)
+                self._draw_gray_bucket(bucket)
 
         # draw horizontal separator lines between the three bucket groups
         for i in (1,2):
