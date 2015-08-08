@@ -64,7 +64,7 @@ class SourcesView():
         # add the source checkbuttons and their checkbutton_states
         self._checkbuttons = dict()
         self._checkbutton_state_vars = dict()
-        for source_id in identified_data.source_details:
+        for source_id in sorted(identified_data.source_details):
             self._checkbutton_state_vars[source_id] = tkinter.BooleanVar()
             self._checkbutton_state_vars[source_id].trace_variable('w',
                                           self._handle_checkbutton_selection)
