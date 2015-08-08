@@ -61,19 +61,6 @@ class ImageHexView():
                                          width=40, anchor="w")
         self._hash_label.pack(side=tkinter.LEFT)
 
-        # add the source ID frame to the filter and ID frame
-        source_id_frame = tkinter.Frame(selection_frame)
-        source_id_frame.pack(side=tkinter.TOP, anchor="w")
-
-        # add "Source ID:" text to the source ID frame
-        tkinter.Label(source_id_frame, text="Source ID:").pack(
-                                                           side=tkinter.LEFT)
-
-        # add the source ID label
-        self._source_id_label = tkinter.Label(source_id_frame,
-                                 text="Not selected", width=40, anchor="w")
-        self._source_id_label.pack(side=tkinter.TOP, anchor="w")
-
         # add the hash filter frame to the filter and ID frame
         hash_filter_frame = tkinter.Frame(annotation_frame)
         hash_filter_frame.pack(side=tkinter.LEFT)
@@ -94,6 +81,19 @@ class ImageHexView():
                                 state=tkinter.DISABLED,
                                 command=self._handle_remove_hash_from_filter)
         self._remove_hash_button.pack(side=tkinter.LEFT, padx=8, pady=0)
+
+        # add the source ID frame
+        source_id_frame = tkinter.Frame(self.frame)
+        source_id_frame.pack(side=tkinter.TOP, anchor="w")
+
+        # add "Source ID:" text to the source ID frame
+        tkinter.Label(source_id_frame, text="Source ID:").pack(
+                                                           side=tkinter.LEFT)
+
+        # add the source ID label
+        self._source_id_label = tkinter.Label(source_id_frame,
+                                 text="Not selected", width=80, anchor="w")
+        self._source_id_label.pack(side=tkinter.TOP, anchor="w")
 
         # add the frame to contain the hex text and the scrollbar
         hex_frame = tkinter.Frame(self.frame, bd=1, relief=tkinter.SUNKEN)
