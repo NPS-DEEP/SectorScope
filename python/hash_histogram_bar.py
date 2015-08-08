@@ -307,11 +307,11 @@ class HashHistogramBar():
     def _draw_bucket(self, i):
 
         # draw bars
-        self._draw_bar("#0000aa", self._source_buckets[i], i, 2)
+        self._draw_bar("#3399ff", self._source_buckets[i], i, 2)
         self._draw_bar("#000066", self._hash_buckets[i], i, 2)
-        self._draw_bar("#aa0000", self._filter_removed_source_buckets[i], i, 1)
+        self._draw_bar("#ff5050", self._filter_removed_source_buckets[i], i, 1)
         self._draw_bar("#660000", self._filter_removed_hash_buckets[i], i, 1)
-        self._draw_bar("#006600", self._filter_only_source_buckets[i], i, 0)
+        self._draw_bar("#33cc33", self._filter_only_source_buckets[i], i, 0)
         self._draw_bar("#004400", self._filter_only_hash_buckets[i], i, 0)
 
     # draw one gray bucket for out-of-range data
