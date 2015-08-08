@@ -88,7 +88,7 @@ class HashHistogramBar():
         tkinter.Label(f,text="   ",background="#000066").pack(side=tkinter.LEFT)
         tkinter.Label(f,text="All matches      ").pack(side=tkinter.LEFT)
         tkinter.Label(f,text="   ",background="#660000").pack(side=tkinter.LEFT)
-        tkinter.Label(f,text="Filtered matches removed      ").pack(side=tkinter.LEFT)
+        tkinter.Label(f,text="No filtered matches      ").pack(side=tkinter.LEFT)
         tkinter.Label(f,text="   ",background="#004400").pack(side=tkinter.LEFT)
         tkinter.Label(f,text="Filtered matches only").pack(side=tkinter.LEFT)
 
@@ -209,12 +209,18 @@ class HashHistogramBar():
             # set values for buckets
             count, filter_count = self._hash_counts[block_hash]
 
+            # hash buckets
             self._hash_buckets[bucket] += 1
             self._source_buckets[bucket] += count
-            if filter_count > 0:
+
+            # hashes with filter removed
+            if count - filter_count > 0:
                 self._filter_removed_hash_buckets[bucket] += 1
-                self._filter_removed_source_buckets[bucket] += filter_count
-            else:
+                self._filter_removed_source_buckets[bucket] += \
+                                                     count - filter_count
+
+            # hashes with filter
+            if filter_count > 0:
                 self._filter_only_hash_buckets[bucket] += 1
                 self._filter_only_source_buckets[bucket] += filter_count
 
@@ -303,10 +309,10 @@ class HashHistogramBar():
         # draw bars
         self._draw_bar("#0000aa", self._source_buckets[i], i, 2)
         self._draw_bar("#000066", self._hash_buckets[i], i, 2)
-        self._draw_bar("#aa0000", self._filter_only_source_buckets[i], i, 1)
-        self._draw_bar("#660000", self._filter_only_hash_buckets[i], i, 1)
-        self._draw_bar("#006600", self._filter_removed_source_buckets[i], i, 0)
-        self._draw_bar("#004400", self._filter_removed_hash_buckets[i], i, 0)
+        self._draw_bar("#aa0000", self._filter_removed_source_buckets[i], i, 1)
+        self._draw_bar("#660000", self._filter_removed_hash_buckets[i], i, 1)
+        self._draw_bar("#006600", self._filter_only_source_buckets[i], i, 0)
+        self._draw_bar("#004400", self._filter_only_hash_buckets[i], i, 0)
 
     # draw one gray bucket for out-of-range data
     def _draw_gray_bucket(self, i):
