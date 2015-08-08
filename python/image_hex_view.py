@@ -34,37 +34,66 @@ class ImageHexView():
         # add the header text
         tkinter.Label(self.frame, text='Image Hex View') \
                       .pack(side=tkinter.TOP)
-        self.image_offset_label = tkinter.Label(self.frame,
+
+        # add the annotation frame
+        annotation_frame = tkinter.Frame(self.frame)
+        annotation_frame.pack(side=tkinter.TOP, anchor="w")
+
+        # add the offset and hash frame to the annotation frame
+        selection_frame = tkinter.Frame(annotation_frame)
+        selection_frame.pack(side=tkinter.LEFT)
+
+        # add the image offset text to the offset and hash frame
+        self.image_offset_label = tkinter.Label(selection_frame,
                                  text='Image offset: not selected')
         self.image_offset_label.pack(side=tkinter.TOP, anchor="w")
 
-        # add the line for the block hash frame containing several parts
-        hash_frame = tkinter.Frame(self.frame)
-        hash_frame.pack(side=tkinter.TOP, anchor="w")
+        # add the block hash frame to the offset and hash frame
+        block_hash_frame = tkinter.Frame(selection_frame)
+        block_hash_frame.pack(side=tkinter.TOP, anchor="w")
 
-        # hash_frame "block hash" text
-        tkinter.Label(hash_frame, text='Block Hash:').pack(side=tkinter.LEFT,
-                                                          anchor="w")
+        # block_hash_frame "block hash" text
+        tkinter.Label(block_hash_frame, text='Block Hash:').pack(
+                                              side=tkinter.LEFT, anchor="w")
 
-        # hash_frame block hash entry value
-        self._hash_label = tkinter.Label(hash_frame, text="Not selected",
+        # block_hash_frame block hash entry value
+        self._hash_label = tkinter.Label(block_hash_frame, text="Not selected",
                                          width=40, anchor="w")
         self._hash_label.pack(side=tkinter.LEFT)
 
-        # hash filter "Filter:" text
-        tkinter.Label(hash_frame, text="Filter:").pack(side=tkinter.LEFT)
+        # add the source ID frame to the filter and ID frame
+        source_id_frame = tkinter.Frame(selection_frame)
+        source_id_frame.pack(side=tkinter.TOP, anchor="w")
 
-        # hash_frame "Add Hash to Filter" button
-        self._add_hash_button = tkinter.Button(hash_frame, text="Add",
+        # add "Source ID:" text to the source ID frame
+        tkinter.Label(source_id_frame, text="Source ID:").pack(
+                                                           side=tkinter.LEFT)
+
+        # add the source ID label
+        self._source_id_label = tkinter.Label(source_id_frame,
+                                 text="Not selected", width=40, anchor="w")
+        self._source_id_label.pack(side=tkinter.TOP, anchor="w")
+
+        # add the hash filter frame to the filter and ID frame
+        hash_filter_frame = tkinter.Frame(annotation_frame)
+        hash_filter_frame.pack(side=tkinter.LEFT)
+
+        # add hash filter "Hash filter:" text to the hash filter frame
+        tkinter.Label(hash_filter_frame, text="Hash filter:").pack(
+                                                       side=tkinter.LEFT)
+
+        # hash_filter_frame "Add Hash to Filter" button to the hash filter frame
+        self._add_hash_button = tkinter.Button(hash_filter_frame, text="Add",
                                 state=tkinter.DISABLED,
                                 command=self._handle_add_hash_to_filter)
-        self._add_hash_button.pack(side=tkinter.LEFT, padx=8, pady=4)
+        self._add_hash_button.pack(side=tkinter.LEFT, padx=8, pady=0)
 
-        # hash_frame "Remove Hash from Filter" button
-        self._remove_hash_button = tkinter.Button(hash_frame, text="Remove",
+        # hash_filter_frame "Remove Hash from Filter" button
+        self._remove_hash_button = tkinter.Button(hash_filter_frame,
+                                text="Remove",
                                 state=tkinter.DISABLED,
                                 command=self._handle_remove_hash_from_filter)
-        self._remove_hash_button.pack(side=tkinter.LEFT, padx=8, pady=4)
+        self._remove_hash_button.pack(side=tkinter.LEFT, padx=8, pady=0)
 
         # add the frame to contain the hex text and the scrollbar
         hex_frame = tkinter.Frame(self.frame, bd=1, relief=tkinter.SUNKEN)
@@ -82,10 +111,13 @@ class ImageHexView():
         self._hex_text.pack()
 
         scrollbar.config(command=self._hex_text.yview)
-        hex_frame.pack()
+        hex_frame.pack(side=tkinter.TOP, anchor="w")
 
         # listen to changes in _byte_offset_selection
         byte_offset_selection.trace_variable('w', self._handle_set_data)
+
+        # register to receive filter change events
+        filters.set_callback(self._handle_filter_change)
 
     # set variables and the image based on identified_data when
     # byte_offset_selection changes
@@ -117,6 +149,9 @@ class ImageHexView():
         # set state for buttons
         self._set_add_and_remove_button_states()
 
+        # set any source ID values
+        self._set_source_id_values()
+
         # set hex view
         self._set_hex_view(offset, buf)
 
@@ -133,6 +168,59 @@ class ImageHexView():
             self._remove_hash_button.config(state=tkinter.NORMAL)
         else:
             self._remove_hash_button.config(state=tkinter.DISABLED)
+
+    def _calculate_filtered_sources(self):
+        """Returns a list of unfiltered sources."""
+        # selected hash must be in identified data
+        if not self._selected_hash in self._identified_data.hashes:
+            raise RuntimeError("hash must be in identified data")
+
+        # NOTE: this filtering algorithm must be the same as that used
+        #       in _calculate_hash_counts in hash_histogram_bar.py.
+        max_hashes = self._filters.max_hashes
+        filter_flagged_blocks = self._filters.filter_flagged_blocks
+        filtered_sources = self._filters.filtered_sources
+        filtered_hashes = self._filters.filtered_hashes
+
+        # the sources associated with this hash
+        sources = self._identified_data.hashes[self._selected_hash]
+        count = len(sources)
+
+        # count exceeds max_hashes
+        if max_hashes != 0 and count > max_hashes:
+            return []
+
+        # hash is filtered
+        if self._selected_hash in filtered_hashes:
+            return []
+
+        # the unfiltered sources
+        unfiltered_sources = []
+        for source in sources:
+            if filter_flagged_blocks and "label" in source:
+                # source has a label flag
+                continue
+            if source["source_id"] in filtered_sources:
+                # source is to be filtered
+                continue
+
+            # add the unfiltered source
+            unfiltered_sources.append(source["source_id"])
+        return sorted(unfiltered_sources)
+
+    def _set_source_id_values(self):
+        # get the source ID text
+        if not self._selected_hash in self._identified_data.hashes:
+            source_text = "Not selected"
+        else:
+            unfiltered_sources = self._calculate_filtered_sources()
+            if len(unfiltered_sources) == 0:
+                source_text = "None"
+            else:
+                source_text = " ".join(str(u) for u in unfiltered_sources)
+
+        # put the source ID text into the source ID label
+        self._source_id_label['text'] = source_text
 
     def _set_no_data(self):
         # clear image offset text
@@ -205,13 +293,18 @@ class ImageHexView():
             # add this composed line
             self._hex_text.insert(tkinter.END, line)
 
+    # button changes filter
     def _handle_add_hash_to_filter(self):
         self._filters.filtered_hashes.append(self._selected_hash)
-        self._set_add_and_remove_button_states()
         self._filters.fire_change()
 
+    # button changes filter
     def _handle_remove_hash_from_filter(self):
         self._filters.filtered_hashes.remove(self._selected_hash)
-        self._set_add_and_remove_button_states()
         self._filters.fire_change()
+
+    # filter changes views
+    def _handle_filter_change(self, *args):
+        self._set_add_and_remove_button_states()
+        self._set_source_id_values()
 
