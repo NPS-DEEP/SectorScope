@@ -92,7 +92,7 @@ class ImageHexView():
 
         # add the source ID label
         self._source_id_label = tkinter.Label(source_id_frame,
-                                 text="Not selected", width=80, anchor="w")
+                                 text="Not selected", width=72, anchor="w")
         self._source_id_label.pack(side=tkinter.TOP, anchor="w")
 
         # add the frame to contain the hex text and the scrollbar
