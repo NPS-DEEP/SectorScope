@@ -6,19 +6,9 @@ from argparse import ArgumentParser
 import subprocess
 import os
 import sys
+import be_scan_gui
 
-if __name__=="__main__":
-
-    parser = ArgumentParser(prog='be_scan.py', description="Scan media image 'image' for block hashes matching hashes in the hashdb database at 'hashdb_dir' and put the output in new bulk_extractor directory 'be_dir'.")
-    parser.add_argument('image', help= 'path to the media image')
-    parser.add_argument('hashdb_dir', help= 'path to the hashdb directory')
-    parser.add_argument('be_dir', help= 'path to the new bulk_extractor directory to be created')
-    parser.add_argument('-p', '--block_size', type=str, default='512',
-            help= 'partition size of blocks to hash, default=512')
-    parser.add_argument('-a', '--sector_size', type=str, default='512',
-            help= 'aligned sector boundary to scan along, default=512')
-    args = parser.parse_args()
-
+def scan_without_gui(args):
     # get absolute paths
     hashdb_dir = os.path.abspath(args.hashdb_dir)
     be_dir = os.path.abspath(args.be_dir)
@@ -49,4 +39,30 @@ if __name__=="__main__":
     else:
         print("Error runnining bulk_extractor")
         exit(1)
+
+if __name__=="__main__":
+
+    parser = ArgumentParser(prog='be_scan.py', description="Scan media image 'image' for block hashes matching hashes in the hashdb database at 'hashdb_dir' and put the output in new bulk_extractor directory 'be_dir'.")
+    parser.add_argument('-i', '--image',
+                        help= 'path to the media image', default='')
+    parser.add_argument('-d', '--hashdb_dir',
+                        help= 'path to the hashdb directory', default='')
+    parser.add_argument('-o', '--be_dir', help= 'path to the new bulk_extractor directory to be created')
+    parser.add_argument('-p', '--block_size', type=str, default='512',
+            help= 'partition size of blocks to hash, default=512')
+    parser.add_argument('-a', '--sector_size', type=str, default='512',
+            help= 'aligned sector boundary to scan along, default=512')
+    parser.add_argument('-z', '--without_gui', action="store_true",
+            help= "Use command window instead of GUI")
+    args = parser.parse_args()
+
+    if args.without_gui:
+        # some args are required when run without GUI
+        if not args.image or not args.hashdb_dir or not args.be_dir:
+            print("image, hashdb_dir and be_dir paths are required when run " \
+                  "without GUI")
+            exit(1)
+        scan_without_gui(args)
+    else:
+        be_scan_gui.BEScanGUI(args)
  
