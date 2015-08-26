@@ -102,7 +102,7 @@ class ImageHexView():
         scrollbar = tkinter.Scrollbar(hex_frame, bd=0)
         scrollbar.pack(side=tkinter.RIGHT, fill=tkinter.Y)
 
-        # add the label containing the plot image
+        # add the text containing the plot image
         HEX_TEXT_WIDTH=88
         HEX_TEXT_HEIGHT=24
         self._hex_text = tkinter.Text(hex_frame, width=HEX_TEXT_WIDTH,

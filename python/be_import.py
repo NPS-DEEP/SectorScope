@@ -6,20 +6,9 @@ from argparse import ArgumentParser
 import subprocess
 import os
 import sys
+import be_import_gui
 
-if __name__=="__main__":
-
-    parser = ArgumentParser(prog='be_import.py', description="Import block hashes recursively from files under directory 'source_dir' into hash database hashdb.hdb under new bulk_extractor directory 'be_dir'.")
-    parser.add_argument('source_dir', help= 'path to the source directory')
-    parser.add_argument('be_dir', help= 'path to the new bulk_extractor directory to be created')
-    parser.add_argument('-p', '--block_size', type=str, default='512',
-            help= 'partition size of blocks to hash, default=512')
-    parser.add_argument('-a', '--sector_size', type=str, default='512',
-            help= 'aligned sector boundary to scan along, default=512')
-    parser.add_argument('-r', '--repository_name', type=str,
-            help= "repository name, defaults to the full path to the 'source_dir' source directory provided")
-    args = parser.parse_args()
-
+def import_without_gui(args):
     # get absolute paths
     source_dir = os.path.abspath(args.source_dir)
     be_dir = os.path.abspath(args.be_dir)
@@ -55,4 +44,29 @@ if __name__=="__main__":
     else:
         print("Error runnining bulk_extractor")
         exit(1)
+
+if __name__=="__main__":
+
+    parser = ArgumentParser(prog='be_import.py', description="Import block hashes recursively from files under directory 'source_dir' into hash database hashdb.hdb under new bulk_extractor directory 'be_dir'.")
+    parser.add_argument('-i', '--source_dir', help= 'path to the source directory', default='')
+    parser.add_argument('-o', '--be_dir', help= 'path to the new bulk_extractor directory to be created', default='')
+    parser.add_argument('-p', '--block_size', type=str, default='512',
+            help= 'partition size of blocks to hash, default=512')
+    parser.add_argument('-a', '--sector_size', type=str, default='512',
+            help= 'aligned sector boundary to scan along, default=512')
+    parser.add_argument('-r', '--repository_name', type=str, default='',
+            help= "repository name, defaults to the full path to the 'source_dir' source directory provided")
+    parser.add_argument('-z', '--without_gui', action="store_true",
+            help= "Use command window instead of GUI")
+    args = parser.parse_args()
+
+    if args.without_gui:
+        # some args are required when run without GUI
+        if not args.source_dir or not args.be_dir:
+            print("source_dir and be_dir paths are required when run " \
+                  "without GUI")
+            exit(1)
+        import_without_gui(args)
+    else:
+        be_import_gui.BEImportGUI(args)
  
