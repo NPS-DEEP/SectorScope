@@ -201,6 +201,7 @@ class BEImportGUI():
 
         # also put status into progress text
         self._progress_text.insert(tkinter.END, "%s\n" % text)
+        self._progress_text.see(tkinter.END)
 
     def _set_running(self):
         self._set_status_text("Running...")
@@ -238,6 +239,7 @@ class BEImportGUI():
         # consume the queue
         while not self._queue.empty():
             self._progress_text.insert(tkinter.END, self._queue.get())
+            self._progress_text.see(tkinter.END)
 
         # more or done
         if self._threaded_subprocess.is_alive():
@@ -259,14 +261,14 @@ class BEImportGUI():
         # get source_dir field
         source_dir = os.path.abspath(self._source_directory_entry.get())
         if not os.path.exists(source_dir):
-            self._set_status_text("Error: input source directory: '%s' does "
+            self._set_status_text("Error: input source directory '%s' does "
                                     "not exist." % source_dir)
             return
 
         # get be_dir field
         be_dir = os.path.abspath(self._output_directory_entry.get())
         if os.path.exists(be_dir):
-            self._set_status_text("Error: bulk_extractor output directory: '%s'"
+            self._set_status_text("Error: bulk_extractor output directory '%s'"
                                     "already exists." % be_dir)
             return
 
