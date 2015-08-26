@@ -119,7 +119,7 @@ class BEImportGUI():
         # repository name entry
         self._repository_name_entry = tkinter.Entry(optional_frame, width=40)
         self._repository_name_entry.grid(row=2, column=1, sticky=tkinter.W,
-                                         padx=8)
+                                         padx=(8,0))
         self._repository_name_entry.insert(0, self._args.repository_name)
 
         return optional_frame
@@ -134,19 +134,44 @@ class BEImportGUI():
         # scroll frame
         scroll_frame = tkinter.Frame(progress_frame, bd=1,
                                      relief=tkinter.SUNKEN)
-        scroll_frame.pack(side=tkinter.TOP, anchor="w")
+        scroll_frame.pack()
+        scroll_frame.grid_rowconfigure(0, weight=1)
+        scroll_frame.grid_columnconfigure(0, weight=1)
 
-        # scrollbar in scroll frame
-        scrollbar = tkinter.Scrollbar(scroll_frame, bd=0)
-        scrollbar.pack(side=tkinter.RIGHT, fill=tkinter.Y)
+        # xscrollbar in scroll frame
+        xscrollbar = tkinter.Scrollbar(scroll_frame, bd=0,
+                                       orient=tkinter.HORIZONTAL)
+        xscrollbar.grid(row=1, column=0, sticky=tkinter.E + tkinter.W)
+
+        # yscrollbar in scroll frame
+        yscrollbar = tkinter.Scrollbar(scroll_frame, bd=0)
+        yscrollbar.grid(row=0, column=1, sticky=tkinter.N + tkinter.S)
 
         # text area in scroll frame
         TEXT_WIDTH=80
         TEXT_HEIGHT=12
-        self._progress_text = tkinter.Text(scroll_frame, width=TEXT_WIDTH,
-                                           height = TEXT_HEIGHT, bd=0,
-                                           yscrollcommand=scrollbar.set)
-        self._progress_text.pack()
+        self._progress_text = tkinter.Text(scroll_frame, wrap=tkinter.NONE,
+                                     width=TEXT_WIDTH, height=TEXT_HEIGHT,
+                                     bd=0,
+                                     xscrollcommand=xscrollbar.set,
+                                     yscrollcommand=yscrollbar.set)
+        self._progress_text.grid(row=0, column=0, sticky=tkinter.N +
+                                 tkinter.S + tkinter.E + tkinter.W)
+
+        xscrollbar.config(command=self._progress_text.xview)
+        yscrollbar.config(command=self._progress_text.yview)
+
+        # status frame
+        status_frame = tkinter.Frame(progress_frame)
+        status_frame.pack(side=tkinter.TOP, anchor="w")
+
+        # status "Status:" title
+        tkinter.Label(status_frame, text="Status:").pack(side=tkinter.LEFT)
+
+        # status label
+        self._status_label = tkinter.Label(status_frame,
+                                           text="Not started")
+        self._status_label.pack(side=tkinter.LEFT)
 
         return progress_frame
 
@@ -167,34 +192,35 @@ class BEImportGUI():
         # close button
         self._close_button = tkinter.Button(button_frame, text="Close",
                                             command=self._handle_close)
-        self._cancel_button.pack(side=tkinter.LEFT, padx=8)
+        self._close_button.pack(side=tkinter.LEFT, padx=8)
 
         return button_frame
 
-    def _set_progress_text(self, text):
-        self._source_directory_entry.delete(0, tkinter.END)
-        self._source_directory_entry.insert(0, text)
+    def _set_status_text(self, text):
+        self._status_label["text"] = text
 
-    def _add_progress_text(self, text):
-        self._source_directory_entry.insert(tkinter.END, text)
+        # also put status into progress text
+        self._progress_text.insert(tkinter.END, "%s\n" % text)
 
     def _set_running(self):
+        self._set_status_text("Running...")
         self._start_button.config(state=tkinter.DISABLED)
         self._cancel_button.config(state=tkinter.NORMAL)
         self._close_button.config(state=tkinter.DISABLED)
 
     def _set_done(self):
-        self._start_button.config(state=tkinter.DISABLED)
+        self._set_status_text("Done.")
+        self._start_button.config(state=tkinter.NORMAL)
         self._cancel_button.config(state=tkinter.DISABLED)
         self._close_button.config(state=tkinter.NORMAL)
 
     def _set_failed(self):
-        self._start_button.config(state=tkinter.DISABLED)
+        self._set_status_text("Failed.")
+        self._start_button.config(state=tkinter.NORMAL)
         self._cancel_button.config(state=tkinter.DISABLED)
         self._close_button.config(state=tkinter.NORMAL)
 
     def _handle_source_directory_chooser(self, *args):
-        print("handle source")
         source_directory = tkinter.filedialog.askdirectory(
                                title="Open Input Source Directory",
                                mustexist=True)
@@ -202,7 +228,6 @@ class BEImportGUI():
         self._source_directory_entry.insert(0, source_directory)
 
     def _handle_output_directory_chooser(self, *args):
-        print("handle output")
         output_directory = tkinter.filedialog.askdirectory(
                                title="Open bulk_extractor output Directory",
                                mustexist=False)
@@ -228,19 +253,20 @@ class BEImportGUI():
                 self._set_failed()
 
     def _handle_start(self):
-        print("handle start")
+        # clear any existing progress text
+        self._progress_text.delete(1.0, tkinter.END)
 
         # get source_dir field
         source_dir = os.path.abspath(self._source_directory_entry.get())
         if not os.path.exists(source_dir):
-            self._set_progress_text("Error: source directory: '%s' does not " 
-                                    "exist." % source_dir)
+            self._set_status_text("Error: input source directory: '%s' does "
+                                    "not exist." % source_dir)
             return
 
         # get be_dir field
-        be_dir = os.path.abspath(self._be_directory_entry.get())
+        be_dir = os.path.abspath(self._output_directory_entry.get())
         if os.path.exists(be_dir):
-            self._set_progress_text("Error: new bulk_extractor directory: '%s'"
+            self._set_status_text("Error: bulk_extractor output directory: '%s'"
                                     "already exists." % be_dir)
             return
 
@@ -248,20 +274,20 @@ class BEImportGUI():
         try:
             block_size = int(self._block_size_entry.get())
         except ValueError:
-            self._set_progress_text("Error: invalid block size value: '%s'." %
-                                    block_size)
+            self._set_status_text("Error: invalid block size value: '%s'." %
+                                  self._block_size_entry.get())
             return
 
         # get sector size
         try:
             sector_size = int(self._sector_size_entry.get())
         except ValueError:
-            self._set_progress_text("Error: invalid sector size value: '%s'." %
-                                    sector_size)
+            self._set_status_text("Error: invalid sector size value: '%s'." %
+                                  self._sector_size_entry.get())
             return
 
         # get repository name
-        repository_name = self._repository_name_entry.get())
+        repository_name = self._repository_name_entry.get()
         if not repository_name:
             repository_name = source_dir
             self._repository_name_entry.delete(0, tkinter.END)
@@ -270,15 +296,15 @@ class BEImportGUI():
         # compose the bulk_extractor import command
         cmd = ["bulk_extractor", "-E", "hashdb",
                "-S", "hashdb_mode=import",
-               "-S", "hashdb_block_size=%s" % args.block_size,
-               "-S", "hashdb_import_sector_size=%s" % args.sector_size,
+               "-S", "hashdb_block_size=%s" % block_size,
+               "-S", "hashdb_import_sector_size=%s" % sector_size,
                "-S", "hashdb_import_repository_name=%s" % repository_name,
                "-o", be_dir,
                "-R", source_dir]
 
         # start the import
         self._threaded_subprocess = threaded_subprocess.ThreadedSubprocess(
-                                                     self._cmd, self._queue)
+                                                           cmd, self._queue)
         self._threaded_subprocess.start()
 
         # start the consumer
@@ -287,10 +313,8 @@ class BEImportGUI():
         self._set_running()
 
     def _handle_cancel(self):
-        print("handle cancel")
-        exit(0)
+        self._threaded_subprocess.kill()
 
     def _handle_close(self):
-        print("handle close")
         exit(0)
 

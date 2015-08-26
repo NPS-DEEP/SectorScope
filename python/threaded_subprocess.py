@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
-# Use this to import hashes from a directory into a hash database.
-# Relative paths will be replaced with absolute paths.
+# Use this to execute a command.  stdout and stderr are sent to queue.
 
 import subprocess
 import queue
+import sys
+import threading
 
 class ThreadedSubprocess(threading.Thread):
-    def __init__(self, cmd, queue)
+    def __init__(self, cmd, queue):
         """Args:
           cmd(list): the command to execute using subprocess.Popen.
           queue(queue): the queue this producer will feed.
@@ -16,27 +17,55 @@ class ThreadedSubprocess(threading.Thread):
         threading.Thread.__init__(self)
         self._cmd = cmd
         self._queue = queue
+        self.subprocess_returncode = -1
 
     def run(self):
-
         # start by showing the command issued
-        self._queue.put("Command: %s" % cmd)
+        self._queue.put("Command: %s\n" % self._cmd)
 
-        
+        # run the command
         try:
             with subprocess.Popen(self._cmd,
-                                  stdout=subprocess.PIPE, bufsize=1) as p:
-                for line in p.stdout:
-                    self._queue.put(line.decode(sys.stdout.encoding))
+                                  stdout=subprocess.PIPE,
+                                  stderr=subprocess.PIPE,
+                                  bufsize=1) as self._p:
+
+                # start readers
+                stdout_reader = ReaderThread("stdout", self._p.stdout,
+                                             self._queue)
+                stdout_reader.start()
+                stderr_reader = ReaderThread("stderr", self._p.stderr,
+                                             self._queue)
+                stderr_reader.start()
+
+                # wait for readers to finish since leaving the "with" block
+                # will close the pipes that the readers need
+                stdout_reader.join()
+                stderr_reader.join()
+
         except FileNotFoundError:
             self._queue.put("Error: %s not found.  Please check that %s "
-                            "is installed." %(self._cmd[0], self._cmd[0])
+                            "is installed.\n" %(self._cmd[0], self._cmd[0]))
             return
 
-        if p.returncode == 0:
-            self._queue.put("Done.")
-        else:
-            self._queue.put("Error runnining %s" % self._cmd[0])
+        # set return code
+        self.subprocess_returncode = self._p.returncode
 
-        self.subprocess_returncode = p.returncode
+    # kill the subprocess and let the reader threads finish naturally
+    def kill(self):
+        self._p.kill()
+
+
+class ReaderThread(threading.Thread):
+    def __init__(self, name, pipe, queue):
+        threading.Thread.__init__(self)
+        self._name = name
+        self._pipe = pipe
+        self._queue = queue
+
+    def run(self):
+        # read pipe until pipe closes
+        for line in self._pipe:
+            self._queue.put("%s: %s" %(self._name,
+                                       line.decode(sys.stdout.encoding)))
 
