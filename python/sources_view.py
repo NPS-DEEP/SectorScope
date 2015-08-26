@@ -117,21 +117,33 @@ class SourcesView():
         # fill out text for each source checkbox
         for source_id, source in self._identified_data.source_details.items():
 
-             # calculate percent of this source file found
-             percent_found = len(sources_offsets[source_id]) / \
-                             (int(source["filesize"] / 
-                             self._identified_data.sector_size)) * \
-                             100
+             # handle missing fields, which can happen if an image was
+             # imported instead of a directory of files
+             if "filesize" in source:
 
-             # Source ID, %match, #match, file size, repository name, filename
-             self._checkbuttons[source_id].config(
-                      text='%s, %.2f%%, %d, %d, %s, %s' \
-                                %(source_id,
-                                  percent_found,
-                                  len(sources_offsets[source_id]),
-                                  source["filesize"],
-                                  source["repository_name"],
-                                  source["filename"]))
+                 # calculate percent of this source file found
+                 percent_found = len(sources_offsets[source_id]) / \
+                                 (int(source["filesize"] / 
+                                 self._identified_data.sector_size)) * \
+                                 100
+
+                 # Source ID, %match, #match, file size, repository name, filename
+                 self._checkbuttons[source_id].config(
+                          text='%s, %.2f%%, %d, %d, %s, %s' \
+                                    %(source_id,
+                                      percent_found,
+                                      len(sources_offsets[source_id]),
+                                      source["filesize"],
+                                      source["repository_name"],
+                                      source["filename"]))
+
+             else:
+                 self._checkbuttons[source_id].config(
+                          text='%s, ?, %d, ?, %s, %s' \
+                                    %(source_id,
+                                      len(sources_offsets[source_id]),
+                                      source["repository_name"],
+                                      source["filename"]))
  
     def _handle_clear_all_checkbuttons(self, *args):
         # clear all the checkbuttons
