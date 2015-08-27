@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project-private xmlns="http://www.netbeans.org/ns/project-private/1">
+    <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
+    <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
+        <group>
+            <file>file:/C:/Users/bdallen/Autopsy-hashdb/src/edu/nps/autopsy/hashdb/blacklist/BlacklistIngestModuleFactory.java</file>
+            <file>file:/C:/Users/bdallen/Autopsy-hashdb/src/edu/nps/autopsy/hashdb/blacklist/BlacklistModuleIngestJobSettings.java</file>
+            <file>file:/C:/Users/bdallen/Autopsy-hashdb/src/edu/nps/autopsy/hashdb/blacklist/BlacklistDataSourceIngestModule.java</file>
+            <file>file:/C:/Users/bdallen/Autopsy-hashdb/src/edu/nps/autopsy/hashdb/blacklist/SourceData.java</file>
+            <file>file:/C:/Users/bdallen/Autopsy-hashdb/src/edu/nps/autopsy/hashdb/blacklist/IdentifiedBlocksExpandedReader.java</file>
+            <file>file:/C:/Users/bdallen/Autopsy-hashdb/src/edu/nps/autopsy/hashdb/blacklist/BlacklistFileIngestModule.java</file>
+            <file>file:/C:/Users/bdallen/Autopsy-hashdb/src/edu/nps/autopsy/hashdb/blacklist/BlacklistIngestModuleIngestJobSettingsPanel.java</file>
+            <file>file:/C:/Users/bdallen/Autopsy-hashdb/src/edu/nps/autopsy/hashdb/blacklist/Bundle.properties</file>
+        </group>
+    </open-files>
+</project-private>
