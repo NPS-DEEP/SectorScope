@@ -23,7 +23,7 @@ from forensic_path import offset_string
 # main
 if __name__=="__main__":
 
-    parser = ArgumentParser(prog='block_match_viewer.py',
+    parser = ArgumentParser(prog='SectorScope.py',
                description="View associations between scanned hashes and their sources for the bulk_extractor directory at path 'be_dir'.")
     parser.add_argument('be_dir',
                 help= 'path to the bulk_extractor directory')

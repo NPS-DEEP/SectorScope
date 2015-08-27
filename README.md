@@ -1,5 +1,5 @@
-# NPS-block_match
-*NPS-block_match* provides tools for viewing block hashes.
+# NPS-SectorScope
+*NPS-SectorScope* provides the SectorScope hash block viewer tool and the Autopsy SectorScope plug-in module.
 
-Please see the *NPS-block_match* Wiki page at https://github.com/NPS-DEEP/NPS-block_match/wiki.
+Please see the *NPS-SectorScope* Wiki page at https://github.com/NPS-DEEP/SectorScope/wiki.
 
