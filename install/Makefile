@@ -1,19 +1,21 @@
 # Run this Makefile to build the NPS-block_match Windows Installer and
 # the .zip distribution.  Both are copied into the download directory.
 
-VERSION = 0.1.0
+VERSION = 0.2.0
 
 SOURCES = ../python/*.py
-UM_DIR = ../doc/block_match_viewer_um
-UM = block_match_viewer_um.pdf
+UM_DIR = ../doc/SectorScope_um
+UM = SectorScope_um.pdf
 
-INSTALLER = NPS-block_match-$(VERSION)-windowsinstaller.exe
-ZIP = NPS-block_match-$(VERSION).zip
-ZIP_DIR = NPS-block_match-$(VERSION)
+WIN_INSTALLER = NPS-SectorScope-$(VERSION)-windowsinstaller.exe
+ZIP = NPS-SectorScope-$(VERSION).zip
+ZIP_DIR = NPS-SectorScope-$(VERSION)
+AUTOPSY_PLUGIN = NPS-SectorScope-$(VERSION).nbm
+#AUTOPSY_PLUGIN = ../autopsy_plugin/nbm/SectorScope-$(VERSION).nbm
 
-all: installer zip
+all: win_installer zip plugin
 
-installer: $(INSTALLER)
+win_installer: $(INSTALLER)
 
 $(INSTALLER): build_installer.nsi EnvVarUpdate.nsi $(UM) $(SOURCES)
 	@echo Making $(INSTALLER)
@@ -38,8 +40,11 @@ $(ZIP): $(SOURCES) $(UM)
 	rm -rf $(ZIP_DIR)
 	cp $(ZIP) download/$(ZIP)
 
-clean:
-	/bin/rm -rf $(INSTALLER) $(ZIP_DIR) $(ZIP) $(UM)
+$(AUTOPSY_PLUGIN): ../autopsy_plugin/build/SectorScope.nbm
+	cp ../autopsy_plugin/build/SectorScope.nbm $(AUTOPSY_PLUGIN)
 
-.PHONY: installer zip clean
+clean:
+	/bin/rm -rf $(INSTALLER) $(ZIP_DIR) $(ZIP) $(AUTOPSY_PLUGIN) $(UM)
+
+.PHONY: win_installer zip clean
 

@@ -1,9 +1,10 @@
-# NSIS script for creating the Windows NPS-block_match installer file.
+# NSIS script for creating the Windows NPS-SectorScope installer file.
 #
 # Installs the following:
 #   .py scripts
 #   pdf document
 #   path
+#   Autopsy .nsi plugin
 #   uninstaller
 #   uninstaller shurtcut
 #   start menu shortcut for pdf document
@@ -17,16 +18,17 @@
 	!error "Invalid usage"
 !endif
 
-!define APPNAME "NPS-block_match ${VERSION}"
+!define APPNAME "NPS-SectorScope ${VERSION}"
+!define PLUGINNAME "NPS-SectorScope-${VERSION}.nbm"
 !define REG_SUB_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APPNAME}"
 !define COMPANYNAME "Naval Postgraduate School"
 !define DESCRIPTION "Block Hash Tools"
 
 # These will be displayed by the "Click here for support information" link in "Add/Remove Programs"
 # It is possible to use "mailto:" links here to open the email client
-!define HELPURL "//https://github.com/NPS-DEEP/NPS-block_match" # "Support Information" link
-!define UPDATEURL "//https://github.com/NPS-DEEP/NPS-block_match" # "Product Updates" link
-!define ABOUTURL "//https://github.com/NPS-DEEP/NPS-block_match" # "Publisher" link
+!define HELPURL "//https://github.com/NPS-DEEP/NPS-SectorScope" # "Support Information" link
+!define UPDATEURL "//https://github.com/NPS-DEEP/NPS-SectorScope" # "Product Updates" link
+!define ABOUTURL "//https://github.com/NPS-DEEP/NPS-SectorScope" # "Publisher" link
 
 SetCompressor lzma
  
@@ -35,7 +37,7 @@ RequestExecutionLevel admin
 InstallDir "$PROGRAMFILES64\${APPNAME}"
  
 Name "${APPNAME}"
-	outFile "NPS-block_match-${VERSION}-windowsinstaller.exe"
+	outFile "NPS-SectorScope-${VERSION}-windowsinstaller.exe"
  
 !include LogicLib.nsh
 !include EnvVarUpdate.nsi
@@ -88,10 +90,10 @@ Section "${APPNAME}"
 
         # install PDF doc
         setOutPath "$INSTDIR\pdf"
-        file "block_match_viewer_um.pdf"
+        file "SectorScope_um.pdf"
 
         # install shortcut to PDF doc
-        createShortCut "$SMPROGRAMS\${APPNAME}\Block Match Viewer Users Manual.lnk" "$INSTDIR\pdf\block_match_viewer_um.pdf"
+        createShortCut "$SMPROGRAMS\${APPNAME}\Block Match Viewer Users Manual.lnk" "$INSTDIR\pdf\SectorScope_um.pdf"
 
 sectionEnd
 
@@ -139,19 +141,27 @@ Function un.FailableDelete
 	Continue:
 FunctionEnd
 
+Section "Autopsy Plug-in (to desktop)"
+	setOutPath "$DESKTOP"
+	file "$PLUGINNAME"
+sectionEnd
+
 section "uninstall"
 	# manage uninstalling executable code because they may be open
 	StrCpy $0 "$INSTDIR\be_import.py"
 	Call un.FailableDelete
 	StrCpy $0 "$INSTDIR\be_scan.py"
 	Call un.FailableDelete
-	StrCpy $0 "$INSTDIR\block_match_viewer.py"
+	StrCpy $0 "$INSTDIR\SectorScope.py"
 	Call un.FailableDelete
-	StrCpy $0 "$INSTDIR\pdf\block_match_viewer_um.pdf"
+	StrCpy $0 "$INSTDIR\pdf\SectorScope_um.pdf"
 	Call un.FailableDelete
 
         # uninstall all support code
         delete "$INSTDIR\*.py"
+
+        # uninstall the .nbm file from the desktop
+        delete "$DESKTOP\$PLUGINNAME"
 
         # uninstall the pdf directory
         rmdir "$INSTDIR\pdf"
