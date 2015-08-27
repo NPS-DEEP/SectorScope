@@ -14,7 +14,7 @@
 //
 // Released into the public domain on April 28, 2015 by Bruce Allen.
 
-package edu.nps.autopsy.hashdb.blacklist;
+package edu.nps.sectorscope;
 
 import org.openide.util.NbBundle;
 import org.openide.util.lookup.ServiceProvider;

@@ -1,6 +1,6 @@
 Manifest-Version: 1.0
 AutoUpdate-Show-In-Client: true
-OpenIDE-Module: edu.nps.SectorScope
-OpenIDE-Module-Localizing-Bundle: edu/nps/SectorScope/Bundle.properties
+OpenIDE-Module: edu.nps.sectorscope
+OpenIDE-Module-Localizing-Bundle: edu/nps/sectorscope/Bundle.properties
 OpenIDE-Module-Specification-Version: 1.0
 

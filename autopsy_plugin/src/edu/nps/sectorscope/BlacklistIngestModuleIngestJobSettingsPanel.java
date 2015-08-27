@@ -14,7 +14,7 @@
 //
 // Released into the public domain on April 28, 2015 by Bruce Allen.
 
-package edu.nps.autopsy.hashdb.blacklist;
+package edu.nps.sectorscope;
 
 import org.sleuthkit.autopsy.ingest.IngestModuleIngestJobSettings;
 import org.sleuthkit.autopsy.ingest.IngestModuleIngestJobSettingsPanel;
