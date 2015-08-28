@@ -144,7 +144,7 @@ Function un.FailableDelete
 	Continue:
 FunctionEnd
 
-Section "Autopsy Plug-in (to desktop)"
+Section "SectorScope Autopsy Plug-in (to desktop)"
 	setOutPath "$DESKTOP"
 	file "download/${PLUGINNAME}"
 sectionEnd
