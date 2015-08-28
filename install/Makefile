@@ -9,6 +9,7 @@
 VERSION = 0.2.0
 
 SOURCES = ../python/*.py
+ICONS = ../python/icons/*.gif
 UM_DIR = ../doc/sectorscope_um
 UM_FROM = $(UM_DIR)/sectorscope_um.pdf
 UM_TO = download/sectorscope_um.pdf
@@ -42,12 +43,13 @@ $(ZIP): $(SOURCES) $(UM_TO)
 	rm -rf $(ZIP_DIR)
 	mkdir $(ZIP_DIR)
 	cp $(SOURCES) $(ZIP_DIR)
+	mkdir $(ZIP_DIR)/icons
+	cp $(ICONS) $(ZIP_DIR)/icons
 	zip -r9 $(ZIP) $(ZIP_DIR)
 	rm -rf $(ZIP_DIR)
 	cp $(ZIP) download/$(ZIP)
 
 $(AUTOPSY_PLUGIN_TO): $(AUTOPSY_PLUGIN_FROM)
-	echo zzzzzzzzzzzzzzzzzzzzzz
 	cp $(AUTOPSY_PLUGIN_FROM) $(AUTOPSY_PLUGIN_TO)
 
 clean:

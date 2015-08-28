@@ -16,6 +16,9 @@ structure.aux
 install/NPS-SectorScope*.exe
 install/NPS-SectorScope*.zip
 
+# unused icons
+python/icons/not/*
+
 # C extensions
 *.so
 

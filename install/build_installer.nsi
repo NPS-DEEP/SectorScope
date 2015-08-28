@@ -1,7 +1,7 @@
 # NSIS script for creating the Windows NPS SectorScope installer file.
 #
 # Installs the following:
-#   .py scripts
+#   .py scripts and requisite button icons
 #   pdf document
 #   path
 #   Autopsy .nsi plugin
@@ -81,6 +81,10 @@ Section "SectorScope"
  
         # install all .py files
         file "../python/*.py"
+
+        # install icons
+        setOutPath "$INSTDIR\icons"
+        file "../python/icons/*.gif"
 
         # install the PDF doc
         setOutPath "$INSTDIR\pdf"
@@ -162,6 +166,10 @@ section "uninstall"
 
         # uninstall all support code
         delete "$INSTDIR\*.py"
+
+        # uninstall the button icons
+        delete "$INSTDIR\icons\*.py"
+        rmdir "$INSTDIR\icons"
 
         # uninstall the .nbm file from the desktop
         delete "$DESKTOP\${PLUGINNAME}"

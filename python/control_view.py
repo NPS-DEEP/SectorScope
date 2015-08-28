@@ -1,8 +1,9 @@
 import tkinter 
 from forensic_path import offset_string
 
-class FilterView():
-    """Provides a frame containing user selecton controlled filters.
+class ControlView():
+    """Provides a frame containing user controls including launchers
+    and filters.
 
     Attributes:
       frame(Frame): the containing frame for this view.
@@ -20,11 +21,27 @@ class FilterView():
         # make the containing frame
         self.frame = tkinter.Frame(master)
 
-        # put in the filter title
-        tkinter.Label(self.frame, text="Filters:") \
-                          .pack(side=tkinter.TOP, anchor="w")
+        # make the frame for the control buttons
+        button_frame = tkinter.Frame(self.frame)
+        button_frame.pack(side=tkinter.TOP, anchor="w")
 
-        # put max hashes above
+        # open button
+        self._open_icon = tkinter.PhotoImage(file="icons/document-open-2.gif")
+        tkinter.Button(button_frame, image=self._open_icon,
+                       command=self._handle_open).pack(side=tkinter.LEFT)
+
+        # scan button
+        self._scan_icon = tkinter.PhotoImage(file="icons/database-go.gif")
+        tkinter.Button(button_frame, image=self._scan_icon,
+                       command=self._handle_scan).pack(side=tkinter.LEFT,
+                       padx=4)
+
+        # import button
+        self._import_icon = tkinter.PhotoImage(file="icons/db_add.gif")
+        tkinter.Button(button_frame, image=self._import_icon,
+                       command=self._handle_import).pack(side=tkinter.LEFT)
+
+        # max hashes entry
         max_hashes_frame = tkinter.Frame(self.frame)
         max_hashes_frame.pack(side=tkinter.TOP, anchor="w")
         tkinter.Label(max_hashes_frame, text="Max Same Hashes:") \
@@ -43,13 +60,22 @@ class FilterView():
         self._filter_flagged_blocks_trace_var.trace_variable('w',
                                self._handle_filter_flagged_blocks_selection)
 
-        # put filter_flagged_blocks checkbutton below
+        # filter_flagged_blocks checkbutton
         self.filter_flagged_blocks_checkbutton = tkinter.Checkbutton(
                            self.frame, text="Filter Flagged Blocks",
                            variable=self._filter_flagged_blocks_trace_var,
                            bd=0,padx=0,pady=0)
         self.filter_flagged_blocks_checkbutton.pack(side=tkinter.TOP,
                                                     anchor="w")
+
+    def _handle_open(self):
+        print("handle_open")
+
+    def _handle_scan(self):
+        print("handle_scan")
+
+    def _handle_import(self):
+        print("handle_import")
 
     def _handle_max_hashes_selection(self, e):
         # get max_hashes int

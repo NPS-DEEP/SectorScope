@@ -13,7 +13,7 @@ import tkinter
 from identified_data_reader import IdentifiedData
 from filters import Filters
 from scrolled_canvas import ScrolledCanvas
-from filter_view import FilterView
+from control_view import ControlView
 from identified_data_summary_view import IdentifiedDataSummaryView
 from hash_histogram_bar import HashHistogramBar
 from image_hex_view import ImageHexView
@@ -24,9 +24,12 @@ from forensic_path import offset_string
 if __name__=="__main__":
 
     parser = ArgumentParser(prog='sectorscope.py',
-               description="View associations between scanned hashes and their sources for the bulk_extractor directory at path 'be_dir'.")
-    parser.add_argument('be_dir',
-                help= 'path to the bulk_extractor directory')
+               description="View associations between scanned hashes "
+                           "and their sources for the bulk_extractor "
+                           "directory at path 'be_dir'.")
+    parser.add_argument('-i', '--be_dir',
+                        help= 'path to the bulk_extractor directory',
+                        default='')
     args = parser.parse_args() 
     be_dir = args.be_dir
 
@@ -37,7 +40,7 @@ if __name__=="__main__":
     START_WIDTH = 1000
     START_HEIGHT = 800
     root_window = tkinter.Tk()
-    root_window.title("Block Match Viewer")
+    root_window.title("SectorScope")
     root_window.minsize(width=400,height=300)
     root_window.maxsize(width=START_WIDTH+25,height=START_HEIGHT+25)
 
@@ -57,17 +60,16 @@ if __name__=="__main__":
     image_frame.pack(side=tkinter.LEFT, anchor="n")
 
     # the filter and identified data summary views in image_frame at the top
-    filter_and_summary_frame = tkinter.Frame(image_frame)
-    filter_and_summary_frame.pack(side=tkinter.TOP, padx=8, pady=8,
-                                      anchor="w")
+    control_and_summary_frame = tkinter.Frame(image_frame)
+    control_and_summary_frame.pack(side=tkinter.TOP, anchor="w")
 
-    # the filter view in filter_and_summary_frame on left
-    filter_view = FilterView(filter_and_summary_frame, filters)
-    filter_view.frame.pack(side=tkinter.LEFT, padx=8, pady=8)
+    # the filter view in control_and_summary_frame on left
+    control_view = ControlView(control_and_summary_frame, filters)
+    control_view.frame.pack(side=tkinter.LEFT, padx=8, pady=8)
 
-    # the summary view in filter_and_summary_frame on right
+    # the summary view in control_and_summary_frame on right
     identified_data_summary_view = IdentifiedDataSummaryView(
-                                  filter_and_summary_frame, identified_data)
+                                  control_and_summary_frame, identified_data)
     identified_data_summary_view.frame.pack(side=tkinter.LEFT, padx=40)
 
     # the hash histogram bar in image_frame in the middle

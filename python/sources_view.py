@@ -37,12 +37,19 @@ class SourcesView():
         # add the select all and clear all buttons
         select_clear_frame = tkinter.Frame(self.frame)
         select_clear_frame.pack()
-        tkinter.Button(select_clear_frame, text="Clear All",
-                       command=self._handle_clear_all_checkbuttons).pack(
-                                              side=tkinter.LEFT, padx=8)
-        tkinter.Button(select_clear_frame, text="Set All",
+
+        # select
+        self._select_all_icon = tkinter.PhotoImage(file="icons/edit-add-3.gif")
+        tkinter.Button(select_clear_frame, image=self._select_all_icon,
                        command=self._handle_set_all_checkbuttons).pack(
-                                              side=tkinter.LEFT, padx=8)
+                                              side=tkinter.LEFT, padx=2)
+
+        # clear
+        self._clear_all_icon = tkinter.PhotoImage(
+                                              file="icons/edit-remove-2.gif")
+        tkinter.Button(select_clear_frame, image=self._clear_all_icon,
+                       command=self._handle_clear_all_checkbuttons).pack(
+                                              side=tkinter.LEFT, padx=2)
 
         # add the column titles
         tkinter.Label(self.frame, text='ID, %Match, #Match, Size, Repository, File') \

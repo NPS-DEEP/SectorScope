@@ -70,17 +70,21 @@ class ImageHexView():
                                                        side=tkinter.LEFT)
 
         # hash_filter_frame "Add Hash to Filter" button to the hash filter frame
-        self._add_hash_button = tkinter.Button(hash_filter_frame, text="Add",
+        self._add_hash_icon = tkinter.PhotoImage(file="icons/edit-add-3.gif")
+        self._add_hash_button = tkinter.Button(hash_filter_frame,
+                                image=self._add_hash_icon,
                                 state=tkinter.DISABLED,
                                 command=self._handle_add_hash_to_filter)
-        self._add_hash_button.pack(side=tkinter.LEFT, padx=8, pady=0)
+        self._add_hash_button.pack(side=tkinter.LEFT, padx=4)
 
         # hash_filter_frame "Remove Hash from Filter" button
+        self._remove_hash_icon = tkinter.PhotoImage(
+                                              file="icons/edit-remove-2.gif")
         self._remove_hash_button = tkinter.Button(hash_filter_frame,
-                                text="Remove",
+                                image=self._remove_hash_icon,
                                 state=tkinter.DISABLED,
                                 command=self._handle_remove_hash_from_filter)
-        self._remove_hash_button.pack(side=tkinter.LEFT, padx=8, pady=0)
+        self._remove_hash_button.pack(side=tkinter.LEFT)
 
         # add the source ID frame
         source_id_frame = tkinter.Frame(self.frame)
