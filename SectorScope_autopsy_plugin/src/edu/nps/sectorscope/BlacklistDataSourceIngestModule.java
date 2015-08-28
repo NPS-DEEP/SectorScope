@@ -286,8 +286,8 @@ public class BlacklistDataSourceIngestModule implements DataSourceIngestModule {
     // add visualization launcher if data was found
     private ProcessResult addReportVisualizationLauncher() {
 
-        String blockViewerPath = jobDir + File.separator + "block_viewer.bat";
-        String blockViewerCommand = "block_match_viewer.py \"" + bulk_extractorOutputDir + "\"";
+        String blockViewerPath = jobDir + File.separator + "SectorScope_launcher.bat";
+        String blockViewerCommand = "SectorScope.py \"" + bulk_extractorOutputDir + "\"";
         try {
             File file = new File(blockViewerPath);
             if (!file.exists()) {
@@ -297,7 +297,7 @@ public class BlacklistDataSourceIngestModule implements DataSourceIngestModule {
             fileStream.write(blockViewerCommand.getBytes());
             fileStream.flush();
         } catch (IOException ex) {
-            logger.log(Level.SEVERE, "Error writing block viewer launcher", ex);  //NON-NLS
+            logger.log(Level.SEVERE, "Error writing SectorScope launcher", ex);  //NON-NLS
             return ProcessResult.ERROR;
         }
 
