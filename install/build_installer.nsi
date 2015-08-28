@@ -1,4 +1,4 @@
-# NSIS script for creating the Windows NPS-SectorScope installer file.
+# NSIS script for creating the Windows NPS SectorScope installer file.
 #
 # Installs the following:
 #   .py scripts
@@ -7,7 +7,7 @@
 #   Autopsy .nsi plugin
 #   uninstaller
 #   uninstaller shurtcut
-#   start menu shortcut for pdf document
+#   start menu shortcut for SectorScope tool and pdf document
 #   registry information including uninstaller information
 
 # Assign VERSION externally with -DVERSION=<ver>
@@ -18,7 +18,7 @@
 	!error "Invalid usage"
 !endif
 
-!define APPNAME "NPS-SectorScope ${VERSION}"
+!define APPNAME "NPS SectorScope ${VERSION}"
 !define PLUGINNAME "NPS-SectorScope-${VERSION}.nbm"
 !define REG_SUB_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APPNAME}"
 !define COMPANYNAME "Naval Postgraduate School"
@@ -79,21 +79,24 @@ Section "${APPNAME}"
 	# create the uninstaller
 	writeUninstaller "$INSTDIR\uninstall.exe"
  
-	# create the start menu
-	createDirectory "$SMPROGRAMS\${APPNAME}"
-
-	# link the uninstaller to the start menu
-	createShortCut "$SMPROGRAMS\${APPNAME}\Uninstall ${APPNAME}.lnk" "$INSTDIR\uninstall.exe"
-
         # install all .py files
         file "../python/*.py"
 
-        # install PDF doc
+        # install the PDF doc
         setOutPath "$INSTDIR\pdf"
         file "download/SectorScope_um.pdf"
 
-        # install shortcut to PDF doc
-        createShortCut "$SMPROGRAMS\${APPNAME}\Block Match Viewer Users Manual.lnk" "$INSTDIR\pdf\SectorScope_um.pdf"
+	# create the start menu for shortcuts
+	createDirectory "$SMPROGRAMS\${APPNAME}"
+
+	# link the SectorScope tool to the start menu
+	createShortCut "$SMPROGRAMS\${APPNAME}\SectorScope.lnk" "$INSTDIR\SectorScope.py"
+
+        # link the PDF doc to the start menu
+        createShortCut "$SMPROGRAMS\${APPNAME}\SectorScope Users Manual.lnk" "$INSTDIR\pdf\SectorScope_um.pdf"
+
+	# link the uninstaller to the start menu
+	createShortCut "$SMPROGRAMS\${APPNAME}\Uninstall ${APPNAME}.lnk" "$INSTDIR\uninstall.exe"
 
 sectionEnd
 
@@ -167,6 +170,7 @@ section "uninstall"
         rmdir "$INSTDIR\pdf"
 
 	# uninstall Start Menu launcher shortcuts
+	delete "$SMPROGRAMS\${APPNAME}\SectorScope.lnk"
 	delete "$SMPROGRAMS\${APPNAME}\Block Match Viewer Users Manual.lnk"
 	delete "$SMPROGRAMS\${APPNAME}\uninstall ${APPNAME}.lnk"
 	rmDir "$SMPROGRAMS\${APPNAME}"
@@ -181,7 +185,6 @@ section "uninstall"
 	DeleteRegKey HKLM "${REG_SUB_KEY}"
 
         # remove associated search paths from the PATH environment variable
-        # were both installed
         ${un.EnvVarUpdate} $0 "PATH" "R" "HKLM" "$INSTDIR"
 sectionEnd
 
