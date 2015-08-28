@@ -7,9 +7,9 @@ __pycache__/
 *.swo
 
 # documentation
-SectorScope_um.aux
-SectorScope_um.out
-SectorScope_um.pdf
+sectorscope_um.aux
+sectorscope_um.out
+sectorscope_um.pdf
 structure.aux
 
 # generated installer and zip

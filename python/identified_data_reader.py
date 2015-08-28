@@ -78,7 +78,7 @@ class IdentifiedData():
         be_report_dict = dict()
 
         if not os.path.exists(be_report_file):
-            print("Error: file %s does not exist.  Aborting." % be_report_file)
+            print("Error: file %s does not exist.\nAborting." % be_report_file)
             exit(1)
         xmldoc = xml.dom.minidom.parse(open(be_report_file, 'r'))
 
@@ -97,7 +97,8 @@ class IdentifiedData():
                            "command_line")[0].firstChild.wholeText
         i = command_line.find('hashdb_scan_path_or_socket=')
         if i == -1:
-            print("aborting, hash database not found in report.xml")
+            print("Error: hash database not found under %s.\n"
+                  "Aborting." % be_report_file)
             exit(1)
         i += 27
         if command_line[i] == '"':
@@ -105,7 +106,8 @@ class IdentifiedData():
             i += 1
             i2 = command_line.find('"', i)
             if i2 == -1:
-                print("aborting, close quote not found in report.xml")
+                print("Error: close quote not found in report.xml "
+                      "under %s.\nAborting." % be_report_file)
                 exit(1)
             be_report_dict["hashdb_dir"] = command_line[i:i2]
         else:

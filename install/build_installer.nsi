@@ -84,16 +84,16 @@ Section "SectorScope"
 
         # install the PDF doc
         setOutPath "$INSTDIR\pdf"
-        file "download/SectorScope_um.pdf"
+        file "download/sectorscope_um.pdf"
 
 	# create the start menu for shortcuts
 	createDirectory "$SMPROGRAMS\${APPNAME}"
 
 	# link the SectorScope tool to the start menu
-	createShortCut "$SMPROGRAMS\${APPNAME}\SectorScope.lnk" "$INSTDIR\SectorScope.py"
+	createShortCut "$SMPROGRAMS\${APPNAME}\SectorScope.lnk" "$INSTDIR\sectorscope.py"
 
         # link the PDF doc to the start menu
-        createShortCut "$SMPROGRAMS\${APPNAME}\SectorScope Users Manual.lnk" "$INSTDIR\pdf\SectorScope_um.pdf"
+        createShortCut "$SMPROGRAMS\${APPNAME}\SectorScope Users Manual.lnk" "$INSTDIR\pdf\sectorscope_um.pdf"
 
 	# link the uninstaller to the start menu
 	createShortCut "$SMPROGRAMS\${APPNAME}\Uninstall ${APPNAME}.lnk" "$INSTDIR\uninstall.exe"
@@ -155,9 +155,9 @@ section "uninstall"
 	Call un.FailableDelete
 	StrCpy $0 "$INSTDIR\be_scan.py"
 	Call un.FailableDelete
-	StrCpy $0 "$INSTDIR\SectorScope.py"
+	StrCpy $0 "$INSTDIR\sectorscope.py"
 	Call un.FailableDelete
-	StrCpy $0 "$INSTDIR\pdf\SectorScope_um.pdf"
+	StrCpy $0 "$INSTDIR\pdf\sectorscope_um.pdf"
 	Call un.FailableDelete
 
         # uninstall all support code
@@ -171,7 +171,7 @@ section "uninstall"
 
 	# uninstall Start Menu launcher shortcuts
 	delete "$SMPROGRAMS\${APPNAME}\SectorScope.lnk"
-	delete "$SMPROGRAMS\${APPNAME}\Block Match Viewer Users Manual.lnk"
+	delete "$SMPROGRAMS\${APPNAME}\SectorScope Users Manual.lnk"
 	delete "$SMPROGRAMS\${APPNAME}\uninstall ${APPNAME}.lnk"
 	rmDir "$SMPROGRAMS\${APPNAME}"
 

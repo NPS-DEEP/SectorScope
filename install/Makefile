@@ -9,9 +9,9 @@
 VERSION = 0.2.0
 
 SOURCES = ../python/*.py
-UM_DIR = ../doc/SectorScope_um
-UM_FROM = $(UM_DIR)/SectorScope_um.pdf
-UM_TO = download/SectorScope_um.pdf
+UM_DIR = ../doc/sectorscope_um
+UM_FROM = $(UM_DIR)/sectorscope_um.pdf
+UM_TO = download/sectorscope_um.pdf
 
 WIN_INSTALLER = NPS-SectorScope-$(VERSION)-windowsinstaller.exe
 ZIP = NPS-SectorScope-$(VERSION).zip
