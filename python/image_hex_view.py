@@ -1,4 +1,5 @@
 import tkinter 
+import os
 import hashlib
 from be_image_reader import BEImageReader
 from forensic_path import offset_string
@@ -70,7 +71,8 @@ class ImageHexView():
                                                        side=tkinter.LEFT)
 
         # hash_filter_frame "Add Hash to Filter" button to the hash filter frame
-        self._add_hash_icon = tkinter.PhotoImage(file="icons/edit-add-3.gif")
+        self._add_hash_icon = tkinter.PhotoImage(file=os.path.join(
+                                "icons", "edit-add-3.gif"))
         self._add_hash_button = tkinter.Button(hash_filter_frame,
                                 image=self._add_hash_icon,
                                 state=tkinter.DISABLED,
@@ -78,8 +80,8 @@ class ImageHexView():
         self._add_hash_button.pack(side=tkinter.LEFT, padx=4)
 
         # hash_filter_frame "Remove Hash from Filter" button
-        self._remove_hash_icon = tkinter.PhotoImage(
-                                              file="icons/edit-remove-2.gif")
+        self._remove_hash_icon = tkinter.PhotoImage(file=os.path.join(
+                                "icons", "edit-remove-2.gif"))
         self._remove_hash_button = tkinter.Button(hash_filter_frame,
                                 image=self._remove_hash_icon,
                                 state=tkinter.DISABLED,
