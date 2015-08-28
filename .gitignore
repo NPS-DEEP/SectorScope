@@ -7,14 +7,14 @@ __pycache__/
 *.swo
 
 # documentation
-block_match_viewer_um.aux
-block_match_viewer_um.out
-block_match_viewer_um.pdf
+SectorScope_um.aux
+SectorScope_um.out
+SectorScope_um.pdf
 structure.aux
 
 # generated installer and zip
-dist/NPS-block_match*.exe
-dist/NPS-block_match*.zip
+install/NPS-SectorScope*.exe
+install/NPS-SectorScope*.zip
 
 # C extensions
 *.so

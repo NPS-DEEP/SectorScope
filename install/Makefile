@@ -1,38 +1,44 @@
 # Run this Makefile to build the NPS-block_match Windows Installer and
 # the .zip distribution.  Both are copied into the download directory.
+#
+# Prerequisites:
+# UM: please run make in UM_DIR.
+# .nbm file: The .nbm file is generated using NetBeans on Windows.
+#            Build it on Windows and then git push to make it current.
 
 VERSION = 0.2.0
 
 SOURCES = ../python/*.py
 UM_DIR = ../doc/SectorScope_um
-UM = SectorScope_um.pdf
+UM_FROM = $(UM_DIR)/SectorScope_um.pdf
+UM_TO = download/SectorScope_um.pdf
 
 WIN_INSTALLER = NPS-SectorScope-$(VERSION)-windowsinstaller.exe
 ZIP = NPS-SectorScope-$(VERSION).zip
 ZIP_DIR = NPS-SectorScope-$(VERSION)
-AUTOPSY_PLUGIN = NPS-SectorScope-$(VERSION).nbm
-#AUTOPSY_PLUGIN = ../autopsy_plugin/nbm/SectorScope-$(VERSION).nbm
+AUTOPSY_PLUGIN_FROM = ../SectorScope_autopsy_plugin/build/edu-nps-sectorscope.nbm
+AUTOPSY_PLUGIN_TO = download/NPS-SectorScope-$(VERSION).nbm
 
-all: win_installer zip plugin
+all: zip $(AUTOPSY_PLUGIN_TO) $(UM_TO) win_installer
 
-win_installer: $(INSTALLER)
+win_installer: $(WIN_INSTALLER)
 
-$(INSTALLER): build_installer.nsi EnvVarUpdate.nsi $(UM) $(SOURCES)
-	@echo Making $(INSTALLER)
+$(WIN_INSTALLER): build_installer.nsi EnvVarUpdate.nsi $(UM_TO) $(SOURCES)
+	@echo Making $(WIN_INSTALLER)
 	makensis -DVERSION=$(VERSION) build_installer.nsi
-	cp $(INSTALLER) download/$(INSTALLER)
-	@echo '**************** INSTALLER IS MADE ****************'
+	cp $(WIN_INSTALLER) download/$(WIN_INSTALLER)
+	@echo '**************** WINDOWS INSTALLER IS MADE ****************'
 
-$(UM_DIR)/$(UM):
+$(UM_FROM):
 	@echo Please run make in $(UM_DIR)
 	exit 1
 
-$(UM): $(UM_DIR)/$(UM)
-	cp $(UM_DIR)/$(UM) .
+$(UM_TO): $(UM_FROM)
+	cp $(UM_FROM) $(UM_TO)
 
 zip: $(ZIP)
 
-$(ZIP): $(SOURCES) $(UM)
+$(ZIP): $(SOURCES) $(UM_TO)
 	rm -rf $(ZIP_DIR)
 	mkdir $(ZIP_DIR)
 	cp $(SOURCES) $(ZIP_DIR)
@@ -40,11 +46,13 @@ $(ZIP): $(SOURCES) $(UM)
 	rm -rf $(ZIP_DIR)
 	cp $(ZIP) download/$(ZIP)
 
-$(AUTOPSY_PLUGIN): ../autopsy_plugin/build/SectorScope.nbm
-	cp ../autopsy_plugin/build/SectorScope.nbm $(AUTOPSY_PLUGIN)
+$(AUTOPSY_PLUGIN_TO): $(AUTOPSY_PLUGIN_FROM)
+	echo zzzzzzzzzzzzzzzzzzzzzz
+	cp $(AUTOPSY_PLUGIN_FROM) $(AUTOPSY_PLUGIN_TO)
 
 clean:
-	/bin/rm -rf $(INSTALLER) $(ZIP_DIR) $(ZIP) $(AUTOPSY_PLUGIN) $(UM)
+	/bin/rm -rf $(WIN_INSTALLER) download/$(WIN_INSTALLER) \
+                    $(ZIP_DIR) $(ZIP) $(AUTOPSY_PLUGIN_TO) $(UM_TO)
 
 .PHONY: win_installer zip clean
 

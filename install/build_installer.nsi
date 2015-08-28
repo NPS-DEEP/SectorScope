@@ -90,7 +90,7 @@ Section "${APPNAME}"
 
         # install PDF doc
         setOutPath "$INSTDIR\pdf"
-        file "SectorScope_um.pdf"
+        file "download/SectorScope_um.pdf"
 
         # install shortcut to PDF doc
         createShortCut "$SMPROGRAMS\${APPNAME}\Block Match Viewer Users Manual.lnk" "$INSTDIR\pdf\SectorScope_um.pdf"
@@ -143,7 +143,7 @@ FunctionEnd
 
 Section "Autopsy Plug-in (to desktop)"
 	setOutPath "$DESKTOP"
-	file "$PLUGINNAME"
+	file "download/${PLUGINNAME}"
 sectionEnd
 
 section "uninstall"
@@ -161,7 +161,7 @@ section "uninstall"
         delete "$INSTDIR\*.py"
 
         # uninstall the .nbm file from the desktop
-        delete "$DESKTOP\$PLUGINNAME"
+        delete "$DESKTOP\${PLUGINNAME}"
 
         # uninstall the pdf directory
         rmdir "$INSTDIR\pdf"
