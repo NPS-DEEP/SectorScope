@@ -57,7 +57,7 @@ ${If} $0 != "admin" ;Require admin rights on NT4+
 ${EndIf}
 !macroend
 
-Section "${APPNAME}"
+Section "SectorScope"
         # establish out path
         setOutPath "$INSTDIR"
 
