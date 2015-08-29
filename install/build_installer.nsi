@@ -168,7 +168,7 @@ section "uninstall"
         delete "$INSTDIR\*.py"
 
         # uninstall the button icons
-        delete "$INSTDIR\icons\*.py"
+        delete "$INSTDIR\icons\*.gif"
         rmdir "$INSTDIR\icons"
 
         # uninstall the .nbm file from the desktop
