@@ -1,7 +1,7 @@
 import tkinter 
-import os
 from collections import defaultdict
 from scrolled_canvas import ScrolledCanvas
+from icon_path import icon_path
 
 class SourcesView():
     """Manages the view for the list of matched sources.
@@ -40,15 +40,13 @@ class SourcesView():
         select_clear_frame.pack()
 
         # select
-        self._select_all_icon = tkinter.PhotoImage(file=os.path.join(
-                                              "icons", "edit-add-3.gif"))
+        self._select_all_icon = tkinter.PhotoImage(file=icon_path("select_all"))
         tkinter.Button(select_clear_frame, image=self._select_all_icon,
                        command=self._handle_set_all_checkbuttons).pack(
                                               side=tkinter.LEFT, padx=2)
 
         # clear
-        self._clear_all_icon = tkinter.PhotoImage(file=os.path.join(
-                                              "icons", "edit-remove-2.gif"))
+        self._clear_all_icon = tkinter.PhotoImage(file=icon_path("clear_all"))
         tkinter.Button(select_clear_frame, image=self._clear_all_icon,
                        command=self._handle_clear_all_checkbuttons).pack(
                                               side=tkinter.LEFT, padx=2)

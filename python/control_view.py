@@ -1,6 +1,6 @@
 import tkinter 
-import os
 from forensic_path import offset_string
+from icon_path import icon_path
 
 class ControlView():
     """Provides a frame containing user controls including launchers
@@ -27,21 +27,18 @@ class ControlView():
         button_frame.pack(side=tkinter.TOP, anchor="w")
 
         # open button
-        self._open_icon = tkinter.PhotoImage(file=os.path.join(
-                                          "icons", "document-open-2.gif"))
+        self._open_icon = tkinter.PhotoImage(file=icon_path("open"))
         tkinter.Button(button_frame, image=self._open_icon,
                        command=self._handle_open).pack(side=tkinter.LEFT)
 
         # scan button
-        self._scan_icon = tkinter.PhotoImage(file=os.path.join(
-                                          "icons", "database-go.gif"))
+        self._scan_icon = tkinter.PhotoImage(file=icon_path("scan"))
         tkinter.Button(button_frame, image=self._scan_icon,
                        command=self._handle_scan).pack(side=tkinter.LEFT,
                        padx=4)
 
         # import button
-        self._import_icon = tkinter.PhotoImage(file=os.path.join(
-                                          "icons", "db_add.gif"))
+        self._import_icon = tkinter.PhotoImage(file=icon_path("import"))
         tkinter.Button(button_frame, image=self._import_icon,
                        command=self._handle_import).pack(side=tkinter.LEFT)
 
