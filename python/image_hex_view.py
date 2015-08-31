@@ -88,7 +88,7 @@ class ImageHexView():
                                 state=tkinter.DISABLED,
                                 command=self._handle_remove_hash_from_filter)
         self._remove_hash_button.pack(side=tkinter.LEFT)
-        Tooltip(self._remove_hash_button, "Do not filter the selected hash")
+        Tooltip(self._remove_hash_button, "Stop filtering the selected hash")
 
         # add the source ID frame
         source_id_frame = tkinter.Frame(self.frame)
