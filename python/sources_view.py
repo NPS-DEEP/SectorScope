@@ -2,6 +2,7 @@ import tkinter
 from collections import defaultdict
 from scrolled_canvas import ScrolledCanvas
 from icon_path import icon_path
+from tooltip import Tooltip
 
 class SourcesView():
     """Manages the view for the list of matched sources.
@@ -41,15 +42,19 @@ class SourcesView():
 
         # select
         self._select_all_icon = tkinter.PhotoImage(file=icon_path("select_all"))
-        tkinter.Button(select_clear_frame, image=self._select_all_icon,
-                       command=self._handle_set_all_checkbuttons).pack(
-                                              side=tkinter.LEFT, padx=2)
+        select_all_button = tkinter.Button(select_clear_frame,
+                       image=self._select_all_icon,
+                       command=self._handle_set_all_checkbuttons)
+        select_all_button.pack(side=tkinter.LEFT, padx=2)
+        Tooltip(select_all_button, "Filter all sources")
 
         # clear
         self._clear_all_icon = tkinter.PhotoImage(file=icon_path("clear_all"))
-        tkinter.Button(select_clear_frame, image=self._clear_all_icon,
-                       command=self._handle_clear_all_checkbuttons).pack(
-                                              side=tkinter.LEFT, padx=2)
+        clear_all_button = tkinter.Button(select_clear_frame,
+                       image=self._clear_all_icon,
+                       command=self._handle_clear_all_checkbuttons)
+        clear_all_button.pack(side=tkinter.LEFT, padx=2)
+        Tooltip(clear_all_button, "Do not filter any sources")
 
         # add the column titles
         tkinter.Label(self.frame, text='ID, %Match, #Match, Size, Repository, File') \

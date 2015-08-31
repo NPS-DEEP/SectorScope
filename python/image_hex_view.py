@@ -3,6 +3,7 @@ import hashlib
 from be_image_reader import BEImageReader
 from forensic_path import offset_string
 from icon_path import icon_path
+from tooltip import Tooltip
 
 class ImageHexView():
     """Prints a banner and shows a hex dump of specified bytes of a
@@ -77,6 +78,7 @@ class ImageHexView():
                                 state=tkinter.DISABLED,
                                 command=self._handle_add_hash_to_filter)
         self._add_hash_button.pack(side=tkinter.LEFT, padx=4)
+        Tooltip(self._add_hash_button, "Filter the selected hash")
 
         # hash_filter_frame "Remove Hash from Filter" button
         self._remove_hash_icon = tkinter.PhotoImage(file=icon_path(
@@ -86,6 +88,7 @@ class ImageHexView():
                                 state=tkinter.DISABLED,
                                 command=self._handle_remove_hash_from_filter)
         self._remove_hash_button.pack(side=tkinter.LEFT)
+        Tooltip(self._remove_hash_button, "Do not filter the selected hash")
 
         # add the source ID frame
         source_id_frame = tkinter.Frame(self.frame)

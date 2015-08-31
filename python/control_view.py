@@ -1,6 +1,7 @@
 import tkinter 
 from forensic_path import offset_string
 from icon_path import icon_path
+from tooltip import Tooltip
 
 class ControlView():
     """Provides a frame containing user controls including launchers
@@ -28,19 +29,24 @@ class ControlView():
 
         # open button
         self._open_icon = tkinter.PhotoImage(file=icon_path("open"))
-        tkinter.Button(button_frame, image=self._open_icon,
-                       command=self._handle_open).pack(side=tkinter.LEFT)
+        open_button = tkinter.Button(button_frame,
+                       image=self._open_icon, command=self._handle_open)
+        open_button.pack(side=tkinter.LEFT)
+        Tooltip(open_button, "Open scanned output")
 
         # scan button
         self._scan_icon = tkinter.PhotoImage(file=icon_path("scan"))
-        tkinter.Button(button_frame, image=self._scan_icon,
-                       command=self._handle_scan).pack(side=tkinter.LEFT,
-                       padx=4)
+        scan_button = tkinter.Button(button_frame, image=self._scan_icon,
+                       command=self._handle_scan)
+        scan_button.pack(side=tkinter.LEFT, padx=4)
+        Tooltip(scan_button, "Scan a media iamge")
 
         # import button
         self._import_icon = tkinter.PhotoImage(file=icon_path("import"))
-        tkinter.Button(button_frame, image=self._import_icon,
-                       command=self._handle_import).pack(side=tkinter.LEFT)
+        import_button = tkinter.Button(button_frame, image=self._import_icon,
+                       command=self._handle_import)
+        import_button.pack(side=tkinter.LEFT)
+        Tooltip(import_button, "Import files into a", "new hashdb database")
 
         # max hashes entry
         max_hashes_frame = tkinter.Frame(self.frame)
