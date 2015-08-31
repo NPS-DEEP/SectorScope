@@ -13,11 +13,11 @@ def icon_path(name):
     if name == "import":
         return _absolute_path("db_add.gif")
     if name == "select_all":
-        return _absolute_path("edit-add-3.gif")
+        return _absolute_path("plus_blue.gif")
     if name == "clear_all":
-        return _absolute_path("edit-remove-2.gif")
+        return _absolute_path("minus_blue.gif")
     if name == "add_hash":
-        return _absolute_path("edit-add-3.gif")
+        return _absolute_path("plus_blue.gif")
     if name == "remove_hash":
-        return _absolute_path("edit-remove-2.gif")
+        return _absolute_path("minus_blue.gif")
 
