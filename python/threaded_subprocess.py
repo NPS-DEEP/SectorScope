@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 # Use this to execute a command.  stdout and stderr are sent to queue.
 
 import subprocess

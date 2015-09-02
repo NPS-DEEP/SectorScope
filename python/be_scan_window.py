@@ -1,6 +1,5 @@
-#!/usr/bin/env python3
 # Use this to scan for hashes.
-# Relative paths will be replaced with absolute paths.
+# Relative paths are replaced with absolute paths.
 
 import queue
 import os
@@ -9,26 +8,38 @@ import tkinter
 import tkinter.filedialog
 import threaded_subprocess
 
-class BEScanGUI():
-    """Performs scan using a GUI interface.
+class BEScanWindow():
+    """Scan using a GUI interface.
     """
 
-    def __init__(self, args):
+    def __init__(self, master, *, image="", hashdb_dir="", be_dir="", 
+                 block_size=512, sector_size=512):
+
         """Args:
-          args(dict): The invocation argument list.
+          image(str): The media image to scan.
+          hashdb_dir(str): Path to the hashdb directory to scan against.
+          be_dir(str): The new bulk_extractor directory to create during the
+                       scan.  It will contain identified_blocks.txt.
+          block_size(int): The block size to hash when scanning hashes.
+          sector_size(int): The sector size to increment along while scanning.
         """
+        # input parameters
+        self._image = image
+        self._hashdb_dir = hashdb_dir
+        self._be_dir = be_dir
+        self._block_size = block_size
+        self._sector_size = sector_size
+
         # the queue for import text
         self._queue = queue.Queue()
 
-        # root
-        root_window = tkinter.Tk()
-        root_window.title("Block Match Scan")
-
-        # local reference to args
-        self._args = args
+        # toplevel
+        self._root_window = tkinter.Toplevel(master)
+        self._root_window.title("SectorScope Scan")
 
         # make the control frame
-        control_frame = tkinter.Frame(root_window, borderwidth=1, relief=tkinter.RIDGE)
+        control_frame = tkinter.Frame(self._root_window, borderwidth=1,
+                                      relief=tkinter.RIDGE)
         control_frame.pack(side=tkinter.TOP)
 
         # add required parameters frame to the control frame
@@ -44,11 +55,8 @@ class BEScanGUI():
         progress_frame.pack(side=tkinter.TOP, anchor="w", padx=8, pady=8)
 
         # add button frame to the root window
-        button_frame = self._make_button_frame(root_window)
+        button_frame = self._make_button_frame(self._root_window)
         button_frame.pack(side=tkinter.TOP, padx=8, pady=8)
-
-        # main loop
-        root_window.mainloop()
 
     def _make_required_frame(self, master):
         required_frame = tkinter.LabelFrame(master,
@@ -63,7 +71,7 @@ class BEScanGUI():
         self._image_entry = tkinter.Entry(required_frame, width=40)
         self._image_entry.grid(row=0, column=1, sticky=tkinter.W,
                                           padx=8)
-        self._image_entry.insert(0, self._args.image)
+        self._image_entry.insert(0, self._image)
 
         # image chooser button
         image_entry_button = tkinter.Button(required_frame,
@@ -79,7 +87,7 @@ class BEScanGUI():
         self._hashdb_directory_entry = tkinter.Entry(required_frame, width=40)
         self._hashdb_directory_entry.grid(row=1, column=1, sticky=tkinter.W,
                                           padx=8)
-        self._hashdb_directory_entry.insert(0, self._args.hashdb_dir)
+        self._hashdb_directory_entry.insert(0, self._hashdb_dir)
 
         # hashdb directory chooser button
         hashdb_directory_entry_button = tkinter.Button(required_frame,
@@ -95,7 +103,7 @@ class BEScanGUI():
         self._output_directory_entry = tkinter.Entry(required_frame, width=40)
         self._output_directory_entry.grid(row=2, column=1, sticky=tkinter.W,
                                           padx=8)
-        self._output_directory_entry.insert(0, self._args.be_dir)
+        self._output_directory_entry.insert(0, self._be_dir)
 
         # bulk_extractor output directory chooser button
         output_directory_entry_button = tkinter.Button(required_frame,
@@ -117,7 +125,7 @@ class BEScanGUI():
         # block size entry
         self._block_size_entry = tkinter.Entry(optional_frame, width=8)
         self._block_size_entry.grid(row=0, column=1, sticky=tkinter.W, padx=8)
-        self._block_size_entry.insert(0, self._args.block_size)
+        self._block_size_entry.insert(0, self._block_size)
 
         # sector size label
         tkinter.Label(optional_frame, text="Sector Size") \
@@ -126,7 +134,7 @@ class BEScanGUI():
         # sector size entry
         self._sector_size_entry = tkinter.Entry(optional_frame, width=8)
         self._sector_size_entry.grid(row=1, column=1, sticky=tkinter.W, padx=8)
-        self._sector_size_entry.insert(0, self._args.sector_size)
+        self._sector_size_entry.insert(0, self._sector_size)
 
         return optional_frame
 
@@ -229,10 +237,9 @@ class BEScanGUI():
 
     def _handle_image_chooser(self, *args):
         image_file = tkinter.filedialog.askopenfilename(
-                               title="Open Media Image",
-                               mustexist=True)
+                               title="Open Media Image")
         self._image_entry.delete(0, tkinter.END)
-        self._image_entry.insert(0, source_directory)
+        self._image_entry.insert(0, image_file)
 
     def _handle_hashdb_directory_chooser(self, *args):
         hashdb_directory = tkinter.filedialog.askdirectory(
@@ -275,14 +282,14 @@ class BEScanGUI():
         image = os.path.abspath(self._image_entry.get())
         if not os.path.exists(image):
             self._set_status_text("Error: media image '%s' does "
-                                    "not exist." % source_dir)
+                                    "not exist." % image)
             return
 
         # get hashdb_dir field
         hashdb_dir = os.path.abspath(self._hashdb_directory_entry.get())
         if not os.path.exists(hashdb_dir):
             self._set_status_text("Error: hashdb database directory '%s'"
-                                    "does not exist." % be_dir)
+                                    "does not exist." % hashdb_dir)
             return
 
         # get be_dir field
@@ -331,5 +338,5 @@ class BEScanGUI():
         self._threaded_subprocess.kill()
 
     def _handle_close(self):
-        exit(0)
+        self._root_window.destroy()
 

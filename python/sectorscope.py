@@ -10,7 +10,7 @@ import tkinter
 
 # local import
 #import identified_data_reader
-from identified_data_reader import IdentifiedData
+from identified_data import IdentifiedData
 from filters import Filters
 from scrolled_canvas import ScrolledCanvas
 from control_view import ControlView
@@ -19,6 +19,7 @@ from hash_histogram_bar import HashHistogramBar
 from image_hex_view import ImageHexView
 from sources_view import SourcesView
 from forensic_path import offset_string
+from error_window import ErrorWindow
 
 # main
 if __name__=="__main__":
@@ -32,9 +33,6 @@ if __name__=="__main__":
                         default='')
     args = parser.parse_args() 
     be_dir = args.be_dir
-
-    # read relevant data
-    identified_data = IdentifiedData(be_dir)
 
     # initialize Tk, get tkinter.Tk class instance, set title
     START_WIDTH = 1000
@@ -50,6 +48,17 @@ if __name__=="__main__":
     # the filters including the filter_changed trace variable
     filters = Filters()
 
+
+    # read relevant data
+    identified_data = IdentifiedData()
+    try:
+        identified_data.read(be_dir+"z")
+    except IOError as e:
+        ErrorWindow(root_window, "Read Error",
+                    "Error reading bulk_extractor directory '%s'" % be_dir, e)
+        identified_data.clear_data()
+
+
     # the top-level frame inside a scroll window
     root_frame = ScrolledCanvas(root_window,
              canvas_width=START_WIDTH, canvas_height=START_HEIGHT,
@@ -64,7 +73,8 @@ if __name__=="__main__":
     control_and_summary_frame.pack(side=tkinter.TOP, anchor="w")
 
     # the filter view in control_and_summary_frame on left
-    control_view = ControlView(control_and_summary_frame, filters)
+    control_view = ControlView(control_and_summary_frame,
+                   identified_data, filters, byte_offset_selection_trace_var)
     control_view.frame.pack(side=tkinter.LEFT, padx=8, pady=8)
 
     # the summary view in control_and_summary_frame on right

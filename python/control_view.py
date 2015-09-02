@@ -2,6 +2,9 @@ import tkinter
 from forensic_path import offset_string
 from icon_path import icon_path
 from tooltip import Tooltip
+from be_open_window import BEOpenWindow
+from be_scan_window import BEScanWindow
+from be_import_window import BEImportWindow
 
 class ControlView():
     """Provides a frame containing user controls including launchers
@@ -76,13 +79,13 @@ class ControlView():
                                                     anchor="w")
 
     def _handle_open(self):
-        print("handle_open")
+        BEOpenWindow(self.frame)
 
     def _handle_scan(self):
-        print("handle_scan")
+        BEScanWindow(self.frame)
 
     def _handle_import(self):
-        print("handle_import")
+        BEImportWindow(self.frame)
 
     def _handle_max_hashes_selection(self, e):
         # get max_hashes int

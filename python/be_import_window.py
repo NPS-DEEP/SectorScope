@@ -1,6 +1,5 @@
-#!/usr/bin/env python3
 # Use this to import hashes from a directory into a hash database.
-# Relative paths will be replaced with absolute paths.
+# Relative paths are replaced with absolute paths.
 
 import queue
 import os
@@ -9,26 +8,37 @@ import tkinter
 import tkinter.filedialog
 import threaded_subprocess
 
-class BEImportGUI():
-    """Performs import using a GUI interface.
+class BEImportWindow():
+    """Import using a GUI interface.
     """
 
-    def __init__(self, args):
+    def __init__(self, master, *, source_dir="", be_dir="",
+                 block_size=512, sector_size=512,
+                 repository_name=""):
         """Args:
-          args(dict): The invocation argument list.
+          source_dir(str): The directory to import from.
+          be_dir(str): The new bulk_extractor directory to create and
+                       import into.
+          block_size(int): The block size to hash when importing hashes.
+          sector_size(int): The sector size to increment along while importing.
         """
+        # input parameters
+        self._source_dir = source_dir
+        self._be_dir = be_dir
+        self._block_size = block_size
+        self._sector_size = sector_size
+        self._repository_name = repository_name
+
         # the queue for import text
         self._queue = queue.Queue()
 
-        # root
-        root_window = tkinter.Tk()
-        root_window.title("Block Match Import")
-
-        # local reference to args
-        self._args = args
+        # toplevel
+        self._root_window = tkinter.Toplevel(master)
+        self._root_window.title("SectorScope Import")
 
         # make the control frame
-        control_frame = tkinter.Frame(root_window, borderwidth=1, relief=tkinter.RIDGE)
+        control_frame = tkinter.Frame(self._root_window, borderwidth=1,
+                                      relief=tkinter.RIDGE)
         control_frame.pack(side=tkinter.TOP)
 
         # add required parameters frame to the control frame
@@ -44,11 +54,8 @@ class BEImportGUI():
         progress_frame.pack(side=tkinter.TOP, anchor="w", padx=8, pady=8)
 
         # add button frame to the root window
-        button_frame = self._make_button_frame(root_window)
+        button_frame = self._make_button_frame(self._root_window)
         button_frame.pack(side=tkinter.TOP, padx=8, pady=8)
-
-        # main loop
-        root_window.mainloop()
 
     def _make_required_frame(self, master):
         required_frame = tkinter.LabelFrame(master,
@@ -63,7 +70,7 @@ class BEImportGUI():
         self._source_directory_entry = tkinter.Entry(required_frame, width=40)
         self._source_directory_entry.grid(row=0, column=1, sticky=tkinter.W,
                                           padx=8)
-        self._source_directory_entry.insert(0, self._args.source_dir)
+        self._source_directory_entry.insert(0, self._source_dir)
 
         # source directory chooser button
         source_directory_entry_button = tkinter.Button(required_frame,
@@ -79,7 +86,7 @@ class BEImportGUI():
         self._output_directory_entry = tkinter.Entry(required_frame, width=40)
         self._output_directory_entry.grid(row=1, column=1, sticky=tkinter.W,
                                           padx=8)
-        self._output_directory_entry.insert(0, self._args.be_dir)
+        self._output_directory_entry.insert(0, self._be_dir)
 
         # bulk_extractor output directory chooser button
         output_directory_entry_button = tkinter.Button(required_frame,
@@ -101,7 +108,7 @@ class BEImportGUI():
         # block size entry
         self._block_size_entry = tkinter.Entry(optional_frame, width=8)
         self._block_size_entry.grid(row=0, column=1, sticky=tkinter.W, padx=8)
-        self._block_size_entry.insert(0, self._args.block_size)
+        self._block_size_entry.insert(0, self._block_size)
 
         # sector size label
         tkinter.Label(optional_frame, text="Sector Size") \
@@ -110,7 +117,7 @@ class BEImportGUI():
         # sector size entry
         self._sector_size_entry = tkinter.Entry(optional_frame, width=8)
         self._sector_size_entry.grid(row=1, column=1, sticky=tkinter.W, padx=8)
-        self._sector_size_entry.insert(0, self._args.sector_size)
+        self._sector_size_entry.insert(0, self._sector_size)
 
         # repository name label
         tkinter.Label(optional_frame, text="Repository Name") \
@@ -120,7 +127,7 @@ class BEImportGUI():
         self._repository_name_entry = tkinter.Entry(optional_frame, width=40)
         self._repository_name_entry.grid(row=2, column=1, sticky=tkinter.W,
                                          padx=(8,0))
-        self._repository_name_entry.insert(0, self._args.repository_name)
+        self._repository_name_entry.insert(0, self._repository_name)
 
         return optional_frame
 
@@ -318,5 +325,5 @@ class BEImportGUI():
         self._threaded_subprocess.kill()
 
     def _handle_close(self):
-        exit(0)
+        self._root_window.destroy()
 

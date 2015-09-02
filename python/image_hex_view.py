@@ -1,6 +1,6 @@
 import tkinter 
 import hashlib
-from be_image_reader import BEImageReader
+import be_image_reader
 from forensic_path import offset_string
 from icon_path import icon_path
 from tooltip import Tooltip
@@ -28,7 +28,7 @@ class ImageHexView():
         self._identified_data = identified_data
         self._filters = filters
         self._byte_offset_selection = byte_offset_selection
-        self._image_reader = BEImageReader(identified_data.image_filename)
+#        self._image_reader = BEImageReader(identified_data.image_filename)
 
         # make the containing frame
         self.frame = tkinter.Frame(master)
@@ -146,7 +146,9 @@ class ImageHexView():
         self._set_offset_value(offset)
 
         # read page of image bytes starting at offset
-        buf = self._image_reader.read(offset, self.PAGESIZE)
+#        buf = self._image_reader.read(offset, self.PAGESIZE)
+        buf = be_image_reader2.read(self._identified_data.image_filename, offset, self.PAGESIZE)
+#        self._image_reader = BEImageReader(identified_data.image_filename)
 
         # set the selected hash
         self._selected_hash = self._calculate_block_hash(buf)

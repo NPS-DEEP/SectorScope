@@ -1,9 +1,8 @@
-#!/usr/bin/env python3
-
 import os
 import xml
 import json
 import subprocess
+import tkinter
 
 class IdentifiedData():
     """Provides hash, source, and image data related to a block hash scan.
@@ -12,7 +11,17 @@ class IdentifiedData():
     identified_blocks_expanded.txt file will be created if it does not
     exist.
 
+    The following resources are accessed:
+      be_dir/report.xml
+      be_dir/hashdb.hdb/settings.xml
+      be_dir/identified_blocks_expanded.txt or be_dir/identified_blocks.txt
+
+    If be_dir/identified_blocks_expanded.txt does not exist, it is
+    created using be_dir/identified_blocks.txt and the other required
+    resources.
+
     Attributes:
+      be_dir (str): The bulk_extractor directory being read.
       image_size (int): Size in bytes of the media image.
       image_filename (str): Full path of the media image filename.
       hashdb_dir (str): Full path to the hash database directory.
@@ -30,22 +39,28 @@ class IdentifiedData():
         the identified_blocks_expanded.txt file.
     """
 
-    def __init__(self, be_dir):
+    def __init__(self):
+        self.clear_data()
+
+    def clear_data(self):
+        self.be_dir = ""
+        self.image_size = 0
+        self.image_filename = ""
+        self.hashdb_dir = ""
+        self.block_size = 512
+        self.sector_size = 512
+        self.forensic_paths = dict()
+        self.hashes = dict()
+        self.source_details = dict()
+
+    def read(self, be_dir):
         """
         Args:
           be_dir (str): The bulk_extractor output directory where the
             hashdb scanner scan was run.
 
-        The following resources are accessed:
-          be_dir/report.xml
-          be_dir/hashdb.hdb/settings.xml
-          be_dir/identified_blocks_expanded.txt or be_dir/identified_blocks.txt
-
-        If be_dir/identified_blocks_expanded.txt does not exist, it is
-        created using be_dir/identified_blocks.txt and the other required
-        resources.
+        Raises read related exceptions
         """
-
         self.be_dir = be_dir
 
         # get attributes from bulk_extractor report.xml
@@ -74,12 +89,13 @@ class IdentifiedData():
         self._read_identified_blocks_expanded()
 
     def _read_be_report_file(self, be_report_file):
+        print("read be report file")
         """Read information from report.xml into a dictionary."""
         be_report_dict = dict()
 
-        if not os.path.exists(be_report_file):
-            print("Error: file %s does not exist.\nAborting." % be_report_file)
-            exit(1)
+#        if not os.path.exists(be_report_file):
+#            print("Error: file %s does not exist.\nAborting." % be_report_file)
+#            exit(1)
         xmldoc = xml.dom.minidom.parse(open(be_report_file, 'r'))
 
         # image size
