@@ -3,7 +3,6 @@ import os
 from subprocess import Popen,PIPE
 
 def read(fname, offset, amount):
-    print("reader2.read")
     """Read amount of bytes starting at offset and return utf-8
     binary bytes.
 

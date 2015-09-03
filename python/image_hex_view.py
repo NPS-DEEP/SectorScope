@@ -152,7 +152,7 @@ class ImageHexView():
 
         # read page of image bytes starting at offset
 #        buf = self._image_reader.read(offset, self.PAGESIZE)
-        buf = be_image_reader2.read(self._identified_data.image_filename, offset, self.PAGESIZE)
+        buf = be_image_reader.read(self._identified_data.image_filename, offset, self.PAGESIZE)
 #        self._image_reader = BEImageReader(identified_data.image_filename)
 
         # set the selected hash
