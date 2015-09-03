@@ -7,6 +7,8 @@ import tkinter
 class IdentifiedData():
     """Provides hash, source, and image data related to a block hash scan.
 
+    Registered callbacks are called after data is changed.
+
     The bulk_extractor output from a hashdb scan run must exist.  The
     identified_blocks_expanded.txt file will be created if it does not
     exist.
@@ -40,155 +42,175 @@ class IdentifiedData():
     """
 
     def __init__(self):
-        self.clear_data()
+        # instantiate the signal variable
+        # Note that Tk must already be initialized for tkinter.Variable to work.
+        # Note that the boolean variable is not actually used.
+        self._identified_data_changed = tkinter.BooleanVar()
 
-    def clear_data(self):
+        # set initial state
+        self.clear()
+
+    def clear(self):
         self.be_dir = ""
         self.image_size = 0
         self.image_filename = ""
         self.hashdb_dir = ""
-        self.block_size = 512
         self.sector_size = 512
+        self.block_size = 512
         self.forensic_paths = dict()
         self.hashes = dict()
         self.source_details = dict()
 
+        # fire data changed event
+        self._identified_data_changed.set(True)
+
+    def set_callback(self, f):
+        """Register function f to be called on data change."""
+        self._identified_data_changed.trace_variable('w', f)
+
     def read(self, be_dir):
         """
+        Reads and sets data else raises an exception and leaves data alone.
         Args:
           be_dir (str): The bulk_extractor output directory where the
             hashdb scanner scan was run.
 
-        Raises read related exceptions
+        Raises read related exceptions.
         """
-        self.be_dir = be_dir
-
         # get attributes from bulk_extractor report.xml
-        be_report_dict = self._read_be_report_file(
-                                            os.path.join(be_dir,"report.xml"))
-        self.image_size = be_report_dict["image_size"]
-        self.image_filename = be_report_dict["image_filename"]
-        self.hashdb_dir = be_report_dict["hashdb_dir"]
+        (image_size, image_filename, hashdb_dir) = self._read_be_report_file(
+                                                                      be_dir)
 
         # get attributes from hashdb settings.xml
-        hashdb_settings_dict = self._read_settings_file(
-                                os.path.join(self.hashdb_dir,"settings.xml"))
-        self.block_size = hashdb_settings_dict["block_size"]
-
-        # set sector size, currently hardcoded
-        self.sector_size = 512
-
-        # establish the path to the identified blocks expanded file
-        self._identified_blocks_expanded_file = os.path.join(
-                             self.be_dir, 'identified_blocks_expanded.txt')
+        (sector_size, block_size) = self._read_settings_file(hashdb_dir)
 
         # make identified_blocks_expanded.txt file if it does not exist
-        self._maybe_make_identified_blocks_expanded_file()
+        self._maybe_make_identified_blocks_expanded_file(be_dir, hashdb_dir)
 
         # read identified_blocks_expanded.txt
-        self._read_identified_blocks_expanded()
+        (forensic_paths, hashes, source_details) = \
+                               self._read_identified_blocks_expanded(be_dir)
 
-    def _read_be_report_file(self, be_report_file):
-        print("read be report file")
-        """Read information from report.xml into a dictionary."""
-        be_report_dict = dict()
+        # everything worked so accept the data
+        self.be_dir = be_dir
+        self.image_size = image_size
+        self.image_filename = image_filename
+        self.hashdb_dir = hashdb_dir
+        self.sector_size = sector_size
+        self.block_size = block_size
+        self.forensic_paths = forensic_paths
+        self.hashes = hashes
+        self.source_details = source_details
 
-#        if not os.path.exists(be_report_file):
-#            print("Error: file %s does not exist.\nAborting." % be_report_file)
-#            exit(1)
+        # fire data changed event
+        self._identified_data_changed.set(True)
+
+    def _read_be_report_file(self, be_dir):
+        """Read image_size, image_filename, hashdb_dir from report.xml."""
+
+        # path to report file
+        be_report_file = os.path.join(be_dir, "report.xml")
+
+        if not os.path.exists(be_report_file):
+            raise ValueError("bulk_extractor Report file '%s'\ndoes not exist.")
+
         xmldoc = xml.dom.minidom.parse(open(be_report_file, 'r'))
 
         # image size
         image_size = int((xmldoc.getElementsByTagName(
                                      "image_size")[0].firstChild.wholeText))
-        be_report_dict["image_size"] = image_size
 
         # image filename
         image_filename = xmldoc.getElementsByTagName(
                            "image_filename")[0].firstChild.wholeText
-        be_report_dict["image_filename"] = image_filename
 
         # hashdb_dir from command_line tag
         command_line = xmldoc.getElementsByTagName(
                            "command_line")[0].firstChild.wholeText
         i = command_line.find('hashdb_scan_path_or_socket=')
         if i == -1:
-            print("Error: hash database not found under %s.\n"
-                  "Aborting." % be_report_file)
-            exit(1)
+            raise ValueError("Path to hash database not found in %s." %
+                                                            be_report_file)
         i += 27
         if command_line[i] == '"':
             # db is quoted
             i += 1
             i2 = command_line.find('"', i)
             if i2 == -1:
-                print("Error: close quote not found in report.xml "
-                      "under %s.\nAborting." % be_report_file)
-                exit(1)
-            be_report_dict["hashdb_dir"] = command_line[i:i2]
+                raise ValueError("Close quote not found in report.xml "
+                                 "under %s." % be_report_file)
+            hashdb_dir = command_line[i:i2]
         else:
             # db is quoted so take text to next space
             i2 = command_line.find(' ', i)
             if i2 == -1:
-                be_report_dict["hashdb_dir"] = command_line[i:]
+                hashdb_dir = command_line[i:]
             else:
-                be_report_dict["hashdb_dir"] = command_line[i:i2]
+                hashdb_dir = command_line[i:i2]
 
-        if not os.path.exists(be_report_dict["hashdb_dir"]):
-            print("Unable to resolve path to hash database: '%s'" %
-                                          be_report_dict["hashdb_dir"])
-            exit(1)
-        return be_report_dict
+        if not os.path.exists(hashdb_dir):
+            raise ValueError("Error in file %s: Unable to resolve path "
+                             "to hash database: '%s'" %
+                             (be_report_file, hashdb_dir))
+        return (image_size, image_filename, hashdb_dir)
 
-    def _read_settings_file(self, hashdb_settings_file):
-        """Read information from settings.xml into a dictionary."""
-        hashdb_settings_dict = dict()
+    def _read_settings_file(self, hashdb_dir):
+        """Read sector_size, block_size from settings.xml."""
+
+        # path to settings file
+        hashdb_settings_file = os.path.join(hashdb_dir, "settings.xml")
 
         if not os.path.exists(hashdb_settings_file):
-            print("%s does not exist" % hashdb_settings_file)
-            exit(1)
+            raise ValueError("hashdb database '%s' is not valid." % hashdb_dir)
         xmldoc = xml.dom.minidom.parse(open(hashdb_settings_file, 'r'))
 
-        # image size
+        # sector size from byte_alignment
+        sector_size = int((xmldoc.getElementsByTagName(
+                                "byte_alignment")[0].firstChild.wholeText))
+
+        # block size from hash_block_size
         block_size = int((xmldoc.getElementsByTagName(
                                 "hash_block_size")[0].firstChild.wholeText))
-        hashdb_settings_dict["block_size"] = block_size
 
-        return hashdb_settings_dict
+        return (sector_size, block_size)
 
-    def _maybe_make_identified_blocks_expanded_file(self):
+    def _maybe_make_identified_blocks_expanded_file(self, be_dir, hashdb_dir):
         """Create identified_blocks_expanded.txt if it does not exist yet.
         """
-        if not os.path.exists(self._identified_blocks_expanded_file):
+
+        # establish the path to the identified blocks expanded file
+        expanded_file = os.path.join(be_dir, 'identified_blocks_expanded.txt')
+
+        if not os.path.exists(expanded_file):
             # get the path to the identified_blocks file
-            identified_blocks_file = os.path.join(
-                             self.be_dir, "identified_blocks.txt")
+            identified_blocks_file = os.path.join(be_dir,
+                                                  "identified_blocks.txt")
 
             # make the hashdb command
             cmd = ["hashdb", "expand_identified_blocks", self.hashdb_dir,
                    identified_blocks_file]
 
             # run hashdb to make the identified blocks expanded file
-            with open(self._identified_blocks_expanded_file, "w") as outfile:
+            with open(expanded_file, "w") as outfile:
                 status=subprocess.call(cmd, stdout=outfile)
                 if status != 0:
-                    print("error creating file %s"
-                          % self._identified_blocks_expanded_file)
-                    exit(1)
+                    raise ValueError("Unable to create expanded file '%s'"
+                                                           % expanded_file)
 
-        return None
+    def _read_identified_blocks_expanded(self, be_dir):
 
-    def _read_identified_blocks_expanded(self):
-
-        """Read identified_blocks_expanded.txt into dictionaries:
-        forensic_paths, hashes, source_details.
+        """Read identified_blocks_expanded.txt into forensic_paths,
+        hashes, and source_details dictionaries.
         """
 
+        # establish the path to the identified blocks expanded file
+        expanded_file = os.path.join(be_dir, 'identified_blocks_expanded.txt')
+
         # read each line
-        self.forensic_paths=dict()
-        self.hashes = dict()
-        self.source_details=dict()
-        with open(self._identified_blocks_expanded_file, 'r') as f:
+        forensic_paths=dict()
+        hashes = dict()
+        source_details=dict()
+        with open(expanded_file, 'r') as f:
             i = 0
             for line in f:
                 try:
@@ -200,13 +222,13 @@ class IdentifiedData():
                     (forensic_path, block_hash, json_data) = line.split("\t")
 
                     # store hash at forensic path
-                    self.forensic_paths[forensic_path] = block_hash
+                    forensic_paths[forensic_path] = block_hash
 
                     # store sources for hash the first time a hash is seen
-                    if block_hash not in self.hashes:
+                    if block_hash not in hashes:
                         extracted_json_data = json.loads(json_data)
                         extracted_sources = extracted_json_data[1]["sources"]
-                        self.hashes[block_hash] = extracted_sources
+                        hashes[block_hash] = extracted_sources
 
                         # store source details the first time a source is seen
                         # Note: source details are provided the first time a
@@ -215,9 +237,12 @@ class IdentifiedData():
                         #       information when provided.
                         for hash_source in extracted_sources:
                             if "filename" in hash_source:
-                                self.source_details[hash_source[ \
+                                source_details[hash_source[ \
                                                    "source_id"]]=hash_source
 
                 except ValueError:
-                    print("Error in line ", i, ": '%s'" %line)
+                    raise ValueError("Error reading file '%s'\n"
+                                     "line %n:'%s'\n%s" % (
+                                     expanded_file, i, e))
 
+        return (forensic_paths, hashes, source_details)

@@ -128,6 +128,7 @@ class SourcesView():
 
         # fill out text for each source checkbox
         for source_id, source in self._identified_data.source_details.items():
+             print("zzsv si:", source_id, source)
 
              # handle missing fields, which can happen if an image was
              # imported instead of a directory of files

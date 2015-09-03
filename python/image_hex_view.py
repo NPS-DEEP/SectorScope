@@ -28,7 +28,7 @@ class ImageHexView():
         self._identified_data = identified_data
         self._filters = filters
         self._byte_offset_selection = byte_offset_selection
-#        self._image_reader = BEImageReader(identified_data.image_filename)
+        self._selected_hash = ""
 
         # make the containing frame
         self.frame = tkinter.Frame(master)
@@ -59,8 +59,7 @@ class ImageHexView():
                                               side=tkinter.LEFT, anchor="w")
 
         # block_hash_frame block hash entry value
-        self._hash_label = tkinter.Label(block_hash_frame, text="Not selected",
-                                         width=40, anchor="w")
+        self._hash_label = tkinter.Label(block_hash_frame, width=40, anchor="w")
         self._hash_label.pack(side=tkinter.LEFT)
 
         # add the hash filter frame to the filter and ID frame
@@ -124,8 +123,14 @@ class ImageHexView():
         # listen to changes in _byte_offset_selection
         byte_offset_selection.trace_variable('w', self._handle_set_data)
 
+        # register to receive identified_data change events
+        identified_data.set_callback(self._handle_identified_data_change)
+
         # register to receive filter change events
         filters.set_callback(self._handle_filter_change)
+
+        # set view for no data
+        self._handle_set_data()
 
     # set variables and the image based on identified_data when
     # byte_offset_selection changes
@@ -238,6 +243,7 @@ class ImageHexView():
 
         # clear hash field
         self._hash_label['text'] = "Not selected"
+        self._selected_hash = ""
 
         # clear hex text
         self._hex_text.delete(1.0, "end")
@@ -312,6 +318,10 @@ class ImageHexView():
     def _handle_remove_hash_from_filter(self):
         self._filters.filtered_hashes.remove(self._selected_hash)
         self._filters.fire_change()
+
+    # identified_data changes views
+    def _handle_identified_data_change(self, *args):
+        self._set_no_data()
 
     # filter changes views
     def _handle_filter_change(self, *args):

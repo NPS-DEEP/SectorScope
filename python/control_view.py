@@ -2,7 +2,6 @@ import tkinter
 from forensic_path import offset_string
 from icon_path import icon_path
 from tooltip import Tooltip
-from be_open_window import BEOpenWindow
 from be_scan_window import BEScanWindow
 from be_import_window import BEImportWindow
 
@@ -14,14 +13,18 @@ class ControlView():
       frame(Frame): the containing frame for this view.
     """
 
-    def __init__(self, master, filters):
+    def __init__(self, master, filters, open_manager):
         """Args:
           master(a UI container): Parent.
           filters(Filters): Filters that filter hashes and sources.
+          open_mangaer(OpenManager): Able to open a new dataset.
         """
 
         # filters
         self._filters = filters
+
+        # open manager
+        self._open_manager = open_manager
 
         # make the containing frame
         self.frame = tkinter.Frame(master)
@@ -79,7 +82,7 @@ class ControlView():
                                                     anchor="w")
 
     def _handle_open(self):
-        BEOpenWindow(self.frame)
+        self._open_manager.open_chooser_dir()
 
     def _handle_scan(self):
         BEScanWindow(self.frame)

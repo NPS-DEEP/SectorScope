@@ -55,19 +55,6 @@ class HashHistogramBar():
         self._filters = filters
         self._byte_offset_selection_trace_var = byte_offset_selection_trace_var
 
-        # data constants
-        self.IMAGE_SIZE = self._identified_data.image_size
-        self.SECTOR_SIZE = self._identified_data.sector_size
-
-        # initial zoomed-out position variables
-        self._start_offset = 0
-        self._bytes_per_pixel = self.IMAGE_SIZE / self.HISTOGRAM_BAR_WIDTH
-
-        # bytes per pixel may be fractional but not less than one
-        # sector per bucket
-        if self._bytes_per_pixel * self.BUCKET_WIDTH < self.SECTOR_SIZE:
-            self._bytes_per_pixel = self.SECTOR_SIZE / self.BUCKET_WIDTH
-
         # the photo_image
         self._photo_image = tkinter.PhotoImage(width=self.HISTOGRAM_BAR_WIDTH,
                                                height=self.HISTOGRAM_BAR_HEIGHT)
@@ -129,17 +116,43 @@ class HashHistogramBar():
         l.bind("<Button-4>", self._handle_mouse_wheel)
         l.bind("<Button-5>", self._handle_mouse_wheel)
 
+        # register to receive identified_data change events
+        identified_data.set_callback(self._handle_identified_data_change)
+
         # register to receive filter change events
         filters.set_callback(self._handle_filter_change)
 
-        self._calculate_hash_counts()
-        self._calculate_bucket_data()
-        self._draw()
+        self._set_initial_state()
+        self._set_identified_data()
 
     # this function is registered to and called by Filters
     def _handle_filter_change(self, *args):
+        self._set_identified_data()
+
+    # this function is registered to and called by IdentifiedData
+    def _handle_identified_data_change(self, *args):
+        self._set_initial_state()
+
+    def _set_initial_state(self):
+        # data constants
+        self._image_size = self._identified_data.image_size
+        self._sector_size = self._identified_data.sector_size
+
+        # initial zoomed-out position variables
+        self._start_offset = 0
+        self._bytes_per_pixel = self._image_size / self.HISTOGRAM_BAR_WIDTH
+
+        # bytes per pixel may be fractional but not less than one
+        # sector per bucket
+        if self._bytes_per_pixel * self.BUCKET_WIDTH < self._sector_size:
+            self._bytes_per_pixel = self._sector_size / self.BUCKET_WIDTH
+
+    def _set_identified_data(self):
+        # calculate this view
         self._calculate_hash_counts()
         self._calculate_bucket_data()
+
+        # draw this view
         self._draw()
 
     def _calculate_hash_counts(self):
@@ -267,7 +280,7 @@ class HashHistogramBar():
         leftmost_bucket = max(int((0 - self._start_offset) /
                           (self._bytes_per_pixel * self.BUCKET_WIDTH)),
                           0)
-        rightmost_bucket = min(int((self.IMAGE_SIZE - self._start_offset) /
+        rightmost_bucket = min(int((self._image_size - self._start_offset) /
                           (self._bytes_per_pixel * self.BUCKET_WIDTH)),
                           self.NUM_BUCKETS)
 
@@ -347,10 +360,10 @@ class HashHistogramBar():
         byte_offset = int(self._start_offset + self._bytes_per_pixel * (e.x))
 
         # return offset rounded down
-        return byte_offset - byte_offset % self.SECTOR_SIZE
+        return byte_offset - byte_offset % self._sector_size
 
     def _in_image_range(self, offset):
-        return offset >= 0 and offset < self.IMAGE_SIZE
+        return offset >= 0 and offset < self._image_size
 
     # convert byte offset to pixel
     def _offset_to_pixel(self, byte_offset):
@@ -450,7 +463,7 @@ class HashHistogramBar():
     def _pan(self, x):
             self._start_offset = int(self._mouse_b1_down_start_offset - 
                      self._bytes_per_pixel * (x - self._mouse_b1_down_x))
-            self._start_offset -= self._start_offset % self.SECTOR_SIZE
+            self._start_offset -= self._start_offset % self._sector_size
 
     def _zoom(self, ratio):
         """Recalculate _start_offset and _bytes_per_bucket."""
@@ -462,11 +475,11 @@ class HashHistogramBar():
         self._bytes_per_pixel = self._bytes_per_pixel * (ratio)
 
         # do not let bytes per pixel get too small
-        if self._bytes_per_pixel * self.BUCKET_WIDTH < self.SECTOR_SIZE:
-            self._bytes_per_pixel = self.SECTOR_SIZE / self.BUCKET_WIDTH
+        if self._bytes_per_pixel * self.BUCKET_WIDTH < self._sector_size:
+            self._bytes_per_pixel = self._sector_size / self.BUCKET_WIDTH
 
         # calculate the new start offset
         self._start_offset = int(self._cursor_offset -
                                  self._bytes_per_pixel * zoom_origin_pixel)
-        self._start_offset -= self._start_offset % self.SECTOR_SIZE
+        self._start_offset -= self._start_offset % self._sector_size
 
