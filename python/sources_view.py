@@ -224,7 +224,8 @@ class SourcesView():
             color = self.UNFILTERED
 
         # set the color for the ID tag
-        self._source_text.tag_config(id_tag_name, background=color)
+        self._source_text.tag_config(id_tag_name, background=color,
+                                     foreground=self.ID_FOREGROUND)
 
     def _set_data_background(self, line):
         # create the data tag name for the line
