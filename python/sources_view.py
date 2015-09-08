@@ -56,24 +56,16 @@ class SourcesView():
         # add the color legend
         f = tkinter.Frame(self.frame)
         f.pack(side=tkinter.TOP)
-        tkinter.Label(f,text="   ",background=self.FILTERED).pack(
-                                                         side=tkinter.LEFT)
-        tkinter.Label(f,text="Filtered      ").pack(side=tkinter.LEFT)
         tkinter.Label(f,text="   ",background=self.UNFILTERED).pack(
                                                          side=tkinter.LEFT)
         tkinter.Label(f,text="Not filtered      ").pack(side=tkinter.LEFT)
+        tkinter.Label(f,text="   ",background=self.FILTERED).pack(
+                                                         side=tkinter.LEFT)
+        tkinter.Label(f,text="Filtered      ").pack(side=tkinter.LEFT)
 
         # add the select all and clear all buttons
         select_clear_frame = tkinter.Frame(self.frame)
         select_clear_frame.pack(pady=8)
-
-        # select button
-        self._select_all_icon = tkinter.PhotoImage(file=icon_path("select_all"))
-        select_all_button = tkinter.Button(select_clear_frame,
-                       image=self._select_all_icon,
-                       command=self._handle_set_all_sources)
-        select_all_button.pack(side=tkinter.LEFT, padx=2)
-        Tooltip(select_all_button, "Filter all sources")
 
         # clear button
         self._clear_all_icon = tkinter.PhotoImage(file=icon_path("clear_all"))
@@ -82,6 +74,14 @@ class SourcesView():
                        command=self._handle_clear_all_sources)
         clear_all_button.pack(side=tkinter.LEFT, padx=2)
         Tooltip(clear_all_button, "Do not filter any sources")
+
+        # select button
+        self._select_all_icon = tkinter.PhotoImage(file=icon_path("select_all"))
+        select_all_button = tkinter.Button(select_clear_frame,
+                       image=self._select_all_icon,
+                       command=self._handle_set_all_sources)
+        select_all_button.pack(side=tkinter.LEFT, padx=2)
+        Tooltip(select_all_button, "Filter all sources")
 
         # scrolled frame for sources
         scrolled_text = ScrolledText(self.frame, width=60, height=60)
