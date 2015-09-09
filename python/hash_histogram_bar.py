@@ -146,12 +146,12 @@ class HashHistogramBar():
         # register to receive filter change events
         filters.set_callback(self._handle_filter_change)
 
-        self._set_initial_state()
-        self._set_identified_data()
-
     # this function is registered to and called by Filters
     def _handle_filter_change(self, *args):
-        self._set_identified_data()
+
+        # calculate this view
+        self._calculate_hash_counts()
+        self._calculate_bucket_data()
 
     # this function is registered to and called by IdentifiedData
     def _handle_identified_data_change(self, *args):
@@ -171,12 +171,15 @@ class HashHistogramBar():
         if self._bytes_per_pixel * self.BUCKET_WIDTH < self._sector_size:
             self._bytes_per_pixel = self._sector_size / self.BUCKET_WIDTH
 
-    def _set_identified_data(self):
+        # sector selection and histogram range selection are not set
+        self._is_valid_sector_selection = False
+        self._is_valid_range_selection = False
+
         # calculate this view
         self._calculate_hash_counts()
         self._calculate_bucket_data()
 
-        # draw this view
+        # draw
         self._draw()
 
     def _calculate_hash_counts(self):
