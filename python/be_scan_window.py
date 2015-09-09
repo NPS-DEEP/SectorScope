@@ -238,22 +238,25 @@ class BEScanWindow():
     def _handle_image_chooser(self, *args):
         image_file = tkinter.filedialog.askopenfilename(
                                title="Open Media Image")
-        self._image_entry.delete(0, tkinter.END)
-        self._image_entry.insert(0, image_file)
+        if image_file:
+            self._image_entry.delete(0, tkinter.END)
+            self._image_entry.insert(0, image_file)
 
     def _handle_hashdb_directory_chooser(self, *args):
         hashdb_directory = tkinter.filedialog.askdirectory(
                                title="Open hashdb Database Directory",
                                mustexist=True)
-        self._hashdb_directory_entry.delete(0, tkinter.END)
-        self._hashdb_directory_entry.insert(0, hashdb_directory)
+        if hashdb_directory:
+            self._hashdb_directory_entry.delete(0, tkinter.END)
+            self._hashdb_directory_entry.insert(0, hashdb_directory)
 
     def _handle_output_directory_chooser(self, *args):
         output_directory = tkinter.filedialog.askdirectory(
                                title="Open bulk_extractor output Directory",
                                mustexist=False)
-        self._output_directory_entry.delete(0, tkinter.END)
-        self._output_directory_entry.insert(0, output_directory)
+        if output_directory:
+            self._output_directory_entry.delete(0, tkinter.END)
+            self._output_directory_entry.insert(0, output_directory)
 
     def _handle_consume_queue(self):
         # consume the queue

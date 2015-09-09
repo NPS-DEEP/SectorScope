@@ -232,15 +232,17 @@ class BEImportWindow():
         source_directory = tkinter.filedialog.askdirectory(
                                title="Open Input Source Directory",
                                mustexist=True)
-        self._source_directory_entry.delete(0, tkinter.END)
-        self._source_directory_entry.insert(0, source_directory)
+        if source_directory:
+            self._source_directory_entry.delete(0, tkinter.END)
+            self._source_directory_entry.insert(0, source_directory)
 
     def _handle_output_directory_chooser(self, *args):
         output_directory = tkinter.filedialog.askdirectory(
                                title="Open bulk_extractor output Directory",
                                mustexist=False)
-        self._output_directory_entry.delete(0, tkinter.END)
-        self._output_directory_entry.insert(0, output_directory)
+        if output_directory:
+            self._output_directory_entry.delete(0, tkinter.END)
+            self._output_directory_entry.insert(0, output_directory)
 
     def _handle_consume_queue(self):
         # consume the queue

@@ -53,7 +53,8 @@ class OpenManager():
                      mustexist=True, initialdir=self._identified_data.be_dir)
 
         # open be_dir
-        self.open_be_dir(be_dir)
+        if be_dir:
+            self.open_be_dir(be_dir)
 
     def _show_error(self, e):
         # make toplevel window
