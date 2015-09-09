@@ -1,5 +1,7 @@
 import tkinter 
 from forensic_path import offset_string
+from icon_path import icon_path
+from tooltip import Tooltip
 
 class HashHistogramBar():
     """Renders the histogram bar widget based on data, filter values, and zoom.
@@ -34,11 +36,15 @@ class HashHistogramBar():
     _is_valid_selection = False
     _selection_offset = -1 # so it won't initially show
 
+    # pan state
+    _pan_down_x = None
+    _pan_down_start_offset = None
+
     # mouse button 1 state
     _mouse_b1_pressed = False
     _mouse_b1_dragged = False
     _mouse_b1_down_x = None
-    _mouse_b1_down_start_offset = None
+    #zz_mouse_b1_down_start_offset = None
 
     def __init__(self, master, identified_data, filters,
                  byte_offset_selection_trace_var):
@@ -93,13 +99,28 @@ class HashHistogramBar():
         l.pack(side=tkinter.TOP)
 
         # add the frame for the leftmost and rightmost offset values
-        f = tkinter.Frame(self.frame)
+        # and pan button
+        f = tkinter.Frame(self.frame, height=18)
         f.pack(side=tkinter.TOP, fill=tkinter.X)
+
+        # leftmost offset value
         self._start_offset_label = tkinter.Label(f)
-        self._start_offset_label.pack(side=tkinter.LEFT)
+        self._start_offset_label.place(relx=0.0, anchor=tkinter.NW)
+
+        # pan control
+        self._pan_icon = tkinter.PhotoImage(file=icon_path("pan"))
+        self._pan_label = tkinter.Label(f, image=self._pan_icon)
+        self._pan_label.place(relx=0.49, anchor=tkinter.N)
+        self._pan_label.config(cursor="sb_h_double_arrow")
+        Tooltip(self._pan_label, "Drag to pan")
+
+        # bind pan control
+        self._pan_label.bind('<Button-1>', self._handle_pan_press)
+        self._pan_label.bind('<B1-Motion>', self._handle_pan_move)
+
+        # rightmost offset value
         self._stop_offset_label = tkinter.Label(f)
-        self._stop_offset_label.pack(side=tkinter.LEFT,
-                                     expand=True, anchor=tkinter.E)
+        self._stop_offset_label.place(relx=1.0, anchor=tkinter.NE)
 
         # bind mouse motion events
         l.bind('<Any-Motion>', self._handle_mouse_move)
@@ -378,17 +399,26 @@ class HashHistogramBar():
         self._is_valid_cursor = False
         self._draw()
 
+    def _handle_pan_press(self, e):
+        self._pan_down_x = e.x
+        self._pan_down_start_offset = self._start_offset
+
+    def _handle_pan_move(self, e):
+        # pan
+        self._start_offset = int(self._pan_down_start_offset - 
+                 self._bytes_per_pixel * (e.x - self._pan_down_x))
+        self._start_offset -= self._start_offset % self._sector_size
+
+        # recalculate bucket data
+        self._calculate_bucket_data()
+        self._draw()
+
+
+
+
+
+
     def _handle_mouse_move(self, e):
-
-        # maybe pan
-        if self._mouse_b1_pressed:
-
-            # pan
-            self._mouse_b1_dragged = True
-            self._pan(e.x)
-
-            # recalculate bucket data
-            self._calculate_bucket_data()
 
         # always move cursor
         self._set_cursor(e)
@@ -398,7 +428,6 @@ class HashHistogramBar():
         self._mouse_b1_dragged = False
         self._mouse_b1_pressed = True
         self._mouse_b1_down_x = e.x
-        self._mouse_b1_down_start_offset = self._start_offset
 
     def _handle_b1_mouse_release(self, e):
         self._mouse_b1_pressed = False
@@ -459,11 +488,6 @@ class HashHistogramBar():
     def _set_selection(self, e):
         self._selection_offset = self._mouse_to_offset(e)
         self._is_valid_selection = self._in_image_range(self._cursor_offset)
-
-    def _pan(self, x):
-            self._start_offset = int(self._mouse_b1_down_start_offset - 
-                     self._bytes_per_pixel * (x - self._mouse_b1_down_x))
-            self._start_offset -= self._start_offset % self._sector_size
 
     def _zoom(self, ratio):
         """Recalculate _start_offset and _bytes_per_bucket."""

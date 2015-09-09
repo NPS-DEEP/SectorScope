@@ -20,4 +20,6 @@ def icon_path(name):
         return _absolute_path("plus_blue.gif")
     if name == "remove_hash":
         return _absolute_path("minus_blue.gif")
+    if name == "pan":
+        return _absolute_path("draw-arrow-forward.gif")
 
