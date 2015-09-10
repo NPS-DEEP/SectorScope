@@ -110,6 +110,29 @@ class HashHistogramBar():
         self._start_offset_label = tkinter.Label(f)
         self._start_offset_label.place(relx=0.0, anchor=tkinter.NW)
 
+        # range selection menu, usually not visible
+        self._range_selection_menu = tkinter.Menu(self.frame, tearoff=0)
+        # hide range selection menu on mouse leave
+        self._range_selection_menu.bind('<Leave>', lambda e:
+                                        self._range_selection_menu.unpost())
+
+        # range selection menu items
+        self._range_selection_menu.add_command(label="Filter sources in range",
+                  command=self._handle_menu_filter_sources_in_range)
+        self._range_selection_menu.add_command(
+                  label="Filter all but sources in range",
+                  command = self._handle_menu_filter_all_but_sources_in_range)
+        self._range_selection_menu.add_command(
+                  label="Fit range",
+                  command = self._handle_menu_fit_range)
+        self._range_selection_menu.add_command(
+                  label="Fit image",
+                  command = self._handle_menu_fit_image)
+        self._range_selection_menu.add_command(
+                  label="Deselect range",
+                  command = self._handle_menu_deselect_range)
+
+
         # pan control
         self._pan_icon = tkinter.PhotoImage(file=icon_path("pan"))
         self._pan_label = tkinter.Label(f, image=self._pan_icon)
@@ -152,6 +175,9 @@ class HashHistogramBar():
         # calculate this view
         self._calculate_hash_counts()
         self._calculate_bucket_data()
+
+        # draw
+        self._draw()
 
     # this function is registered to and called by IdentifiedData
     def _handle_identified_data_change(self, *args):
@@ -488,6 +514,9 @@ class HashHistogramBar():
             # start the cursor back up
             self._set_cursor(e)
 
+            # open the range selection menu
+            self._range_selection_menu.post(e.x_root-20, e.y_root-10)
+
         else:
             # select the clicked sector
             self._set_sector_selection(e)
@@ -570,4 +599,131 @@ class HashHistogramBar():
         # media image is outside range of graph
         end_offset = start_offset + bytes_per_pixel * self.HISTOGRAM_BAR_WIDTH
         return start_offset > self._image_size or end_offset < 0
+
+    def _handle_menu_filter_sources_in_range(self):
+        # clear existing filtered sources
+        self._filters.filtered_sources.clear()
+
+        # get start_byte and stop_byte range
+        start_byte, stop_byte = self._range_selection()
+
+        # get local references to identified data and filter
+        hashes = self._identified_data.hashes
+        filtered_sources = self._filters.filtered_sources
+        
+        # filter sources in range
+        seen_hashes = set()
+        for forensic_path, block_hash in \
+                               self._identified_data.forensic_paths.items():
+            offset = int(forensic_path)
+            if offset >= start_byte and offset <= stop_byte:
+                # hash is in range so filter its sources
+                if block_hash in seen_hashes:
+                    # do not reprocess this hash
+                    continue
+
+                # remember this hash
+                seen_hashes.add(block_hash)
+
+                # get sources associated with this hash
+                sources = hashes[block_hash]
+
+                # filter each source associated with this hash
+                for source in sources:
+                    filtered_sources.add(source["source_id"])
+
+        # fire filter change
+        self._filters.fire_change()
+
+    def _handle_menu_filter_all_but_sources_in_range(self):
+        # start by filtering all sources
+        for source_id, _ in self._identified_data.source_details.items():
+            self._filters.filtered_sources.add(source_id)
+
+        # get start_byte and stop_byte range
+        start_byte, stop_byte = self._range_selection()
+
+        # get local references to identified data and filter
+        hashes = self._identified_data.hashes
+        filtered_sources = self._filters.filtered_sources
+        
+        # unfilter sources in range
+        seen_hashes = set()
+        for forensic_path, block_hash in \
+                               self._identified_data.forensic_paths.items():
+            offset = int(forensic_path)
+            if offset >= start_byte and offset <= stop_byte:
+                # hash is in range so filter its sources
+                if block_hash in seen_hashes:
+                    # do not reprocess this hash
+                    continue
+
+                # remember this hash
+                seen_hashes.add(block_hash)
+
+                # get sources associated with this hash
+                sources = hashes[block_hash]
+
+                # unfilter each source associated with this hash
+                for source in sources:
+                    filtered_sources.discard(source["source_id"])
+
+        # fire filter change
+        self._filters.fire_change()
+
+    def _handle_menu_fit_range(self):
+        # get start_byte and stop_byte range
+        start_byte, stop_byte = self._range_selection()
+
+        new_bytes_per_pixel = (stop_byte - start_byte) / \
+                              self.HISTOGRAM_BAR_WIDTH
+
+        # do not let bytes per pixel get too small
+        if new_bytes_per_pixel * self.BUCKET_WIDTH < self._sector_size:
+            new_bytes_per_pixel = self._sector_size / self.BUCKET_WIDTH
+
+        # calculate the new start offset
+        new_start_offset = start_byte - start_byte % self._sector_size
+
+        self._start_offset = new_start_offset
+        self._bytes_per_pixel = new_bytes_per_pixel
+
+        # recalculate bucket data
+        self._calculate_bucket_data()
+
+        # redraw
+        self._draw()
+
+    def _handle_menu_fit_image(self):
+        # initial zoomed-out position variables
+        self._start_offset = 0
+        self._bytes_per_pixel = self._image_size / self.HISTOGRAM_BAR_WIDTH
+
+        # bytes per pixel may be fractional but not less than one
+        # sector per bucket
+        if self._bytes_per_pixel * self.BUCKET_WIDTH < self._sector_size:
+            self._bytes_per_pixel = self._sector_size / self.BUCKET_WIDTH
+
+        # recalculate bucket data
+        self._calculate_bucket_data()
+
+        # redraw
+        self._draw()
+
+    def _handle_menu_deselect_range(self):
+        # deselect range
+        self._is_valid_range_selection = False
+
+        # redraw
+        self._draw()
+
+    def _range_selection(self):
+        # return start_byte and stop_byte range, in order
+        if self._histogram_range_start_offset < \
+                                    self._histogram_range_stop_offset:
+            return (self._histogram_range_start_offset,
+                    self._histogram_range_stop_offset)
+        else:
+            return (self._histogram_range_stop_offset,
+                    self._histogram_range_start_offset)
 

@@ -9,12 +9,15 @@ class Filters():
     Attributes:
       max_hashes (int): Maximum duplicates allowed before disregarding the hash.
       filter_flagged_blocks (bool): Whether to filter flagged hashes.
-      filtered_sources (array<int>): Sectors to filter.
-      filtered_hashes (array<str>): Hashes to filter.
+      filtered_sources (set<int>): Sectors to filter.
+      filtered_hashes (set<str>): Hashes to filter.
 
     Requirement:
       Tk must be initialized before Filters for tkinter.Variable to work.
     """
+
+    filtered_sources = set()
+    filtered_hashes = set()
 
     def __init__(self):
         # the signal variable
@@ -29,8 +32,8 @@ class Filters():
         # filters
         self.max_hashes = 0
         self.filter_flagged_blocks = True
-        self.filtered_sources = []
-        self.filtered_hashes = []
+        self.filtered_sources.clear()
+        self.filtered_hashes.clear()
         self.fire_change()
 
     def fire_change(self):

@@ -266,7 +266,7 @@ class SourcesView():
         # set filtered sources and signal change
         self._filters.filtered_sources.clear()
         for source_id in self._identified_data.source_details:
-            self._filters.filtered_sources.append(source_id)
+            self._filters.filtered_sources.add(source_id)
         self._filters.fire_change()
 
     def _handle_identified_data_change(self, *args):
@@ -301,7 +301,7 @@ class SourcesView():
         if source_id in self._filters.filtered_sources:
             self._filters.filtered_sources.remove(source_id)
         else:
-            self._filters.filtered_sources.append(source_id)
+            self._filters.filtered_sources.add(source_id)
 
         # fire change
         self._filters.fire_change()
