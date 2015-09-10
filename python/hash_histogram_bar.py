@@ -139,7 +139,7 @@ class HashHistogramBar():
                                           image=self._fit_range_icon,
                                           command=self._handle_fit_range)
         self._fit_range_button.pack(side=tkinter.LEFT, padx=(8,0))
-        Tooltip(self._fit_range_button, "Zoom to selected range")
+        Tooltip(self._fit_range_button, "Zoom to range")
 
         # filter sources in range
         self._filter_sources_in_range_icon = tkinter.PhotoImage(
