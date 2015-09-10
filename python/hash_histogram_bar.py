@@ -32,11 +32,11 @@ class HashHistogramBar():
     _cursor_offset = 0
 
     # sector selection
-    _is_valid_sector_selection = False
+    _is_valid_sector_selection = None
     _sector_selection_offset = 0
 
     # histogram range selection
-    _is_valid_range_selection = False
+    _is_valid_range_selection = False # use setter to configure button state
     _histogram_range_start_offset = 0
     _histogram_range_stop_offset = 0
 
@@ -84,7 +84,7 @@ class HashHistogramBar():
         tkinter.Label(f,text="   ",background="#000066").pack(side=tkinter.LEFT)
         tkinter.Label(f,text="All matches      ").pack(side=tkinter.LEFT)
         tkinter.Label(f,text="   ",background="#660000").pack(side=tkinter.LEFT)
-        tkinter.Label(f,text="No filtered matches      ").pack(side=tkinter.LEFT)
+        tkinter.Label(f,text="Filtered matches removed      ").pack(side=tkinter.LEFT)
         tkinter.Label(f,text="   ",background="#004400").pack(side=tkinter.LEFT)
         tkinter.Label(f,text="Filtered matches only").pack(side=tkinter.LEFT)
 
@@ -102,47 +102,73 @@ class HashHistogramBar():
         l.pack(side=tkinter.TOP)
 
         # add the frame for the leftmost and rightmost offset values
-        # and pan button
-        f = tkinter.Frame(self.frame, height=18)
+        # and the button controls
+        f = tkinter.Frame(self.frame, height=22)
         f.pack(side=tkinter.TOP, fill=tkinter.X)
 
         # leftmost offset value
         self._start_offset_label = tkinter.Label(f)
         self._start_offset_label.place(relx=0.0, anchor=tkinter.NW)
 
-        # range selection menu, usually not visible
-        self._range_selection_menu = tkinter.Menu(self.frame, tearoff=0)
-        # hide range selection menu on mouse leave
-        self._range_selection_menu.bind('<Leave>', lambda e:
-                                        self._range_selection_menu.unpost())
-
-        # range selection menu items
-        self._range_selection_menu.add_command(label="Filter sources in range",
-                  command=self._handle_menu_filter_sources_in_range)
-        self._range_selection_menu.add_command(
-                  label="Filter all but sources in range",
-                  command = self._handle_menu_filter_all_but_sources_in_range)
-        self._range_selection_menu.add_command(
-                  label="Fit range",
-                  command = self._handle_menu_fit_range)
-        self._range_selection_menu.add_command(
-                  label="Fit image",
-                  command = self._handle_menu_fit_image)
-        self._range_selection_menu.add_command(
-                  label="Deselect range",
-                  command = self._handle_menu_deselect_range)
-
-
-        # pan control
+        # button controls
+        control_frame = tkinter.Frame(f)
+        control_frame.place(relx=0.49, anchor=tkinter.N)
+        
+        # pan
         self._pan_icon = tkinter.PhotoImage(file=icon_path("pan"))
-        self._pan_label = tkinter.Label(f, image=self._pan_icon)
-        self._pan_label.place(relx=0.49, anchor=tkinter.N)
-        self._pan_label.config(cursor="sb_h_double_arrow")
-        Tooltip(self._pan_label, "Drag to pan")
+        pan_button = tkinter.Button(control_frame, image=self._pan_icon)
+        pan_button.pack(side=tkinter.LEFT)
+        pan_button.config(cursor="sb_h_double_arrow")
+        Tooltip(pan_button, "Drag to pan")
 
         # bind pan control mouse events
-        self._pan_label.bind('<Button-1>', self._handle_pan_press)
-        self._pan_label.bind('<B1-Motion>', self._handle_pan_move)
+        pan_button.bind('<Button-1>', self._handle_pan_press)
+        pan_button.bind('<B1-Motion>', self._handle_pan_move)
+
+        # zoom to fit image
+        self._fit_image_icon = tkinter.PhotoImage(file=icon_path("fit_image"))
+        fit_image_button = tkinter.Button(control_frame,
+                                          image=self._fit_image_icon,
+                                          command=self._handle_fit_image)
+        fit_image_button.pack(side=tkinter.LEFT)
+        Tooltip(fit_image_button, "Zoom to fit image")
+
+        # zoom to fit range
+        self._fit_range_icon = tkinter.PhotoImage(file=icon_path("fit_range"))
+        self._fit_range_button = tkinter.Button(control_frame,
+                                          image=self._fit_range_icon,
+                                          command=self._handle_fit_range)
+        self._fit_range_button.pack(side=tkinter.LEFT, padx=(8,0))
+        Tooltip(self._fit_range_button, "Zoom to selected range")
+
+        # filter sources in range
+        self._filter_sources_in_range_icon = tkinter.PhotoImage(
+                                  file=icon_path("filter_range"))
+        self._filter_sources_in_range_button = tkinter.Button(control_frame,
+                                  image=self._filter_sources_in_range_icon,
+                                  command=self._handle_filter_sources_in_range)
+        self._filter_sources_in_range_button.pack(side=tkinter.LEFT)
+        Tooltip(self._filter_sources_in_range_button, "Filter sources in range")
+
+        # filter all but sources in range
+        self._filter_all_but_sources_in_range_icon = tkinter.PhotoImage(
+                          file=icon_path("filter_all_but_range"))
+        self._filter_all_but_sources_in_range_button = tkinter.Button(
+                          control_frame,
+                          image=self._filter_all_but_sources_in_range_icon,
+                          command=self._handle_filter_all_but_sources_in_range)
+        self._filter_all_but_sources_in_range_button.pack(side=tkinter.LEFT)
+        Tooltip(self._filter_all_but_sources_in_range_button,
+                          "Filter all but sources in range")
+
+        # deselect range
+        self._deselect_range_icon = tkinter.PhotoImage(
+                                  file=icon_path("deselect_range"))
+        self._deselect_range_button = tkinter.Button(control_frame,
+                                  image=self._deselect_range_icon,
+                                  command=self._handle_deselect_range)
+        self._deselect_range_button.pack(side=tkinter.LEFT)
+        Tooltip(self._deselect_range_button, "Deselect range")
 
         # rightmost offset value
         self._stop_offset_label = tkinter.Label(f)
@@ -199,7 +225,7 @@ class HashHistogramBar():
 
         # sector selection and histogram range selection are not set
         self._is_valid_sector_selection = False
-        self._is_valid_range_selection = False
+        self._set_valid_range_selection(False)
 
         # calculate this view
         self._calculate_hash_counts()
@@ -207,6 +233,22 @@ class HashHistogramBar():
 
         # draw
         self._draw()
+
+    def _set_valid_range_selection(self, is_valid):
+        if is_valid:
+            self._is_valid_range_selection = True
+            self._fit_range_button.config(state=tkinter.NORMAL)
+            self._filter_sources_in_range_button.config(state=tkinter.NORMAL)
+            self._filter_all_but_sources_in_range_button.config(
+                                                        state=tkinter.NORMAL)
+            self._deselect_range_button.config(state=tkinter.NORMAL)
+        else:
+            self._is_valid_range_selection = False
+            self._fit_range_button.config(state=tkinter.DISABLED)
+            self._filter_sources_in_range_button.config(state=tkinter.DISABLED)
+            self._filter_all_but_sources_in_range_button.config(
+                                                        state=tkinter.DISABLED)
+            self._deselect_range_button.config(state=tkinter.DISABLED)
 
     def _calculate_hash_counts(self):
 
@@ -489,7 +531,7 @@ class HashHistogramBar():
             if not self._histogram_dragged:
                 # mark as drag as opposed to click
                 self._histogram_dragged = True
-                self._is_valid_range_selection = True
+                self._set_valid_range_selection(True)
                 self._histogram_range_start_offset = \
                                              self._histogram_b1_start_offset
                 self._is_valid_cursor = False
@@ -511,11 +553,8 @@ class HashHistogramBar():
             # end b1 range selection motion
             self._histogram_dragged = False
 
-            # start the cursor back up
+            # button up so show the cursor
             self._set_cursor(e)
-
-            # open the range selection menu
-            self._range_selection_menu.post(e.x_root-20, e.y_root-10)
 
         else:
             # select the clicked sector
@@ -600,7 +639,7 @@ class HashHistogramBar():
         end_offset = start_offset + bytes_per_pixel * self.HISTOGRAM_BAR_WIDTH
         return start_offset > self._image_size or end_offset < 0
 
-    def _handle_menu_filter_sources_in_range(self):
+    def _handle_filter_sources_in_range(self):
         # clear existing filtered sources
         self._filters.filtered_sources.clear()
 
@@ -635,7 +674,7 @@ class HashHistogramBar():
         # fire filter change
         self._filters.fire_change()
 
-    def _handle_menu_filter_all_but_sources_in_range(self):
+    def _handle_filter_all_but_sources_in_range(self):
         # start by filtering all sources
         for source_id, _ in self._identified_data.source_details.items():
             self._filters.filtered_sources.add(source_id)
@@ -671,7 +710,7 @@ class HashHistogramBar():
         # fire filter change
         self._filters.fire_change()
 
-    def _handle_menu_fit_range(self):
+    def _handle_fit_range(self):
         # get start_byte and stop_byte range
         start_byte, stop_byte = self._range_selection()
 
@@ -694,7 +733,7 @@ class HashHistogramBar():
         # redraw
         self._draw()
 
-    def _handle_menu_fit_image(self):
+    def _handle_fit_image(self):
         # initial zoomed-out position variables
         self._start_offset = 0
         self._bytes_per_pixel = self._image_size / self.HISTOGRAM_BAR_WIDTH
@@ -710,9 +749,9 @@ class HashHistogramBar():
         # redraw
         self._draw()
 
-    def _handle_menu_deselect_range(self):
+    def _handle_deselect_range(self):
         # deselect range
-        self._is_valid_range_selection = False
+        self._set_valid_range_selection(False)
 
         # redraw
         self._draw()
