@@ -391,7 +391,7 @@ class HashHistogramBar():
             if x2 == x1: x2 += 1
 
             # fill the range with the range selection color
-            self._photo_image.put("#ffdddd",
+            self._photo_image.put("#ccffff",
                                  to=(x1, 0, x2, self.HISTOGRAM_BAR_HEIGHT))
 
     # draw all the buckets
