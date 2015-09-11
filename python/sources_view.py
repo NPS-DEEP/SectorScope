@@ -32,12 +32,14 @@ class SourcesView():
 
         # colors
         self.TITLE = "gray90"
-        self.FILTERED = "#006633"
-        self.UNFILTERED = "#990000"
-        self.ID_FOREGROUND = "white"
-        self.EVEN = "white"
-        self.ODD = "light blue"
-        self.HOVERED = "cornflower blue"
+        self.EVEN_FILTERED = "#ccffcc"
+        self.ODD_FILTERED = "#aaffaa"
+        self.HOVERED_FILTERED = "#006633"
+        self.LEGEND_FILTERED = "#006633"
+        self.EVEN_UNFILTERED = "#ffdddd"
+        self.ODD_UNFILTERED = "#ffcccc"
+        self.HOVERED_UNFILTERED = "#990000"
+        self.LEGEND_UNFILTERED = "#990000"
 
         # variables
         self._identified_data = identified_data
@@ -56,10 +58,10 @@ class SourcesView():
         # add the color legend
         f = tkinter.Frame(self.frame)
         f.pack(side=tkinter.TOP)
-        tkinter.Label(f,text="   ",background=self.UNFILTERED).pack(
+        tkinter.Label(f,text="   ",background=self.LEGEND_UNFILTERED).pack(
                                                          side=tkinter.LEFT)
         tkinter.Label(f,text="Not filtered      ").pack(side=tkinter.LEFT)
-        tkinter.Label(f,text="   ",background=self.FILTERED).pack(
+        tkinter.Label(f,text="   ",background=self.LEGEND_FILTERED).pack(
                                                          side=tkinter.LEFT)
         tkinter.Label(f,text="Filtered      ").pack(side=tkinter.LEFT)
 
@@ -117,6 +119,8 @@ class SourcesView():
         filters.set_callback(self._handle_filter_change)
 
     def _get_sources_offsets(self):
+        """Get the set of offsets for each source.  The length of a set
+        indicates source fullness for that source."""
         # sources_offsets = dict<source ID, set<source offset int>>
         sources_offsets = defaultdict(set)
 
@@ -144,9 +148,8 @@ class SourcesView():
         # delete any existing tags
         self._source_text.tag_delete(self._source_text.tag_names())
 
-        # put in hardcoded tags
+        # put in the title tag
         self._source_text.tag_config("title", background=self.TITLE)
-        self._source_text.tag_config("hovered", background="cornflower blue")
 
         # put in the first line containing the column titles
         self._source_text.insert(tkinter.END,
@@ -154,7 +157,7 @@ class SourcesView():
                                  "Repository Name\tFilename\n",
                                  "title")
 
-        # get offsets for sources
+        # get set of offsets for each source
         sources_offsets = self._get_sources_offsets()
 
         # local reference to filtered sources
@@ -164,18 +167,10 @@ class SourcesView():
         line = 2
         for source_id, source in self._identified_data.source_details.items():
 
-            # set the background for the source ID
-            self._set_id_background(line, source_id)
+            # set the tag for the source text
+            self._set_tag(line, source_id)
 
-            # add the source ID text
-            id_tag_name = "id%s" % line
-            self._source_text.insert(tkinter.END, "\t%s"%source_id,
-                                     id_tag_name)
-
-            # set the background for the source data
-            self._set_data_background(line)
-
-            # add the data text
+            # compose the source text
             # handle missing fields, which can happen if an image was
             # imported instead of a directory of files
             if "filesize" in source:
@@ -186,22 +181,24 @@ class SourcesView():
                                  self._identified_data.sector_size)) * \
                                  100
 
-                data = '\t%.2f%%\t%d\t%d\t%s\t%s\n' \
-                                    %(percent_found,
+                source_text = '\t%s\t%.2f%%\t%d\t%d\t%s\t%s\n' \
+                                    %(source_id,
+                                      percent_found,
                                       len(sources_offsets[source_id]),
                                       source["filesize"],
                                       source["repository_name"],
                                       source["filename"])
 
             else:
-                data = '\t%.2f%%\t?%d\t?\t%s\t%s\n' \
-                                    %(len(sources_offsets[source_id]),
+                source_text = '\t%s\t%.2f%%\t?%d\t?\t%s\t%s\n' \
+                                    %(source_id,
+                                      len(sources_offsets[source_id]),
                                       source["repository_name"],
                                       source["filename"])
 
-            # add the source data text
-            data_tag_name = "data%s" % line
-            self._source_text.insert(tkinter.END, data, data_tag_name)
+            # add the source text
+            tag_name = "line_%s" % line
+            self._source_text.insert(tkinter.END, source_text, tag_name)
 
             # record the line and ID lookups
             self._line_to_id[line] = source_id
@@ -213,44 +210,41 @@ class SourcesView():
         # set not editable
         self._source_text.config(state=tkinter.DISABLED)
 
-    def _set_id_background(self, line, source_id):
-        # create the ID tag name for the line
-        id_tag_name = "id%s" % line
+    def _set_tag(self, line, source_id):
+        # create the tag name for the line
+        tag_name = "line_%s" % line
 
-        # get the filter color
+        # determine the background color
         if source_id in self._filters.filtered_sources:
-            color = self.FILTERED
+            # use FILTERED color scheme
+            if line == self._cursor_line:
+                foreground = "white"
+                background = self.HOVERED_FILTERED
+            else:
+                foreground = "black"
+                if line % 2 == 0:
+                    background = self.EVEN_FILTERED
+                else:
+                    background = self.ODD_FILTERED
         else:
-            color = self.UNFILTERED
+            # use UNFILTERED color scheme
+            if line == self._cursor_line:
+                foreground = "white"
+                background = self.HOVERED_UNFILTERED
+            else:
+                foreground = "black"
+                if line % 2 == 0:
+                    background = self.EVEN_UNFILTERED
+                else:
+                    background = self.ODD_UNFILTERED
 
-        # set the color for the ID tag
-        self._source_text.tag_config(id_tag_name, background=color,
-                                     foreground=self.ID_FOREGROUND)
+        # create or modify the tag
+        self._source_text.tag_config(tag_name, background=background,
+                                               foreground=foreground)
 
-    def _set_data_background(self, line):
-        # create the data tag name for the line
-        data_tag_name = "data%s" % line
-
-        # get the line color for the data
-        if line % 2 == 0:
-            color = self.EVEN
-        else:
-            color = self.ODD
-
-        # set the color for the data tag
-        self._source_text.tag_config(data_tag_name, background=color)
-
-    def _set_hover_background(self, line):
-        # create the data tag name for the line
-        data_tag_name = "data%s" % line
-
-        # set the color for the data tag
-        self._source_text.tag_config(data_tag_name, background=self.HOVERED)
-
-
-    def _set_id_tags(self):
+    def _set_tags(self):
         for line, source_id in self._line_to_id.items():
-            self._set_id_background(line, source_id)
+            self._set_tag(line, source_id)
 
     def _mouse_to_line(self, e):
         index = self._source_text.index("@%s,%s" % (e.x, e.y))
@@ -273,7 +267,7 @@ class SourcesView():
         self._fill_source_view()
 
     def _handle_filter_change(self, *args):
-        self._set_id_tags()
+        self._set_tags()
 
     def _handle_mouse_move(self, e):
         line = self._mouse_to_line(e)
@@ -283,17 +277,21 @@ class SourcesView():
             return
 
         # restore old cursor line
-        self._set_data_background(self._cursor_line)
-        self._cursor_line = -1
+        old_cursor_line = self._cursor_line
+        if old_cursor_line != -1:
+            self._cursor_line = -1
+            self._set_tag(old_cursor_line, self._line_to_id[old_cursor_line])
 
-        # set new cursor line
-        if line != -1:
-            self._set_hover_background(line)
+        # set new cursor line if the line is in bounds
+        if line in self._line_to_id:
             self._cursor_line = line
+            self._set_tag(line, self._line_to_id[line])
 
     def _handle_b1_mouse_press(self, e):
         line = self._mouse_to_line(e)
-        if line == -1:
+
+        # line must be in bounds
+        if line not in self._line_to_id:
             return
 
         # toggle filter state for source
@@ -312,6 +310,7 @@ class SourcesView():
     def _handle_leave(self, e):
         # restore old cursor line
         if self._cursor_line != -1:
-            self._set_data_background(self._cursor_line)
+            old_cursor_line = self._cursor_line
             self._cursor_line = -1
+            self._set_tag(old_cursor_line, self._line_to_id[old_cursor_line])
 
