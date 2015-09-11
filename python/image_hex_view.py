@@ -184,55 +184,20 @@ class ImageHexView():
         else:
             self._remove_hash_button.config(state=tkinter.DISABLED)
 
-    def _calculate_filtered_sources(self):
-        """Returns a list of unfiltered sources."""
-        # selected hash must be in identified data
-        if not self._selected_hash in self._identified_data.hashes:
-            raise RuntimeError("hash must be in identified data")
-
-        # NOTE: this filtering algorithm must be the same as that used
-        #       in _calculate_hash_counts in hash_histogram_bar.py.
-        max_hashes = self._filters.max_hashes
-        filter_flagged_blocks = self._filters.filter_flagged_blocks
-        filtered_sources = self._filters.filtered_sources
-        filtered_hashes = self._filters.filtered_hashes
-
-        # the sources associated with this hash
-        sources = self._identified_data.hashes[self._selected_hash]
-        count = len(sources)
-
-        # count exceeds max_hashes
-        if max_hashes != 0 and count > max_hashes:
-            return []
-
-        # hash is filtered
-        if self._selected_hash in filtered_hashes:
-            return []
-
-        # the unfiltered sources
-        unfiltered_sources = []
-        for source in sources:
-            if filter_flagged_blocks and "label" in source:
-                # source has a label flag
-                continue
-            if source["source_id"] in filtered_sources:
-                # source is to be filtered
-                continue
-
-            # add the unfiltered source
-            unfiltered_sources.append(source["source_id"])
-        return sorted(unfiltered_sources)
-
     def _set_source_id_values(self):
         # get the source ID text
         if not self._selected_hash in self._identified_data.hashes:
             source_text = "Not selected"
         else:
-            unfiltered_sources = self._calculate_filtered_sources()
-            if len(unfiltered_sources) == 0:
+            sources = self._identified_data.hashes[self._selected_hash]
+            source_ids = set()
+            for source in sources:
+                source_ids.add(source["source_id"])
+
+            if len(source_ids) == 0:
                 source_text = "None"
             else:
-                source_text = " ".join(str(u) for u in unfiltered_sources)
+                source_text = " ".join(str(u) for u in source_ids)
 
         # put the source ID text into the source ID label
         self._source_id_label['text'] = source_text
@@ -311,7 +276,7 @@ class ImageHexView():
 
     # button changes filter
     def _handle_add_hash_to_filter(self):
-        self._filters.filtered_hashes.append(self._selected_hash)
+        self._filters.filtered_hashes.add(self._selected_hash)
         self._filters.fire_change()
 
     # button changes filter

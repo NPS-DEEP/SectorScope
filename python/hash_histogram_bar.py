@@ -80,7 +80,7 @@ class HashHistogramBar():
 
         # add the color legend
         f = tkinter.Frame(self.frame)
-        f.pack(side=tkinter.TOP)
+        f.pack(side=tkinter.TOP, pady=4)
         tkinter.Label(f,text="   ",background="#000066").pack(side=tkinter.LEFT)
         tkinter.Label(f,text="All matches      ").pack(side=tkinter.LEFT)
         tkinter.Label(f,text="   ",background="#660000").pack(side=tkinter.LEFT)
@@ -88,22 +88,13 @@ class HashHistogramBar():
         tkinter.Label(f,text="   ",background="#004400").pack(side=tkinter.LEFT)
         tkinter.Label(f,text="Filtered matches only").pack(side=tkinter.LEFT)
 
-        # add the byte offset label
-        self._byte_offset_label = tkinter.Label(self.frame)
-        self._byte_offset_label.pack(side=tkinter.TOP, anchor="w")
-
-        # add the selected byte offset label
-        self._selected_byte_offset_label = tkinter.Label(self.frame)
-        self._selected_byte_offset_label.pack(side=tkinter.TOP, anchor="w")
-
         # add the label containing the histogram bar PhotoImage
         l = tkinter.Label(self.frame, image=self._photo_image,
                           relief=tkinter.SUNKEN)
         l.pack(side=tkinter.TOP)
 
-        # add the frame for the leftmost and rightmost offset values
-        # and the button controls
-        f = tkinter.Frame(self.frame, height=22)
+        # add the frame for offset values and button controls
+        f = tkinter.Frame(self.frame, height=22+4, pady=4)
         f.pack(side=tkinter.TOP, fill=tkinter.X)
 
         # leftmost offset value
@@ -188,6 +179,14 @@ class HashHistogramBar():
         # with Linux OS
         l.bind("<Button-4>", self._handle_histogram_mouse_wheel)
         l.bind("<Button-5>", self._handle_histogram_mouse_wheel)
+
+        # add the image byte offset label
+        self._image_offset_label = tkinter.Label(self.frame)
+        self._image_offset_label.pack(side=tkinter.TOP, anchor="w")
+
+        # add the selected image byte offset label
+        self._selected_image_offset_label = tkinter.Label(self.frame)
+        self._selected_image_offset_label.pack(side=tkinter.TOP, anchor="w")
 
         # register to receive identified_data change events
         identified_data.set_callback(self._handle_identified_data_change)
@@ -351,21 +350,21 @@ class HashHistogramBar():
 
         # put in the cursor byte offset text
         if self._is_valid_cursor:
-            self._byte_offset_label["text"] = "Byte offset: " \
+            self._image_offset_label["text"] = "Image offset: " \
                                + offset_string(self._cursor_offset)
         else:
             # clear
-            self._byte_offset_label['text'] = "Byte offset: Not selected"
+            self._image_offset_label['text'] = "Image offset: Not selected"
 
         # put in the sector selection byte offset text
         if self._is_valid_sector_selection:
-            self._selected_byte_offset_label["text"] = \
-                          "Byte offset selection: " \
+            self._selected_image_offset_label["text"] = \
+                          "Selected image offset: " \
                           + offset_string(self._sector_selection_offset)
         else:
             # clear
-            self._selected_byte_offset_label['text'] = \
-                               "Byte offset selection: Not selected"
+            self._selected_image_offset_label['text'] = \
+                               "Selected image offset: Not selected"
 
     # clear everything
     def _draw_clear(self):
@@ -464,8 +463,8 @@ class HashHistogramBar():
     # draw the selection and cursor markers
     def _draw_marker_lines(self):
 
-        # cursor marker
-        if self._is_valid_cursor:
+        # cursor marker when valid and not selecting a range
+        if self._is_valid_cursor and not self._histogram_dragged:
             x = self._offset_to_pixel(self._cursor_offset)
             if x >= 0 and x < self.HISTOGRAM_BAR_WIDTH:
                 self._photo_image.put("red",
@@ -481,18 +480,18 @@ class HashHistogramBar():
     # convert mouse coordinate to byte offset
     def _mouse_to_offset(self, e):
         # get x from mouse
-        byte_offset = int(self._start_offset + self._bytes_per_pixel * (e.x))
+        image_offset = int(self._start_offset + self._bytes_per_pixel * (e.x))
 
         # return offset rounded down
-        return byte_offset - byte_offset % self._sector_size
+        return image_offset - image_offset % self._sector_size
 
     def _in_image_range(self, offset):
         return offset >= 0 and offset < self._image_size
 
     # convert byte offset to pixel
-    def _offset_to_pixel(self, byte_offset):
+    def _offset_to_pixel(self, image_offset):
         # get x from mouse
-        pixel = int((byte_offset - self._start_offset) / self._bytes_per_pixel)
+        pixel = int((image_offset - self._start_offset) / self._bytes_per_pixel)
         return pixel
 
     def _handle_pan_press(self, e):
@@ -534,14 +533,12 @@ class HashHistogramBar():
                 self._set_valid_range_selection(True)
                 self._histogram_range_start_offset = \
                                              self._histogram_b1_start_offset
-                self._is_valid_cursor = False
 
             # get stop offset
             self._histogram_range_stop_offset = self._mouse_to_offset(e)
 
-        else:
-            # just show mouse motion
-            self._set_cursor(e)
+        # show mouse motion
+        self._set_cursor(e)
 
         # draw
         self._draw()
@@ -553,9 +550,6 @@ class HashHistogramBar():
             # end b1 range selection motion
             self._histogram_dragged = False
 
-            # button up so show the cursor
-            self._set_cursor(e)
-
         else:
             # select the clicked sector
             self._set_sector_selection(e)
@@ -565,6 +559,10 @@ class HashHistogramBar():
                                          self._sector_selection_offset)
             else:
                 self._byte_offset_selection_trace_var.set(-1)
+
+        # button up so show the cursor
+        self._set_cursor(e)
+        self._draw()
 
     def _handle_histogram_mouse_wheel(self, e):
         # drag, so no action
