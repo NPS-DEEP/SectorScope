@@ -84,7 +84,7 @@ class HashHistogramBar():
         tkinter.Label(f,text="   ",background="#000066").pack(side=tkinter.LEFT)
         tkinter.Label(f,text="All matches      ").pack(side=tkinter.LEFT)
         tkinter.Label(f,text="   ",background="#660000").pack(side=tkinter.LEFT)
-        tkinter.Label(f,text="Filtered matches removed      ").pack(side=tkinter.LEFT)
+        tkinter.Label(f,text="No filtered matches      ").pack(side=tkinter.LEFT)
         tkinter.Label(f,text="   ",background="#004400").pack(side=tkinter.LEFT)
         tkinter.Label(f,text="Filtered matches only").pack(side=tkinter.LEFT)
 
