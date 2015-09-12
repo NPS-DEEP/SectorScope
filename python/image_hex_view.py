@@ -15,19 +15,18 @@ class ImageHexView():
         image reader.
     """
 
-    def __init__(self, master, identified_data, filters, byte_offset_selection):
+    def __init__(self, master, identified_data, filters, offset_selection):
         """Args:
           master(a UI container): Parent.
           identified_data(IdentifiedData): Identified data about the scan.
           filters(Filters): Filters that impact the view.
-          byte_offset_selection(IntVar): the byte offset selected in the
-            image detail plot
+          offset_selection(OffsetSelection): The selected offset.
         """
         # variables
         self.PAGESIZE = 16384 # 2^14
         self._identified_data = identified_data
         self._filters = filters
-        self._byte_offset_selection = byte_offset_selection
+        self._offset_selection = offset_selection
         self._selected_hash = ""
 
         # make the containing frame
@@ -120,25 +119,25 @@ class ImageHexView():
         scrollbar.config(command=self._hex_text.yview)
         hex_frame.pack(side=tkinter.TOP, anchor="w")
 
-        # listen to changes in _byte_offset_selection
-        byte_offset_selection.trace_variable('w', self._handle_set_data)
-
         # register to receive identified_data change events
         identified_data.set_callback(self._handle_identified_data_change)
 
         # register to receive filter change events
         filters.set_callback(self._handle_filter_change)
 
+        # register to receive offset selection change events
+        offset_selection.set_callback(self._handle_set_data)
+
         # set view for no data
         self._handle_set_data()
 
     # set variables and the image based on identified_data when
-    # byte_offset_selection changes
+    # _offset_selection changes
     def _handle_set_data(self, *args):
         # parameter *args is required by IntVar callback
 
-        # get offset from _byte_offset_selection
-        offset = self._byte_offset_selection.get()
+        # get offset from _offset_selection
+        offset = self._offset_selection.offset
 
         # clear views if no data
         if offset == -1:
@@ -151,9 +150,8 @@ class ImageHexView():
         self._set_offset_value(offset)
 
         # read page of image bytes starting at offset
-#        buf = self._image_reader.read(offset, self.PAGESIZE)
-        buf = be_image_reader.read(self._identified_data.image_filename, offset, self.PAGESIZE)
-#        self._image_reader = BEImageReader(identified_data.image_filename)
+        buf = be_image_reader.read(self._identified_data.image_filename,
+                                                       offset, self.PAGESIZE)
 
         # set the selected hash
         self._selected_hash = self._calculate_block_hash(buf)

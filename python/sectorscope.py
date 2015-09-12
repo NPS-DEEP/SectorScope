@@ -12,6 +12,7 @@ import tkinter
 #import identified_data_reader
 from identified_data import IdentifiedData
 from filters import Filters
+from offset_selection import OffsetSelection
 from scrolled_canvas import ScrolledCanvas
 from control_view import ControlView
 from identified_data_summary_view import IdentifiedDataSummaryView
@@ -22,8 +23,8 @@ from forensic_path import offset_string
 from open_manager import OpenManager
 
 # compose the GUI
-def build_gui(root_window, identified_data, filters,
-                              byte_offset_selection_trace_var, open_manager):
+def build_gui(root_window, identified_data, filters, offset_selection,
+                                                               open_manager):
     # set root window attributes
     START_WIDTH = 1000
     START_HEIGHT = 800
@@ -54,13 +55,13 @@ def build_gui(root_window, identified_data, filters,
     identified_data_summary_view.frame.pack(side=tkinter.LEFT, padx=40)
 
     # the hash histogram bar in image_frame in the middle
-    hash_histogram_bar = HashHistogramBar(image_frame, identified_data, filters,
-                                byte_offset_selection_trace_var)
+    hash_histogram_bar = HashHistogramBar(image_frame, identified_data,
+                                                  filters, offset_selection)
     hash_histogram_bar.frame.pack(side=tkinter.TOP, padx=8, pady=8, anchor="w")
 
     # the hex image view in image_frame below
     image_hex_view = ImageHexView(image_frame, identified_data, filters,
-                                  byte_offset_selection_trace_var)
+                                  offset_selection)
     image_hex_view.frame.pack(side=tkinter.LEFT, padx=8, pady=8, anchor="w")
 
     # root_frame.source_frame holds source views on the right
@@ -89,17 +90,16 @@ if __name__=="__main__":
     # the filters including the filter_changed trace variable
     filters = Filters()
 
-    # the tkinter action trace variable for byte offset selection
-    byte_offset_selection_trace_var = tkinter.IntVar()
-    byte_offset_selection_trace_var.set(-1)
+    # the byte offset selection
+    offset_selection = OffsetSelection()
 
     # the open manager
     open_manager = OpenManager(root_window, identified_data, filters,
-                               byte_offset_selection_trace_var)
+                               offset_selection)
 
     # build the GUI
     build_gui(root_window, identified_data, filters,
-                              byte_offset_selection_trace_var, open_manager)
+                                           offset_selection, open_manager)
 
     # now open the be_dir
     open_manager.open_be_dir(args.be_dir)

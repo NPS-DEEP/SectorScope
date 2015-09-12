@@ -1,5 +1,6 @@
 # Adapted from bulk_extractor/python/be_image_reader.py.
 import os
+import hashlib
 from subprocess import Popen,PIPE
 
 def read(fname, offset, amount):

@@ -2,6 +2,7 @@ import tkinter
 from forensic_path import offset_string
 from icon_path import icon_path
 from tooltip import Tooltip
+from offset_selection import OffsetSelection
 
 class HashHistogramBar():
     """Renders the histogram bar widget based on data, filter values, and zoom.
@@ -12,8 +13,6 @@ class HashHistogramBar():
     Attributes:
       frame(Frame): the containing frame for this plot.
       _photo_image(PhotoImage): The image on which the plot is rendered.
-      _byte_offset_selection_trace_var(IntVar): Setting this alerts
-        listeners to the new selection.
       _hash_counts(dict of <hash, (count, filter_count)>): count
         and calculated filter count for each hash.
     """
@@ -31,10 +30,6 @@ class HashHistogramBar():
     _is_valid_cursor = False
     _cursor_offset = 0
 
-    # sector selection
-    _is_valid_sector_selection = None
-    _sector_selection_offset = 0
-
     # histogram range selection
     _is_valid_range_selection = False # use setter to configure button state
     _histogram_range_start_offset = 0
@@ -49,20 +44,18 @@ class HashHistogramBar():
     _pan_down_x = None
     _pan_down_start_offset = None
 
-    def __init__(self, master, identified_data, filters,
-                 byte_offset_selection_trace_var):
+    def __init__(self, master, identified_data, filters, offset_selection):
         """Args:
           master(a UI container): Parent.
           identified_data(IdentifiedData): Identified data about the scan.
           filters(Filters): Filters that impact the view.
-          byte_offset_selection_trace_var(tkinter Var): Variable to
-            communicate selection change.
+          offset_selection(OffsetSelection): The selected offset.
         """
 
         # data variables
         self._identified_data = identified_data
         self._filters = filters
-        self._byte_offset_selection_trace_var = byte_offset_selection_trace_var
+        self._offset_selection = offset_selection
 
         # the photo_image
         self._photo_image = tkinter.PhotoImage(width=self.HISTOGRAM_BAR_WIDTH,
@@ -180,19 +173,63 @@ class HashHistogramBar():
         l.bind("<Button-4>", self._handle_histogram_mouse_wheel)
         l.bind("<Button-5>", self._handle_histogram_mouse_wheel)
 
-        # add the image byte offset label
-        self._image_offset_label = tkinter.Label(self.frame)
+        # add the selection frame
+        selection_frame = tkinter.Frame(self.frame)
+        selection_frame.pack(side=tkinter.TOP, anchor="w")
+
+        # add the status frame to the left of the selection frame
+        status_frame = tkinter.Frame(selection_frame)
+        status_frame.pack(side=tkinter.LEFT)
+
+        # add the image byte offset label to status_frame
+        self._image_offset_label = tkinter.Label(status_frame)
         self._image_offset_label.pack(side=tkinter.TOP, anchor="w")
 
         # add the selected image byte offset label
-        self._selected_image_offset_label = tkinter.Label(self.frame)
+        self._selected_image_offset_label = tkinter.Label(status_frame)
         self._selected_image_offset_label.pack(side=tkinter.TOP, anchor="w")
+
+        # add the selected image byte offset hash label
+        self._selected_image_offset_hash_label = tkinter.Label(status_frame)
+        self._selected_image_offset_hash_label.pack(side=tkinter.TOP,
+                                                               anchor="w")
+
+        # add the hash filter frame to the right of the selection frame
+        hash_filter_frame = tkinter.Frame(selection_frame)
+        hash_filter_frame.pack(side=tkinter.LEFT)
+
+        # add hash filter "Hash filter:" text to the hash filter frame
+        tkinter.Label(hash_filter_frame, text="Hash filter:").pack(
+                                                       side=tkinter.LEFT)
+
+        # hash_filter_frame "Add Hash to Filter" button to the hash filter frame
+        self._add_hash_icon = tkinter.PhotoImage(file=icon_path("add_hash"))
+        self._add_hash_button = tkinter.Button(hash_filter_frame,
+                                image=self._add_hash_icon,
+                                state=tkinter.DISABLED,
+                                command=self._handle_add_hash_to_filter)
+        self._add_hash_button.pack(side=tkinter.LEFT, padx=4)
+        Tooltip(self._add_hash_button, "Filter the selected hash")
+
+        # hash_filter_frame "Remove Hash from Filter" button
+        self._remove_hash_icon = tkinter.PhotoImage(file=icon_path(
+                                                              "remove_hash"))
+        self._remove_hash_button = tkinter.Button(hash_filter_frame,
+                                image=self._remove_hash_icon,
+                                state=tkinter.DISABLED,
+                                command=self._handle_remove_hash_from_filter)
+        self._remove_hash_button.pack(side=tkinter.LEFT)
+        Tooltip(self._remove_hash_button, "Stop filtering the selected hash")
 
         # register to receive identified_data change events
         identified_data.set_callback(self._handle_identified_data_change)
 
         # register to receive filter change events
         filters.set_callback(self._handle_filter_change)
+        filters.set_callback(self._handle_offset_selection_change)
+
+        # register to receive offset selection change events
+        offset_selection.set_callback(self._handle_offset_selection_change)
 
     # this function is registered to and called by Filters
     def _handle_filter_change(self, *args):
@@ -222,9 +259,11 @@ class HashHistogramBar():
         if self._bytes_per_pixel * self.BUCKET_WIDTH < self._sector_size:
             self._bytes_per_pixel = self._sector_size / self.BUCKET_WIDTH
 
-        # sector selection and histogram range selection are not set
-        self._is_valid_sector_selection = False
+        # histogram range selection is not set
         self._set_valid_range_selection(False)
+
+        # clear any offset selection value
+        self._offset_selection.clear()
 
         # calculate this view
         self._calculate_hash_counts()
@@ -232,6 +271,44 @@ class HashHistogramBar():
 
         # draw
         self._draw()
+
+    # this function is registered to and called by SelectionChange
+    def _handle_offset_selection_change(self, *args):
+        self._set_add_and_remove_button_states()
+
+    def _set_add_and_remove_button_states(self):
+        print("hhb.set_add_and_remove")
+        # disable both if there is no active selection
+        if self._offset_selection.offset == -1:
+            self._add_hash_button.config(state=tkinter.DISABLED)
+            self._remove_hash_button.config(state=tkinter.DISABLED)
+            return
+
+        # reference to selected hash
+        selected_hash = self._offset_selection.block_hash
+
+        # set enabled state of the add hash button
+        if selected_hash not in self._filters.filtered_hashes and \
+                           selected_hash in self._identified_data.hashes:
+            self._add_hash_button.config(state=tkinter.NORMAL)
+        else:
+            self._add_hash_button.config(state=tkinter.DISABLED)
+
+        # set enabled state of the remove hash button
+        if selected_hash in self._filters.filtered_hashes:
+            self._remove_hash_button.config(state=tkinter.NORMAL)
+        else:
+            self._remove_hash_button.config(state=tkinter.DISABLED)
+
+    # button changes filter
+    def _handle_add_hash_to_filter(self):
+        self._filters.filtered_hashes.add(self._offset_selection.block_hash)
+        self._filters.fire_change()
+
+    # button changes filter
+    def _handle_remove_hash_from_filter(self):
+        self._filters.filtered_hashes.remove(self._offset_selection.block_hash)
+        self._filters.fire_change()
 
     def _set_valid_range_selection(self, is_valid):
         if is_valid:
@@ -357,14 +434,19 @@ class HashHistogramBar():
             self._image_offset_label['text'] = "Image offset: Not selected"
 
         # put in the sector selection byte offset text
-        if self._is_valid_sector_selection:
-            self._selected_image_offset_label["text"] = \
-                          "Selected image offset: " \
-                          + offset_string(self._sector_selection_offset)
-        else:
+        if self._offset_selection.offset == -1:
             # clear
             self._selected_image_offset_label['text'] = \
                                "Selected image offset: Not selected"
+            self._selected_image_offset_hash_label['text'] = \
+                               "Selected block hash: Not selected"
+
+        else:
+            self._selected_image_offset_label["text"] = \
+                              "Selected image offset: %s" % offset_string(
+                                          self._offset_selection.offset)
+            self._selected_image_offset_hash_label["text"] = \
+                 "Selected block hash: %s" % self._offset_selection.block_hash
 
     # clear everything
     def _draw_clear(self):
@@ -471,8 +553,8 @@ class HashHistogramBar():
                                       to=(x, 0, x+1, self.HISTOGRAM_BAR_HEIGHT))
 
         # sector selection marker
-        if self._is_valid_sector_selection:
-            x = self._offset_to_pixel(self._sector_selection_offset)
+        if self._offset_selection.offset != -1:
+            x = self._offset_to_pixel(self._offset_selection.offset)
             if x >= 0 and x < self.HISTOGRAM_BAR_WIDTH:
                 self._photo_image.put("red3",
                                       to=(x, 0, x+1, self.HISTOGRAM_BAR_HEIGHT))
@@ -482,7 +564,7 @@ class HashHistogramBar():
         # get x from mouse
         image_offset = int(self._start_offset + self._bytes_per_pixel * (e.x))
 
-        # return offset rounded down
+        # return offset rounded down to sector boundary
         return image_offset - image_offset % self._sector_size
 
     def _in_image_range(self, offset):
@@ -552,13 +634,15 @@ class HashHistogramBar():
 
         else:
             # select the clicked sector
-            self._set_sector_selection(e)
-            self._draw()
-            if self._is_valid_sector_selection:
-                self._byte_offset_selection_trace_var.set(
-                                         self._sector_selection_offset)
+            sector_offset = self._mouse_to_offset(e)
+            if self._in_image_range(sector_offset):
+                # sector is in image range
+                self._offset_selection.set(self._identified_data.image_filename,
+                                           sector_offset,
+                                           self._identified_data.block_size)
+
             else:
-                self._byte_offset_selection_trace_var.set(-1)
+                self._offset_selection.clear()
 
         # button up so show the cursor
         self._set_cursor(e)
@@ -604,11 +688,6 @@ class HashHistogramBar():
     def _set_cursor(self, e):
         self._cursor_offset = self._mouse_to_offset(e)
         self._is_valid_cursor = self._in_image_range(self._cursor_offset)
-
-    def _set_sector_selection(self, e):
-        self._sector_selection_offset = self._mouse_to_offset(e)
-        self._is_valid_sector_selection = self._in_image_range(
-                                                    self._cursor_offset)
 
     def _zoom(self, ratio):
         """Recalculate _start_offset and _bytes_per_bucket."""

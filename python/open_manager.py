@@ -10,21 +10,19 @@ class OpenManager():
       active_be_dir(str): The be_dir currently open, or "".
     """
 
-    def __init__(self, master, identified_data, filters,
-                 byte_offset_selection_trace_var):
+    def __init__(self, master, identified_data, filters, offset_selection):
         """Args:
           master(a UI container): Parent.
           identified_data(IdentifiedData): Identified data about the scan.
           filters(Filters): Filters that impact the view.
-          byte_offset_selection_trace_var(tkinter Var): Variable to
-            communicate selection change.
+          offset_selection(OffsetSelection): The selected offset.
         """
 
         # local references
         self._master = master
         self._identified_data = identified_data
         self._filters = filters
-        self._byte_offset_selection_trace_var = byte_offset_selection_trace_var
+        self._offset_selection = offset_selection
 
         # state
         active_be_dir = identified_data.be_dir
@@ -40,7 +38,7 @@ class OpenManager():
 
         # set the views for the opened data
         # clear any byte offset selection
-        self._byte_offset_selection_trace_var.set(-1)
+        self._offset_selection.clear()
 
         # clear any filter settings
         self._filters.clear()
