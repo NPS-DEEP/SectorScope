@@ -190,7 +190,8 @@ class HashHistogramBar():
         self._selected_image_offset_label.pack(side=tkinter.TOP, anchor="w")
 
         # add the selected image byte offset hash label
-        self._selected_image_offset_hash_label = tkinter.Label(status_frame)
+        self._selected_image_offset_hash_label = tkinter.Label(status_frame,
+                                                       width=55, anchor="w")
         self._selected_image_offset_hash_label.pack(side=tkinter.TOP,
                                                                anchor="w")
 
@@ -277,7 +278,6 @@ class HashHistogramBar():
         self._set_add_and_remove_button_states()
 
     def _set_add_and_remove_button_states(self):
-        print("hhb.set_add_and_remove")
         # disable both if there is no active selection
         if self._offset_selection.offset == -1:
             self._add_hash_button.config(state=tkinter.DISABLED)

@@ -17,7 +17,7 @@ from scrolled_canvas import ScrolledCanvas
 from control_view import ControlView
 from identified_data_summary_view import IdentifiedDataSummaryView
 from hash_histogram_bar import HashHistogramBar
-from image_hex_view import ImageHexView
+from image_hex_window import ImageHexWindow
 from sources_view import SourcesView
 from forensic_path import offset_string
 from open_manager import OpenManager
@@ -59,14 +59,13 @@ def build_gui(root_window, identified_data, filters, offset_selection,
                                                   filters, offset_selection)
     hash_histogram_bar.frame.pack(side=tkinter.TOP, padx=8, pady=8, anchor="w")
 
-    # the hex image view in image_frame below
-    image_hex_view = ImageHexView(image_frame, identified_data, filters,
-                                  offset_selection)
-    image_hex_view.frame.pack(side=tkinter.LEFT, padx=8, pady=8, anchor="w")
-
     # root_frame.source_frame holds source views on the right
     sources_view = SourcesView(root_frame, identified_data, filters)
     sources_view.frame.pack(side=tkinter.LEFT, padx=8, pady=8, anchor="n")
+
+    # build the separate image hex window
+    image_hex_window = ImageHexWindow(image_frame, identified_data, filters,
+                                  offset_selection)
 
 # main
 if __name__=="__main__":
