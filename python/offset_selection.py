@@ -30,7 +30,6 @@ class OffsetSelection():
         self._offset_selection_changed = tkinter.BooleanVar()
 
     def set(self, image_file, offset, block_size):
-        print("offset_selection.set")
         # set offset
         self.offset = offset
 

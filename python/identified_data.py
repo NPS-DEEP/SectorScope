@@ -3,6 +3,7 @@ import xml
 import json
 import subprocess
 import tkinter
+from collections import defaultdict
 
 class IdentifiedData():
     """Provides hash, source, and image data related to a block hash scan.
@@ -39,6 +40,7 @@ class IdentifiedData():
         Dictionary where keys are source IDs and values are a dictionary
         of attributes associated with the given source as obtained from
         the identified_blocks_expanded.txt file.
+      sources_offsets (dict<source ID int, set<source offset int>>)
     """
 
     def __init__(self):
@@ -60,6 +62,7 @@ class IdentifiedData():
         self.forensic_paths = dict()
         self.hashes = dict()
         self.source_details = dict()
+        self.sources_offsets = defaultdict(set)
 
         # fire data changed event
         self._identified_data_changed.set(True)
@@ -91,6 +94,9 @@ class IdentifiedData():
         (forensic_paths, hashes, source_details) = \
                                self._read_identified_blocks_expanded(be_dir)
 
+        # identify source offsets of every source of every matching hash
+        sources_offsets = self._identify_sources_offsets()
+
         # everything worked so accept the data
         self.be_dir = be_dir
         self.image_size = image_size
@@ -101,6 +107,7 @@ class IdentifiedData():
         self.forensic_paths = forensic_paths
         self.hashes = hashes
         self.source_details = source_details
+        self.sources_offsets = sources_offsets
 
         # fire data changed event
         self._identified_data_changed.set(True)
@@ -246,3 +253,20 @@ class IdentifiedData():
                                      expanded_file, i, e))
 
         return (forensic_paths, hashes, source_details)
+
+    def _identify_sources_offsets(self):
+        """Get the set of offsets for each source.  The length of a set
+        indicates source fullness for that source."""
+        # sources_offsets = dict<source ID, set<source offset int>>
+        sources_offsets = defaultdict(set)
+
+        # identify source offsets of every source of every matching hash
+        for _, sources in self.hashes.items():
+            for source in sources:
+
+                # set the offset for the source
+                sources_offsets[source["source_id"]].add(source["file_offset"])
+
+        return sources_offsets
+
+

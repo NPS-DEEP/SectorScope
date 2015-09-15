@@ -19,6 +19,7 @@ from identified_data_summary_view import IdentifiedDataSummaryView
 from hash_histogram_bar import HashHistogramBar
 from image_hex_window import ImageHexWindow
 from sources_view import SourcesView
+from similar_sources_view import SimilarSourcesView
 from forensic_path import offset_string
 from open_manager import OpenManager
 
@@ -58,6 +59,12 @@ def build_gui(root_window, identified_data, filters, offset_selection,
     hash_histogram_bar = HashHistogramBar(image_frame, identified_data,
                                                   filters, offset_selection)
     hash_histogram_bar.frame.pack(side=tkinter.TOP, padx=8, pady=8, anchor="w")
+
+    # the similar sources table in image_frame below
+    similar_sources_view = SimilarSourcesView(image_frame, identified_data,
+                                                  filters, offset_selection)
+    similar_sources_view.frame.pack(side=tkinter.TOP, padx=8, pady=8,
+                                                              anchor="w")
 
     # root_frame.source_frame holds source views on the right
     sources_view = SourcesView(root_frame, identified_data, filters)

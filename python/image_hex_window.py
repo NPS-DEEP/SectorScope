@@ -38,7 +38,7 @@ class ImageHexWindow():
         tkinter.Label(f,text="   ",background="#004400").pack(side=tkinter.LEFT)
         tkinter.Label(f,text="Filtered      ").pack(side=tkinter.LEFT)
         tkinter.Label(f,text="   ",background="#ccccff").pack(side=tkinter.LEFT)
-        tkinter.Label(f,text="Does not match").pack(side=tkinter.LEFT)
+        tkinter.Label(f,text="Not matched").pack(side=tkinter.LEFT)
 
 
         # add the frame to contain the hex text and the scrollbar
@@ -61,8 +61,8 @@ class ImageHexWindow():
         scrollbar.config(command=self._hex_text.yview)
 
         # tags available for the hex text lines
-        self._hex_text.tag_config("even_unmatched", background="#ddddff")
-        self._hex_text.tag_config("odd_unmatched", background="#eeeeff")
+        self._hex_text.tag_config("even_unmatched", background="#eeeeff")
+        self._hex_text.tag_config("odd_unmatched", background="#ddddff")
         self._hex_text.tag_config("even_filtered", background="#ccffcc")
         self._hex_text.tag_config("odd_filtered", background="#aaffaa")
         self._hex_text.tag_config("even_filtered", background="#ccffcc")
@@ -89,7 +89,6 @@ class ImageHexWindow():
 
         # hash was not matched
         if block_hash not in self._identified_data.hashes:
-            print("ghms.a")
             return "unmatched"
 
         # hash was matched
@@ -98,12 +97,10 @@ class ImageHexWindow():
 
         # count exceeds max_hashes
         if self._filters.max_hashes != 0 and count > self._filters.max_hashes:
-            print("ghms.b")
             return "filtered"
 
         # hash is filtered
         if block_hash in self._filters.filtered_hashes:
-            print("ghms.c")
             return "filtered"
 
         # a source is flagged or a source itself is filtered
@@ -111,11 +108,9 @@ class ImageHexWindow():
             for source in sources:
                 if self._filters.filter_flagged_blocks and "label" in source:
                     # source has a label flag
-                    print("ghms.d")
                     return "filtered"
                 if source["source_id"] in self._filters.filtered_sources:
                     # a source is filtered
-                    print("ghms.e")
                     return "filtered"
 
         # not filtered
@@ -150,7 +145,6 @@ class ImageHexWindow():
         self._set_view()
 
     def _set_view(self):
-        print("_set_view")
 
         # clear any existing view
         self._hex_text.delete(1.0, "end")
@@ -166,7 +160,6 @@ class ImageHexWindow():
         else:
             # get match state
             self._match_state = self._get_hash_match_state()
-            print("set_view.match_state", self._match_state)
 
             # enable the text area
             self._hex_text.config(state=tkinter.NORMAL)
