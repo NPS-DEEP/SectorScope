@@ -82,7 +82,7 @@ class ControlView():
                                                     anchor="w")
 
     def _handle_open(self):
-        self._open_manager.open_chooser_dir()
+        self._open_manager.open_be_dir("")
 
     def _handle_scan(self):
         BEScanWindow(self.frame)

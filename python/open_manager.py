@@ -27,7 +27,18 @@ class OpenManager():
         # state
         active_be_dir = identified_data.be_dir
 
+    """Open be_dir or if not be_dir open be_dir from chooser."""
     def open_be_dir(self, be_dir):
+        if not be_dir:
+            # get be_dir from chooser
+            be_dir = tkinter.filedialog.askdirectory(
+                     title="Open bulk_extractor directory",
+                     mustexist=True, initialdir=self._identified_data.be_dir)
+
+        if not be_dir:
+            # user did not choose, so abort
+            return
+
         # read be_dir else show error window
         try:
             self._identified_data.read(be_dir)
@@ -36,23 +47,11 @@ class OpenManager():
             self._show_error(e)
             return
 
-        # set the views for the opened data
         # clear any byte offset selection
         self._offset_selection.clear()
 
         # clear any filter settings
         self._filters.clear()
-
-    def open_chooser_dir(self):
-        """Open be_dir selected in modal chooser else report error."""
-        # get be_dir from chooser
-        be_dir = tkinter.filedialog.askdirectory(
-                     title="Open bulk_extractor directory",
-                     mustexist=True, initialdir=self._identified_data.be_dir)
-
-        # open be_dir
-        if be_dir:
-            self.open_be_dir(be_dir)
 
     def _show_error(self, e):
         # make toplevel window

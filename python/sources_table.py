@@ -81,15 +81,11 @@ class SourcesTable():
         self._source_text.bind('<Enter>', self._handle_enter)
         self._source_text.bind('<Leave>', self._handle_leave)
 
-        # register to receive identified data change events
-        identified_data.set_callback(self._handle_identified_data_change)
-
         # register to receive filter change events
         filters.set_callback(self._handle_filter_change)
 
     def set_data(self, source_id_set):
         """Set the view to show the source IDs in the source ID set"""
-        print("sources_table.set_data:", source_id_set)
 
         # initialize the line and ID lookup dictionaries
         self._line_to_id.clear()
@@ -256,10 +252,6 @@ class SourcesTable():
             old_cursor_line = self._cursor_line
             self._cursor_line = -1
             self._set_tag(old_cursor_line, self._line_to_id[old_cursor_line])
-
-    def _handle_identified_data_change(self, *args):
-        # clear data
-        self.set_data(set())
 
     def _handle_filter_change(self, *args):
         self._set_tags()

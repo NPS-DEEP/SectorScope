@@ -50,9 +50,6 @@ class IdentifiedData():
         self._identified_data_changed = tkinter.BooleanVar()
 
         # set initial state
-        self.clear()
-
-    def clear(self):
         self.be_dir = ""
         self.image_size = 0
         self.image_filename = ""
@@ -63,9 +60,6 @@ class IdentifiedData():
         self.hashes = dict()
         self.source_details = dict()
         self.sources_offsets = defaultdict(set)
-
-        # fire data changed event
-        self._identified_data_changed.set(True)
 
     def set_callback(self, f):
         """Register function f to be called on data change."""

@@ -9,7 +9,6 @@ import json
 import tkinter
 
 # local import
-#import identified_data_reader
 from identified_data import IdentifiedData
 from filters import Filters
 from offset_selection import OffsetSelection

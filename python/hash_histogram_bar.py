@@ -244,9 +244,7 @@ class HashHistogramBar():
 
     # this function is registered to and called by IdentifiedData
     def _handle_identified_data_change(self, *args):
-        self._set_initial_state()
 
-    def _set_initial_state(self):
         # data constants
         self._image_size = self._identified_data.image_size
         self._sector_size = self._identified_data.sector_size
@@ -262,9 +260,6 @@ class HashHistogramBar():
 
         # histogram range selection is not set
         self._set_valid_range_selection(False)
-
-        # clear any offset selection value
-        self._offset_selection.clear()
 
         # calculate this view
         self._calculate_hash_counts()
