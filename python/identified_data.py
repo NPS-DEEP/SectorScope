@@ -40,7 +40,8 @@ class IdentifiedData():
         Dictionary where keys are source IDs and values are a dictionary
         of attributes associated with the given source as obtained from
         the identified_blocks_expanded.txt file.
-      sources_offsets (dict<source ID int, set<source offset int>>)
+      sources_offsets (dict<source ID int, set<source offset int>>):
+        Source offsets of every source of every matching hash.
     """
 
     def __init__(self):
@@ -88,9 +89,6 @@ class IdentifiedData():
         (forensic_paths, hashes, source_details) = \
                                self._read_identified_blocks_expanded(be_dir)
 
-        # identify source offsets of every source of every matching hash
-        sources_offsets = self._identify_sources_offsets()
-
         # everything worked so accept the data
         self.be_dir = be_dir
         self.image_size = image_size
@@ -101,7 +99,9 @@ class IdentifiedData():
         self.forensic_paths = forensic_paths
         self.hashes = hashes
         self.source_details = source_details
-        self.sources_offsets = sources_offsets
+
+        # generate calculated data
+        self.sources_offsets = self._identify_sources_offsets()
 
         # fire data changed event
         self._identified_data_changed.set(True)
