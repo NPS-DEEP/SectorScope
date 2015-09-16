@@ -70,35 +70,67 @@ class HashHistogramBar():
                                                        side=tkinter.TOP)
 
         # add the color legend
-        f = tkinter.Frame(self.frame)
-        f.pack(side=tkinter.TOP, pady=4)
-        tkinter.Label(f,text="   ",background="#000066").pack(side=tkinter.LEFT)
-        tkinter.Label(f,text="All matches      ").pack(side=tkinter.LEFT)
-        tkinter.Label(f,text="   ",background="#660000").pack(side=tkinter.LEFT)
-        tkinter.Label(f,text="No filtered matches      ").pack(side=tkinter.LEFT)
-        tkinter.Label(f,text="   ",background="#004400").pack(side=tkinter.LEFT)
-        tkinter.Label(f,text="Filtered matches only").pack(side=tkinter.LEFT)
+        legend_frame = tkinter.Frame(self.frame)
+        legend_frame.pack(side=tkinter.TOP, pady=4)
+        tkinter.Label(legend_frame,text="   ",background="#000066").pack(
+                                                        side=tkinter.LEFT)
+        tkinter.Label(legend_frame,text="All matches      ").pack(
+                                                        side=tkinter.LEFT)
+        tkinter.Label(legend_frame,text="   ",background="#660000").pack(
+                                                        side=tkinter.LEFT)
+        tkinter.Label(legend_frame,text="No filtered matches      ").pack(
+                                                        side=tkinter.LEFT)
+        tkinter.Label(legend_frame,text="   ",background="#004400").pack(
+                                                        side=tkinter.LEFT)
+        tkinter.Label(legend_frame,text="Filtered matches only").pack(
+                                                        side=tkinter.LEFT)
+
+        # create a bordered frame to contain the histogram and control buttons
+        histogram_frame = tkinter.Frame(self.frame, relief=tkinter.SUNKEN, bd=1)
+        histogram_frame.pack(side=tkinter.TOP)
 
         # add the label containing the histogram bar PhotoImage
-        l = tkinter.Label(self.frame, image=self._photo_image,
-                          relief=tkinter.SUNKEN)
+        l = tkinter.Label(histogram_frame, image=self._photo_image)
         l.pack(side=tkinter.TOP)
 
-        # add the frame for offset values and button controls
-        f = tkinter.Frame(self.frame, height=22+4, pady=4)
-        f.pack(side=tkinter.TOP, fill=tkinter.X)
+        # bind histogram mouse motion events
+        l.bind('<Any-Motion>', self._handle_histogram_motion)
+        l.bind('<Button-1>', self._handle_histogram_b1_press)
+        l.bind('<ButtonRelease-1>', self._handle_histogram_b1_release)
+        l.bind('<Enter>', self._handle_histogram_enter)
+        l.bind('<Leave>', self._handle_histogram_leave)
+
+        # bind histogram mouse wheel events
+        # https://www.daniweb.com/software-development/python/code/217059/using-the-mouse-wheel-with-tkinter-python
+        # with Windows OS
+        l.bind("<MouseWheel>", self._handle_histogram_mouse_wheel)
+        # with Linux OS
+        l.bind("<Button-4>", self._handle_histogram_mouse_wheel)
+        l.bind("<Button-5>", self._handle_histogram_mouse_wheel)
+
+        # add the frame for offset values
+        offsets_frame = tkinter.Frame(histogram_frame, height=18+0)
+        offsets_frame.pack(side=tkinter.TOP, fill=tkinter.X)
 
         # leftmost offset value
-        self._start_offset_label = tkinter.Label(f)
+        self._start_offset_label = tkinter.Label(offsets_frame)
         self._start_offset_label.place(relx=0.0, anchor=tkinter.NW)
 
-        # button controls
-        control_frame = tkinter.Frame(f)
-        control_frame.place(relx=0.49, anchor=tkinter.N)
+        # cursor offset value
+        self._image_offset_label = tkinter.Label(offsets_frame)
+        self._image_offset_label.place(relx=0.5, anchor=tkinter.N)
+
+        # rightmost offset value
+        self._stop_offset_label = tkinter.Label(offsets_frame)
+        self._stop_offset_label.place(relx=1.0, anchor=tkinter.NE)
+
+        # add the frame for the button controls
+        control_frame = tkinter.Frame(histogram_frame)
+        control_frame.pack(side=tkinter.TOP, pady=(0,4))
         
         # pan
         self._pan_icon = tkinter.PhotoImage(file=icon_path("pan"))
-        pan_button = tkinter.Button(control_frame, image=self._pan_icon)
+        pan_button = tkinter.Button(control_frame, image=self._pan_icon, bd=0)
         pan_button.pack(side=tkinter.LEFT)
         pan_button.config(cursor="sb_h_double_arrow")
         Tooltip(pan_button, "Drag to pan")
@@ -112,7 +144,7 @@ class HashHistogramBar():
         fit_image_button = tkinter.Button(control_frame,
                                           image=self._fit_image_icon,
                                           command=self._handle_fit_image)
-        fit_image_button.pack(side=tkinter.LEFT)
+        fit_image_button.pack(side=tkinter.LEFT, padx=(0,8))
         Tooltip(fit_image_button, "Zoom to fit image")
 
         # zoom to fit range
@@ -120,7 +152,7 @@ class HashHistogramBar():
         self._fit_range_button = tkinter.Button(control_frame,
                                           image=self._fit_range_icon,
                                           command=self._handle_fit_range)
-        self._fit_range_button.pack(side=tkinter.LEFT, padx=(8,0))
+        self._fit_range_button.pack(side=tkinter.LEFT)
         Tooltip(self._fit_range_button, "Zoom to range")
 
         # filter sources in range
@@ -152,25 +184,6 @@ class HashHistogramBar():
         self._deselect_range_button.pack(side=tkinter.LEFT)
         Tooltip(self._deselect_range_button, "Deselect range")
 
-        # rightmost offset value
-        self._stop_offset_label = tkinter.Label(f)
-        self._stop_offset_label.place(relx=1.0, anchor=tkinter.NE)
-
-        # bind histogram mouse motion events
-        l.bind('<Any-Motion>', self._handle_histogram_motion)
-        l.bind('<Button-1>', self._handle_histogram_b1_press)
-        l.bind('<ButtonRelease-1>', self._handle_histogram_b1_release)
-        l.bind('<Enter>', self._handle_histogram_enter)
-        l.bind('<Leave>', self._handle_histogram_leave)
-
-        # bind histogram mouse wheel events
-        # https://www.daniweb.com/software-development/python/code/217059/using-the-mouse-wheel-with-tkinter-python
-        # with Windows OS
-        l.bind("<MouseWheel>", self._handle_histogram_mouse_wheel)
-        # with Linux OS
-        l.bind("<Button-4>", self._handle_histogram_mouse_wheel)
-        l.bind("<Button-5>", self._handle_histogram_mouse_wheel)
-
         # add the selection frame
         selection_frame = tkinter.Frame(self.frame)
         selection_frame.pack(side=tkinter.TOP, anchor="w")
@@ -178,10 +191,6 @@ class HashHistogramBar():
         # add the status frame to the left of the selection frame
         status_frame = tkinter.Frame(selection_frame)
         status_frame.pack(side=tkinter.LEFT)
-
-        # add the image byte offset label to status_frame
-        self._image_offset_label = tkinter.Label(status_frame)
-        self._image_offset_label.pack(side=tkinter.TOP, anchor="w")
 
         # add the selected image byte offset label
         self._selected_image_offset_label = tkinter.Label(status_frame)
@@ -284,6 +293,9 @@ class HashHistogramBar():
             self._filter_all_but_sources_in_range_button.config(
                                                         state=tkinter.DISABLED)
             self._deselect_range_button.config(state=tkinter.DISABLED)
+
+        # draw
+        self._draw()
 
     def _set_add_and_remove_button_states(self):
         # disable both if there is no active selection
@@ -419,11 +431,11 @@ class HashHistogramBar():
 
         # put in the cursor byte offset text
         if self._is_valid_cursor:
-            self._image_offset_label["text"] = "Image offset: " \
-                               + offset_string(self._cursor_offset)
+            self._image_offset_label["text"] = offset_string(
+                                                      self._cursor_offset)
         else:
             # clear
-            self._image_offset_label['text'] = "Image offset: Not selected"
+            self._image_offset_label['text'] = ""
 
         # put in the sector selection byte offset text
         if self._offset_selection.offset == -1:
