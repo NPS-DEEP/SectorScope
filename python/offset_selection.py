@@ -6,16 +6,14 @@ class OffsetSelection():
     """Manage a byte offset selection.
 
     Registered callbacks are called when cleared.
-    Call fire_change after changing filter state to alert callbacks.
 
     _offset_selection_changed is used as a signal.
     Its value is always true.
 
     Attributes:
-      max_hashes (int): Maximum duplicates allowed before disregarding the hash.
-      filter_flagged_blocks (bool): Whether to filter flagged hashes.
-      filtered_sources (set<int>): Sectors to filter.
-      filtered_hashes (set<str>): Hashes to filter.
+      offset(int): selection or -1 for not selected.
+      block_hash(str): The MD5 hexdigest calculated at this offset,
+        zero extended.
 
     Requirement:
       Tk must be initialized before Filters for tkinter.Variable to work.

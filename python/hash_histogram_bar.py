@@ -30,11 +30,6 @@ class HashHistogramBar():
     _is_valid_cursor = False
     _cursor_offset = 0
 
-    # histogram range selection
-    _is_valid_range_selection = False # use setter to configure button state
-    _histogram_range_start_offset = 0
-    _histogram_range_stop_offset = 0
-
     # histogram state
     _histogram_b1_pressed = False
     _histogram_b1_start_offset = 0
@@ -44,18 +39,21 @@ class HashHistogramBar():
     _pan_down_x = None
     _pan_down_start_offset = None
 
-    def __init__(self, master, identified_data, filters, offset_selection):
+    def __init__(self, master, identified_data, filters, offset_selection,
+                                                         range_selection):
         """Args:
           master(a UI container): Parent.
           identified_data(IdentifiedData): Identified data about the scan.
           filters(Filters): Filters that impact the view.
           offset_selection(OffsetSelection): The selected offset.
+          range_selection(RangeSelection): The selected range.
         """
 
         # data variables
         self._identified_data = identified_data
         self._filters = filters
         self._offset_selection = offset_selection
+        self._range_selection = range_selection
 
         # the photo_image
         self._photo_image = tkinter.PhotoImage(width=self.HISTOGRAM_BAR_WIDTH,
@@ -232,6 +230,9 @@ class HashHistogramBar():
         # register to receive offset selection change events
         offset_selection.set_callback(self._handle_offset_selection_change)
 
+        # register to receive range selection change events
+        range_selection.set_callback(self._handle_range_selection_change)
+
     # this function is registered to and called by Filters
     def _handle_filter_change(self, *args):
 
@@ -258,9 +259,6 @@ class HashHistogramBar():
         if self._bytes_per_pixel * self.BUCKET_WIDTH < self._sector_size:
             self._bytes_per_pixel = self._sector_size / self.BUCKET_WIDTH
 
-        # histogram range selection is not set
-        self._set_valid_range_selection(False)
-
         # calculate this view
         self._calculate_hash_counts()
         self._calculate_bucket_data()
@@ -268,9 +266,24 @@ class HashHistogramBar():
         # draw
         self._draw()
 
-    # this function is registered to and called by SelectionChange
+    # this function is registered to and called by OffsetSelection
     def _handle_offset_selection_change(self, *args):
         self._set_add_and_remove_button_states()
+
+    # this function is registered to and called by RangeSelection
+    def _handle_range_selection_change(self, *args):
+        if self._range_selection.is_selected:
+            self._fit_range_button.config(state=tkinter.NORMAL)
+            self._filter_sources_in_range_button.config(state=tkinter.NORMAL)
+            self._filter_all_but_sources_in_range_button.config(
+                                                        state=tkinter.NORMAL)
+            self._deselect_range_button.config(state=tkinter.NORMAL)
+        else:
+            self._fit_range_button.config(state=tkinter.DISABLED)
+            self._filter_sources_in_range_button.config(state=tkinter.DISABLED)
+            self._filter_all_but_sources_in_range_button.config(
+                                                        state=tkinter.DISABLED)
+            self._deselect_range_button.config(state=tkinter.DISABLED)
 
     def _set_add_and_remove_button_states(self):
         # disable both if there is no active selection
@@ -304,22 +317,6 @@ class HashHistogramBar():
     def _handle_remove_hash_from_filter(self):
         self._filters.filtered_hashes.remove(self._offset_selection.block_hash)
         self._filters.fire_change()
-
-    def _set_valid_range_selection(self, is_valid):
-        if is_valid:
-            self._is_valid_range_selection = True
-            self._fit_range_button.config(state=tkinter.NORMAL)
-            self._filter_sources_in_range_button.config(state=tkinter.NORMAL)
-            self._filter_all_but_sources_in_range_button.config(
-                                                        state=tkinter.NORMAL)
-            self._deselect_range_button.config(state=tkinter.NORMAL)
-        else:
-            self._is_valid_range_selection = False
-            self._fit_range_button.config(state=tkinter.DISABLED)
-            self._filter_sources_in_range_button.config(state=tkinter.DISABLED)
-            self._filter_all_but_sources_in_range_button.config(
-                                                        state=tkinter.DISABLED)
-            self._deselect_range_button.config(state=tkinter.DISABLED)
 
     def _calculate_hash_counts(self):
 
@@ -452,14 +449,14 @@ class HashHistogramBar():
 
     # draw the range selection
     def _draw_range_selection(self):
-        if self._is_valid_range_selection:
+        if self._range_selection.is_selected:
             # get pixel x1 value
-            x1 = self._offset_to_pixel(self._histogram_range_start_offset)
+            x1 = self._offset_to_pixel(self._range_selection.start_offset)
             if x1 < 0: x1 = 0
             if x1 > self.HISTOGRAM_BAR_WIDTH: x1 = self.HISTOGRAM_BAR_WIDTH
 
             # get pixel x2 value
-            x2 = self._offset_to_pixel(self._histogram_range_stop_offset)
+            x2 = self._offset_to_pixel(self._range_selection.stop_offset)
             if x2 < 0: x2 = 0
             if x2 > self.HISTOGRAM_BAR_WIDTH: x2 = self.HISTOGRAM_BAR_WIDTH
 
@@ -602,17 +599,12 @@ class HashHistogramBar():
 
     def _handle_histogram_motion(self, e):
         if self._histogram_b1_pressed:
+            # mark as drag as opposed to click
+            self._histogram_dragged = True
 
             # select range
-            if not self._histogram_dragged:
-                # mark as drag as opposed to click
-                self._histogram_dragged = True
-                self._set_valid_range_selection(True)
-                self._histogram_range_start_offset = \
-                                             self._histogram_b1_start_offset
-
-            # get stop offset
-            self._histogram_range_stop_offset = self._mouse_to_offset(e)
+            self._range_selection.set(self._histogram_b1_start_offset,
+                                                  self._mouse_to_offset(e))
 
         # show mouse motion
         self._set_cursor(e)
@@ -716,7 +708,8 @@ class HashHistogramBar():
         self._filters.filtered_sources.clear()
 
         # get start_byte and stop_byte range
-        start_byte, stop_byte = self._range_selection()
+        start_byte = self._range_selection.start_offset
+        stop_byte = self._range_selection.stop_offset
 
         # get local references to identified data and filter
         hashes = self._identified_data.hashes
@@ -752,7 +745,8 @@ class HashHistogramBar():
             self._filters.filtered_sources.add(source_id)
 
         # get start_byte and stop_byte range
-        start_byte, stop_byte = self._range_selection()
+        start_byte = self._range_selection.start_offset
+        stop_byte = self._range_selection.stop_offset
 
         # get local references to identified data and filter
         hashes = self._identified_data.hashes
@@ -784,7 +778,8 @@ class HashHistogramBar():
 
     def _handle_fit_range(self):
         # get start_byte and stop_byte range
-        start_byte, stop_byte = self._range_selection()
+        start_byte = self._range_selection.start_offset
+        stop_byte = self._range_selection.stop_offset
 
         new_bytes_per_pixel = (stop_byte - start_byte) / \
                               self.HISTOGRAM_BAR_WIDTH
@@ -823,18 +818,8 @@ class HashHistogramBar():
 
     def _handle_deselect_range(self):
         # deselect range
-        self._set_valid_range_selection(False)
+        self._range_selection.clear()
 
         # redraw
         self._draw()
-
-    def _range_selection(self):
-        # return start_byte and stop_byte range, in order
-        if self._histogram_range_start_offset < \
-                                    self._histogram_range_stop_offset:
-            return (self._histogram_range_start_offset,
-                    self._histogram_range_stop_offset)
-        else:
-            return (self._histogram_range_stop_offset,
-                    self._histogram_range_start_offset)
 

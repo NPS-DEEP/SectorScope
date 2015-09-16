@@ -12,6 +12,7 @@ import tkinter
 from identified_data import IdentifiedData
 from filters import Filters
 from offset_selection import OffsetSelection
+from range_selection import RangeSelection
 from scrolled_canvas import ScrolledCanvas
 from control_view import ControlView
 from identified_data_summary_view import IdentifiedDataSummaryView
@@ -24,7 +25,7 @@ from open_manager import OpenManager
 
 # compose the GUI
 def build_gui(root_window, identified_data, filters, offset_selection,
-                                                               open_manager):
+                                              range_selection, open_manager):
     # set root window attributes
     START_WIDTH = 1000
     START_HEIGHT = 800
@@ -56,7 +57,7 @@ def build_gui(root_window, identified_data, filters, offset_selection,
 
     # the hash histogram bar in image_frame in the middle
     hash_histogram_bar = HashHistogramBar(image_frame, identified_data,
-                                                  filters, offset_selection)
+                                  filters, offset_selection, range_selection)
     hash_histogram_bar.frame.pack(side=tkinter.TOP, padx=8, pady=8, anchor="w")
 
     # the similar sources table in image_frame below
@@ -98,13 +99,16 @@ if __name__=="__main__":
     # the byte offset selection
     offset_selection = OffsetSelection()
 
+    # the byte range selection
+    range_selection = RangeSelection()
+
     # the open manager
     open_manager = OpenManager(root_window, identified_data, filters,
-                               offset_selection)
+                               offset_selection, range_selection)
 
     # build the GUI
     build_gui(root_window, identified_data, filters,
-                                           offset_selection, open_manager)
+                             offset_selection, range_selection, open_manager)
 
     # now open the be_dir
     open_manager.open_be_dir(args.be_dir)
