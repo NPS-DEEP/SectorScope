@@ -51,7 +51,7 @@ class ImageHexTable():
         filters.set_callback(self._handle_filter_change)
 
         # register to receive offset selection change events
-        offset_selection.set_callback(self._handle_offset_selection)
+        offset_selection.set_callback(self._handle_offset_selection_change)
 
     def _get_hash_match_state(self):
         # match state is filtered, unfiltered, or unmatched
@@ -116,7 +116,7 @@ class ImageHexTable():
         # Note that filter change is not sufficient to deiconify,
         # but offset selection is.
 
-    def _handle_offset_selection(self, *args):
+    def _handle_offset_selection_change(self, *args):
         self._set_view()
 
     def _set_view(self):

@@ -35,10 +35,10 @@ class SimilarSourcesView():
                                                         height=16, width=88)
         self._sources_table.frame.pack(side=tkinter.TOP, anchor="w")
 
-        # register to receive offset selection events
-        offset_selection.set_callback(self._handle_offset_selection)
+        # register to receive offset selection change events
+        offset_selection.set_callback(self._handle_offset_selection_change)
 
-    def _handle_offset_selection(self, *args):
+    def _handle_offset_selection_change(self, *args):
         # get the selected hash
         if self._offset_selection.offset == -1 or \
                           self._offset_selection.block_hash not in \

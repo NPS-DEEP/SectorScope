@@ -40,11 +40,17 @@ class ImageHexWindow():
                                                 width=88, height=32)
         image_hex_table.frame.pack(side=tkinter.TOP, anchor="w")
 
+        # register to receive identified_data change events
+        identified_data.set_callback(self._handle_identified_data_change)
+
         # register to receive offset selection change events
-        offset_selection.set_callback(self._handle_offset_selection)
+        offset_selection.set_callback(self._handle_offset_selection_change)
         self._root_window.withdraw()
 
-    def _handle_offset_selection(self, *args):
+    def _handle_identified_data_change(self, *args):
+        self._root_window.withdraw()
+
+    def _handle_offset_selection_change(self, *args):
         # make visible if valid and not already visible
         if self._offset_selection.offset != -1:
             self._root_window.deiconify()
