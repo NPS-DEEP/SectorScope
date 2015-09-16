@@ -16,7 +16,7 @@ from range_selection import RangeSelection
 from scrolled_canvas import ScrolledCanvas
 from control_view import ControlView
 from identified_data_summary_view import IdentifiedDataSummaryView
-from hash_histogram_bar import HashHistogramBar
+from histogram_view import HistogramView
 from image_hex_window import ImageHexWindow
 from sources_view import SourcesView
 from similar_sources_view import SimilarSourcesView
@@ -55,10 +55,10 @@ def build_gui(root_window, identified_data, filters, offset_selection,
                                   control_and_summary_frame, identified_data)
     identified_data_summary_view.frame.pack(side=tkinter.LEFT, padx=40)
 
-    # the hash histogram bar in image_frame in the middle
-    hash_histogram_bar = HashHistogramBar(image_frame, identified_data,
-                                  filters, offset_selection, range_selection)
-    hash_histogram_bar.frame.pack(side=tkinter.TOP, padx=8, pady=8, anchor="w")
+    # the hash histogram view in image_frame in the middle
+    histogram_view = HistogramView(image_frame, identified_data,
+                                   filters, offset_selection, range_selection)
+    histogram_view.frame.pack(side=tkinter.TOP, padx=8, pady=8, anchor="w")
 
     # the similar sources table in image_frame below
     similar_sources_view = SimilarSourcesView(image_frame, identified_data,

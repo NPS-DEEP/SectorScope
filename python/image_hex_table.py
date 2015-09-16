@@ -64,7 +64,7 @@ class ImageHexTable():
             return "unmatched"
 
         # hash was matched
-        # see hash_histogram_bar _calculate_hash_counts for filter reference
+        # see histogram_bar _calculate_hash_counts for filter reference
         sources = self._identified_data.hashes[block_hash]
 
         # count exceeds max_hashes

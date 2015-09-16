@@ -21,7 +21,6 @@ def icon_path(name):
     if name == "remove_hash":
         return _absolute_path("minus_blue.gif")
     if name == "pan":
-#        return _absolute_path("draw-arrow-forward.gif")
         return _absolute_path("arrow_plain_blue_E_W.gif")
     if name == "fit_range":
         return _absolute_path("zoom-in-3.gif")
