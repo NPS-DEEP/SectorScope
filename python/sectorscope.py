@@ -17,7 +17,7 @@ from scrolled_canvas import ScrolledCanvas
 from control_view import ControlView
 from identified_data_summary_view import IdentifiedDataSummaryView
 from histogram_view import HistogramView
-from image_hex_window import ImageHexWindow
+from offset_selection_summary_view import OffsetSelectionSummaryView
 from sources_view import SourcesView
 from similar_sources_view import SimilarSourcesView
 from forensic_path import offset_string
@@ -57,8 +57,14 @@ def build_gui(root_window, identified_data, filters, offset_selection,
 
     # the hash histogram view in image_frame in the middle
     histogram_view = HistogramView(image_frame, identified_data,
-                                   filters, offset_selection, range_selection)
+                                  filters, offset_selection, range_selection)
     histogram_view.frame.pack(side=tkinter.TOP, padx=8, pady=8, anchor="w")
+
+    # the offset selection summary view in image_frame below
+    offset_selection_summary_view = OffsetSelectionSummaryView(image_frame,
+                                  identified_data, filters, offset_selection)
+    offset_selection_summary_view.frame.pack(side=tkinter.TOP,
+                                                  padx=8, pady=8, anchor="w")
 
     # the similar sources table in image_frame below
     similar_sources_view = SimilarSourcesView(image_frame, identified_data,
@@ -69,10 +75,6 @@ def build_gui(root_window, identified_data, filters, offset_selection,
     # root_frame.source_frame holds source views on the right
     sources_view = SourcesView(root_frame, identified_data, filters)
     sources_view.frame.pack(side=tkinter.LEFT, padx=8, pady=8, anchor="n")
-
-    # build the separate image hex window
-    image_hex_window = ImageHexWindow(image_frame, identified_data, filters,
-                                  offset_selection)
 
 # main
 if __name__=="__main__":

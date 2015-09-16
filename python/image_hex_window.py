@@ -21,7 +21,7 @@ class ImageHexWindow():
         self._root_window = tkinter.Toplevel(master)
         self._root_window.title("Hex View")
         self._root_window.transient(master)
-        self._root_window.protocol('WM_DELETE_WINDOW', self._close)
+        self._root_window.protocol('WM_DELETE_WINDOW', self._hide)
 
         # add the frame to contain the color legend
         # add the color legend
@@ -45,15 +45,19 @@ class ImageHexWindow():
 
         # register to receive offset selection change events
         offset_selection.set_callback(self._handle_offset_selection_change)
+
         self._root_window.withdraw()
 
     def _handle_identified_data_change(self, *args):
-        self._root_window.withdraw()
+        self._hide()
 
     def _handle_offset_selection_change(self, *args):
-        # make visible if valid and not already visible
-        if self._offset_selection.offset != -1:
-            self._root_window.deiconify()
+        if self._offset_selection.offset == -1:
+            self._hide()
 
-    def _close(self):
+    def show(self):
+        self._root_window.deiconify()
+
+    def _hide(self):
         self._root_window.withdraw()
+

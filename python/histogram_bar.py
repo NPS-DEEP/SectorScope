@@ -105,8 +105,11 @@ class HistogramBar():
         # register to receive filter change events
         filters.set_callback(self._handle_filter_change)
 
+        # register to receive offset selection change events
+        range_selection.set_callback(self._handle_offset_selection_change)
+
         # register to receive range selection change events
-        range_selection.set_callback(self._handle_range_selection_change)
+        offset_selection.set_callback(self._handle_range_selection_change)
 
     # this function is registered to and called by Filters
     def _handle_filter_change(self, *args):
@@ -138,6 +141,11 @@ class HistogramBar():
         self._calculate_hash_counts()
         self._calculate_bucket_data()
 
+        # draw
+        self._draw()
+
+    # this function is registered to and called by OffsetSelection
+    def _handle_offset_selection_change(self, *args):
         # draw
         self._draw()
 

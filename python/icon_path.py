@@ -32,4 +32,8 @@ def icon_path(name):
         return _absolute_path("bullet-red.gif")
     if name == "deselect_range":
         return _absolute_path("list-remove-3.gif")
+    if name == "show_hex_view":
+        return _absolute_path("text-x-hex.gif")
+    if name == "deselect_offset_selection":
+        return _absolute_path("list-remove-3.gif")
 

@@ -124,80 +124,8 @@ class HistogramView():
         self._deselect_range_button.pack(side=tkinter.LEFT)
         Tooltip(self._deselect_range_button, "Deselect range")
 
-        # add the selection frame
-        selection_frame = tkinter.Frame(self.frame)
-        selection_frame.pack(side=tkinter.TOP, anchor="w")
-
-        # add the status frame to the left of the selection frame
-        status_frame = tkinter.Frame(selection_frame)
-        status_frame.pack(side=tkinter.LEFT)
-
-        # add the selected image byte offset label
-        self._selected_image_offset_label = tkinter.Label(status_frame)
-        self._selected_image_offset_label.pack(side=tkinter.TOP, anchor="w")
-
-        # add the selected image byte offset hash label
-        self._selected_image_offset_hash_label = tkinter.Label(status_frame,
-                                                       width=55, anchor="w")
-        self._selected_image_offset_hash_label.pack(side=tkinter.TOP,
-                                                               anchor="w")
-
-        # add the hash filter frame to the right of the selection frame
-        hash_filter_frame = tkinter.Frame(selection_frame)
-        hash_filter_frame.pack(side=tkinter.LEFT)
-
-        # add hash filter "Hash filter:" text to the hash filter frame
-        tkinter.Label(hash_filter_frame, text="Hash filter:").pack(
-                                                       side=tkinter.LEFT)
-
-        # hash_filter_frame "Add Hash to Filter" button to the hash filter frame
-        self._add_hash_icon = tkinter.PhotoImage(file=icon_path("add_hash"))
-        self._add_hash_button = tkinter.Button(hash_filter_frame,
-                                image=self._add_hash_icon,
-                                state=tkinter.DISABLED,
-                                command=self._handle_add_hash_to_filter)
-        self._add_hash_button.pack(side=tkinter.LEFT, padx=4)
-        Tooltip(self._add_hash_button, "Filter the selected hash")
-
-        # hash_filter_frame "Remove Hash from Filter" button
-        self._remove_hash_icon = tkinter.PhotoImage(file=icon_path(
-                                                              "remove_hash"))
-        self._remove_hash_button = tkinter.Button(hash_filter_frame,
-                                image=self._remove_hash_icon,
-                                state=tkinter.DISABLED,
-                                command=self._handle_remove_hash_from_filter)
-        self._remove_hash_button.pack(side=tkinter.LEFT)
-        Tooltip(self._remove_hash_button, "Stop filtering the selected hash")
-
-        # register to receive filter change events
-        filters.set_callback(self._handle_offset_selection_change)
-
-        # register to receive offset selection change events
-        offset_selection.set_callback(self._handle_offset_selection_change)
-
         # register to receive range selection change events
         range_selection.set_callback(self._handle_range_selection_change)
-
-    # this function is registered to and called by OffsetSelection
-    def _handle_offset_selection_change(self, *args):
-        # set the add and remove button states
-        self._set_add_and_remove_button_states()
-
-        # set the selected image offset and its associated hash value
-        if self._offset_selection.offset == -1:
-            # clear
-            self._selected_image_offset_label['text'] = \
-                               "Selected image offset: Not selected"
-            self._selected_image_offset_hash_label['text'] = \
-                               "Selected block hash: Not selected"
-
-        else:
-            # set to selection
-            self._selected_image_offset_label["text"] = \
-                              "Selected image offset: %s" % offset_string(
-                                          self._offset_selection.offset)
-            self._selected_image_offset_hash_label["text"] = \
-                 "Selected block hash: %s" % self._offset_selection.block_hash
 
     # this function is registered to and called by RangeSelection
     def _handle_range_selection_change(self, *args):
@@ -217,41 +145,6 @@ class HistogramView():
                                                         state=tkinter.DISABLED)
             self._deselect_range_button.config(state=tkinter.DISABLED)
 
-    def _set_add_and_remove_button_states(self):
-        # disable both if there is no active selection
-        if self._offset_selection.offset == -1:
-            self._add_hash_button.config(state=tkinter.DISABLED)
-            self._remove_hash_button.config(state=tkinter.DISABLED)
-            return
-
-        # reference to selected hash
-        selected_hash = self._offset_selection.block_hash
-
-        # set enabled state of the add hash button
-        if selected_hash not in self._filters.filtered_hashes and \
-                           selected_hash in self._identified_data.hashes:
-            self._add_hash_button.config(state=tkinter.NORMAL)
-        else:
-            self._add_hash_button.config(state=tkinter.DISABLED)
-
-        # set enabled state of the remove hash button
-        if selected_hash in self._filters.filtered_hashes:
-            self._remove_hash_button.config(state=tkinter.NORMAL)
-        else:
-            self._remove_hash_button.config(state=tkinter.DISABLED)
-
-    # button changes filter
-    def _handle_add_hash_to_filter(self):
-        self._filters.filtered_hashes.add(self._offset_selection.block_hash)
-        self._filters.fire_change()
-
-    # button changes filter
-    def _handle_remove_hash_from_filter(self):
-        self._filters.filtered_hashes.remove(self._offset_selection.block_hash)
-        self._filters.fire_change()
-
-
-
     def _handle_pan_press(self, e):
         self._pan_down_x = e.x
         self._pan_down_start_offset = self._histogram_bar.start_offset
@@ -259,7 +152,6 @@ class HistogramView():
     def _handle_pan_move(self, e):
         self._histogram_bar.pan(self._pan_down_start_offset,
                                                       self._pan_down_x - e.x)
-
 
     def _handle_filter_sources_in_range(self):
         # clear existing filtered sources
