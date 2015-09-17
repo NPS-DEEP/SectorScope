@@ -2,7 +2,7 @@ import tkinter
 from forensic_path import offset_string
 from icon_path import icon_path
 from offset_selection import OffsetSelection
-from math import log2
+from math import log
 
 class HistogramBar():
     """Renders a hash histogram bar widget.
@@ -21,11 +21,10 @@ class HistogramBar():
 
     # pixels per bucket
     BUCKET_WIDTH = 3
-    BUCKET_HEIGHT = 3
 
     # histogram bar size in pixels
     HISTOGRAM_BAR_WIDTH = NUM_BUCKETS * BUCKET_WIDTH
-    HISTOGRAM_BAR_HEIGHT = 261 # make divisible by 3 so bar rows align
+    HISTOGRAM_BAR_HEIGHT = 180 # make divisible by 3 so bar rows align
 
     # histogram bar start offset and scale
     start_offset = None
@@ -327,11 +326,15 @@ class HistogramBar():
         x=(i * self.BUCKET_WIDTH)
         y0 = int(self.HISTOGRAM_BAR_HEIGHT / 3 * j)
 
-#        # calculate y1 linearly based on count
-#        y1 = int(self.BUCKET_HEIGHT * count)
-
         # calculate y1 logarithmically based on count
-        y1 = int(log2(count + 1) * self.BUCKET_HEIGHT)
+        """Rationale for formula "int(log(count + 1, 1.5) * 2)" follows:
+          * Each bar has 60 pixels of height because the widget
+            looks good at this size.
+          * A count of 1 is 3 pixels tall so that the smallest unit is
+            readily visible.
+          * The scale should be as light as possible but still not clip.
+            This formula is tuned to clip at a count of 200,000."""
+        y1 = int(log(count + 1, 1.5) * 2)
 
         # clip to keep in range
         if y1 > int(self.HISTOGRAM_BAR_HEIGHT / 3):
