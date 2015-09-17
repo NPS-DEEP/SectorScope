@@ -2,6 +2,7 @@ import tkinter
 from forensic_path import offset_string
 from icon_path import icon_path
 from offset_selection import OffsetSelection
+from math import log2
 
 class HistogramBar():
     """Renders a hash histogram bar widget.
@@ -20,6 +21,7 @@ class HistogramBar():
 
     # pixels per bucket
     BUCKET_WIDTH = 3
+    BUCKET_HEIGHT = 3
 
     # histogram bar size in pixels
     HISTOGRAM_BAR_WIDTH = NUM_BUCKETS * BUCKET_WIDTH
@@ -324,7 +326,14 @@ class HistogramBar():
         # x is pixel coordinate
         x=(i * self.BUCKET_WIDTH)
         y0 = int(self.HISTOGRAM_BAR_HEIGHT / 3 * j)
-        y1 = int(self.BUCKET_WIDTH * count)
+
+#        # calculate y1 linearly based on count
+#        y1 = int(self.BUCKET_HEIGHT * count)
+
+        # calculate y1 logarithmically based on count
+        y1 = int(log2(count + 1) * self.BUCKET_HEIGHT)
+
+        # clip to keep in range
         if y1 > int(self.HISTOGRAM_BAR_HEIGHT / 3):
             y1 = int(self.HISTOGRAM_BAR_HEIGHT / 3)
 
