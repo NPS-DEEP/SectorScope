@@ -35,19 +35,9 @@ class SourcesView():
         tkinter.Label(self.frame, text='All Matched Sources') \
                                             .pack(side=tkinter.TOP)
 
-        # add the color legend
-        f = tkinter.Frame(self.frame)
-        f.pack(side=tkinter.TOP)
-        tkinter.Label(f,text="   ",background=self.LEGEND_UNFILTERED).pack(
-                                                         side=tkinter.LEFT)
-        tkinter.Label(f,text="Not filtered      ").pack(side=tkinter.LEFT)
-        tkinter.Label(f,text="   ",background=self.LEGEND_FILTERED).pack(
-                                                         side=tkinter.LEFT)
-        tkinter.Label(f,text="Filtered      ").pack(side=tkinter.LEFT)
-
         # add the select all and clear all buttons
         select_clear_frame = tkinter.Frame(self.frame)
-        select_clear_frame.pack(pady=8)
+        select_clear_frame.pack(pady=(0,4))
 
         # clear button
         self._clear_all_icon = tkinter.PhotoImage(file=icon_path("clear_all"))
