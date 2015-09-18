@@ -11,9 +11,12 @@ class Tooltip():
         self._hide()
         self._root_window.overrideredirect(True)
         text = tkinter.Label(self._root_window, text=tooltip_text, bd=1,
-                                relief=tkinter.GROOVE, justify=tkinter.LEFT)
+                             padx=4, pady=4, justify=tkinter.LEFT,
+                             relief=tkinter.GROOVE)
         text.pack()
         master.bind("<Motion>", self._handle_motion, add="+")
+        master.bind("<B2-Motion>", self._handle_motion, add="+")
+        master.bind("<B3-Motion>", self._handle_motion, add="+")
         master.bind("<Enter>", self._handle_motion, add="+")
         master.bind("<Leave>", self._handle_leave, add="+")
 

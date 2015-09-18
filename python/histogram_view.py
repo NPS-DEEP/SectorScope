@@ -12,10 +12,6 @@ class HistogramView():
       frame(Frame): the containing frame for this view.
     """
 
-    # pan state
-    _pan_down_x = None
-    _pan_down_start_offset = None
-
     def __init__(self, master, identified_data, filters, offset_selection,
                                                          range_selection):
         """Args:
@@ -68,17 +64,6 @@ class HistogramView():
         control_frame = tkinter.Frame(bordered_frame)
         control_frame.pack(side=tkinter.TOP, pady=(0,4))
         
-        # pan
-        self._pan_icon = tkinter.PhotoImage(file=icon_path("pan"))
-        pan_button = tkinter.Button(control_frame, image=self._pan_icon, bd=0)
-        pan_button.pack(side=tkinter.LEFT)
-        pan_button.config(cursor="sb_h_double_arrow")
-        Tooltip(pan_button, "Drag to pan")
-
-        # bind pan control mouse events
-        pan_button.bind('<Button-1>', self._handle_pan_press, add='+')
-        pan_button.bind('<B1-Motion>', self._handle_pan_move, add='+')
-
         # zoom to fit image
         self._fit_image_icon = tkinter.PhotoImage(file=icon_path("fit_image"))
         fit_image_button = tkinter.Button(control_frame,
@@ -144,14 +129,6 @@ class HistogramView():
             self._filter_all_but_sources_in_range_button.config(
                                                         state=tkinter.DISABLED)
             self._deselect_range_button.config(state=tkinter.DISABLED)
-
-    def _handle_pan_press(self, e):
-        self._pan_down_x = e.x
-        self._pan_down_start_offset = self._histogram_bar.start_offset
-
-    def _handle_pan_move(self, e):
-        self._histogram_bar.pan(self._pan_down_start_offset,
-                                                      self._pan_down_x - e.x)
 
     def _handle_filter_sources_in_range(self):
         # clear existing filtered sources

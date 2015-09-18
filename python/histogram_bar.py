@@ -4,6 +4,7 @@ from icon_path import icon_path
 from offset_selection import OffsetSelection
 from tooltip import Tooltip
 from math import log
+from histogram_pan import HistogramPan
 
 class HistogramBar():
     """Renders a hash histogram bar widget.
@@ -85,7 +86,10 @@ class HistogramBar():
         l.bind("<Button-4>", self._handle_histogram_mouse_wheel, add='+')
         l.bind("<Button-5>", self._handle_histogram_mouse_wheel, add='+')
 
-        Tooltip(l, "Click to select\n"
+        # enable pan support
+        HistogramPan(self, l)
+
+        Tooltip(l, "Click to select offset\n"
                    "Right-click drag to select region\n"
                    "Left-click drag to pan\n"
                    "Scroll to zoom")
