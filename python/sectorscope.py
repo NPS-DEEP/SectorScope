@@ -31,15 +31,18 @@ def build_gui(root_window, identified_data, filters, offset_selection,
     START_HEIGHT = 800
     root_window.title("SectorScope")
     root_window.minsize(width=400,height=300)
-    root_window.maxsize(width=START_WIDTH+25,height=START_HEIGHT+25)
+    root_window.geometry("1000x700")
 
-    # build the top-level frame inside a scroll window
-    root_frame = ScrolledCanvas(root_window,
-             canvas_width=START_WIDTH, canvas_height=START_HEIGHT,
-             frame_width=START_WIDTH, frame_height=START_HEIGHT).scrolled_frame
+#    # build the top-level frame inside a scroll window
+#    root_frame = ScrolledCanvas(root_window,
+#             canvas_width=START_WIDTH, canvas_height=START_HEIGHT,
+#             frame_width=START_WIDTH, frame_height=START_HEIGHT).scrolled_frame
 
-    # root_frame.image_frame holds media image windows on the left
-    image_frame = tkinter.Frame(root_frame)
+#    root_frame = tkinter.Frame(root_window)
+#    root_frame.pack()
+
+    # root_window.image_frame holds media image windows on the left
+    image_frame = tkinter.Frame(root_window)
     image_frame.pack(side=tkinter.LEFT, anchor="n")
 
     # the filter and identified data summary views in image_frame at the top
@@ -72,8 +75,8 @@ def build_gui(root_window, identified_data, filters, offset_selection,
     similar_sources_view.frame.pack(side=tkinter.TOP, padx=8, pady=8,
                                                               anchor="w")
 
-    # root_frame.source_frame holds source views on the right
-    sources_view = SourcesView(root_frame, identified_data, filters)
+    # root_window.source_frame holds source views on the right
+    sources_view = SourcesView(root_window, identified_data, filters)
     sources_view.frame.pack(side=tkinter.LEFT, padx=8, pady=8, anchor="n")
 
 # main

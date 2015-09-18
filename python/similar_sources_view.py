@@ -32,7 +32,7 @@ class SimilarSourcesView():
 
         # the sources table
         self._sources_table = SourcesTable(self.frame, identified_data, filters,
-                                                        height=16, width=88)
+                                                        height=500, width=88)
         self._sources_table.frame.pack(side=tkinter.TOP, anchor="w")
 
         # register to receive offset selection change events

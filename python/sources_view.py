@@ -57,7 +57,7 @@ class SourcesView():
 
         # the sources table
         self._sources_table = SourcesTable(self.frame, identified_data, filters,
-                                                        width=60, height=60)
+                                                        width=500, height=500)
         self._sources_table.frame.pack(side=tkinter.TOP, anchor="w")
 
         # register to receive identified data change events
