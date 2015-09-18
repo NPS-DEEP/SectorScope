@@ -33,14 +33,6 @@ def build_gui(root_window, identified_data, filters, offset_selection,
     root_window.minsize(width=400,height=300)
     root_window.geometry("1000x700")
 
-#    # build the top-level frame inside a scroll window
-#    root_frame = ScrolledCanvas(root_window,
-#             canvas_width=START_WIDTH, canvas_height=START_HEIGHT,
-#             frame_width=START_WIDTH, frame_height=START_HEIGHT).scrolled_frame
-
-#    root_frame = tkinter.Frame(root_window)
-#    root_frame.pack()
-
     # root_window.image_frame holds media image windows on the left
     image_frame = tkinter.Frame(root_window)
     image_frame.pack(side=tkinter.LEFT, anchor="n")
