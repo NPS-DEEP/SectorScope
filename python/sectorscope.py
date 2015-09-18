@@ -13,7 +13,6 @@ from identified_data import IdentifiedData
 from filters import Filters
 from offset_selection import OffsetSelection
 from range_selection import RangeSelection
-from scrolled_canvas import ScrolledCanvas
 from control_view import ControlView
 from identified_data_summary_view import IdentifiedDataSummaryView
 from histogram_view import HistogramView

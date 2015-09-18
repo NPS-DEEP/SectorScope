@@ -76,10 +76,12 @@ class SourcesTable():
         self._source_text.config(cursor="arrow")
 
         # text widget mouse events
-        self._source_text.bind('<Any-Motion>', self._handle_mouse_move)
-        self._source_text.bind('<Button-1>', self._handle_b1_mouse_press)
-        self._source_text.bind('<Enter>', self._handle_enter)
-        self._source_text.bind('<Leave>', self._handle_leave)
+        self._source_text.bind('<Any-Motion>', self._handle_mouse_move,
+                                                                    add='+')
+        self._source_text.bind('<Button-1>', self._handle_b1_mouse_press,
+                                                                    add='+')
+        self._source_text.bind('<Enter>', self._handle_enter, add='+')
+        self._source_text.bind('<Leave>', self._handle_leave, add='+')
 
         # register to receive filter change events
         filters.set_callback(self._handle_filter_change)

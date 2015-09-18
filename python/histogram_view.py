@@ -76,8 +76,8 @@ class HistogramView():
         Tooltip(pan_button, "Drag to pan")
 
         # bind pan control mouse events
-        pan_button.bind('<Button-1>', self._handle_pan_press)
-        pan_button.bind('<B1-Motion>', self._handle_pan_move)
+        pan_button.bind('<Button-1>', self._handle_pan_press, add='+')
+        pan_button.bind('<B1-Motion>', self._handle_pan_move, add='+')
 
         # zoom to fit image
         self._fit_image_icon = tkinter.PhotoImage(file=icon_path("fit_image"))

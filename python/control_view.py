@@ -52,7 +52,7 @@ class ControlView():
         import_button = tkinter.Button(button_frame, image=self._import_icon,
                        command=self._handle_import)
         import_button.pack(side=tkinter.LEFT)
-        Tooltip(import_button, "Import files into a", "new hashdb database")
+        Tooltip(import_button, "Import files into a\nnew hashdb database")
 
         # max hashes entry
         max_hashes_frame = tkinter.Frame(self.frame)
@@ -63,9 +63,9 @@ class ControlView():
         self.max_hashes_entry.insert(0, "None")
         self.max_hashes_entry.pack(side=tkinter.LEFT, anchor="w")
         self.max_hashes_entry.bind('<Return>',
-                                   self._handle_max_hashes_selection)
+                                   self._handle_max_hashes_selection, add='+')
         self.max_hashes_entry.bind('<FocusOut>',
-                                   self._handle_max_hashes_selection)
+                                   self._handle_max_hashes_selection, add='+')
 
         # set up the local checkbutton trace var so change function gets called
         self._filter_flagged_blocks_trace_var = tkinter.IntVar()

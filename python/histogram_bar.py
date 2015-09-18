@@ -2,6 +2,7 @@ import tkinter
 from forensic_path import offset_string
 from icon_path import icon_path
 from offset_selection import OffsetSelection
+from tooltip import Tooltip
 from math import log
 
 class HistogramBar():
@@ -70,19 +71,24 @@ class HistogramBar():
         l.pack(side=tkinter.TOP)
 
         # bind histogram mouse motion events
-        l.bind('<Any-Motion>', self._handle_histogram_motion)
-        l.bind('<Button-1>', self._handle_histogram_b1_press)
-        l.bind('<ButtonRelease-1>', self._handle_histogram_b1_release)
-        l.bind('<Enter>', self._handle_histogram_enter)
-        l.bind('<Leave>', self._handle_histogram_leave)
+        l.bind('<Any-Motion>', self._handle_histogram_motion, add='+')
+        l.bind('<Button-1>', self._handle_histogram_b1_press, add='+')
+        l.bind('<ButtonRelease-1>', self._handle_histogram_b1_release, add='+')
+        l.bind('<Enter>', self._handle_histogram_enter, add='+')
+        l.bind('<Leave>', self._handle_histogram_leave, add='+')
 
         # bind histogram mouse wheel events
         # https://www.daniweb.com/software-development/python/code/217059/using-the-mouse-wheel-with-tkinter-python
         # with Windows OS
-        l.bind("<MouseWheel>", self._handle_histogram_mouse_wheel)
+        l.bind("<MouseWheel>", self._handle_histogram_mouse_wheel, add='+')
         # with Linux OS
-        l.bind("<Button-4>", self._handle_histogram_mouse_wheel)
-        l.bind("<Button-5>", self._handle_histogram_mouse_wheel)
+        l.bind("<Button-4>", self._handle_histogram_mouse_wheel, add='+')
+        l.bind("<Button-5>", self._handle_histogram_mouse_wheel, add='+')
+
+        Tooltip(l, "Click to select\n"
+                   "Right-click drag to select region\n"
+                   "Left-click drag to pan\n"
+                   "Scroll to zoom")
 
         # add the frame for offset values
         offsets_frame = tkinter.Frame(self.frame, height=18+0)
