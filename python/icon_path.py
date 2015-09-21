@@ -26,9 +26,9 @@ def icon_path(name):
         return _absolute_path("zoom-in-3.gif")
     if name == "fit_image":
         return _absolute_path("zoom-original-2.gif")
-    if name == "filter_range":
+    if name == "highlight_range":
         return _absolute_path("bullet-green.gif")
-    if name == "filter_all_but_range":
+    if name == "highlight_all_but_range":
         return _absolute_path("bullet-red.gif")
     if name == "deselect_range":
         return _absolute_path("list-remove-3.gif")

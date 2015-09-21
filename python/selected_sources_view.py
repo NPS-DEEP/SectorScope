@@ -12,12 +12,12 @@ class SelectedSourcesView():
       frame(Frame): the containing frame for this view.
     """
 
-    def __init__(self, master, identified_data, filters, offset_selection):
+    def __init__(self, master, identified_data, highlights, offset_selection):
         """Args:
           master(a UI container): Parent.
           identified_data(IdentifiedData): All data related to the block
             hash scan.
-          filters(Filters): The filters that controll the view.
+          highlights(Highlights): The highlights that controll the view.
         """
         # variables
         self._identified_data = identified_data
@@ -31,7 +31,8 @@ class SelectedSourcesView():
                                             .pack(side=tkinter.TOP)
 
         # the sources table
-        self._sources_table = SourcesTable(self.frame, identified_data, filters,
+        self._sources_table = SourcesTable(self.frame, identified_data,
+                                                        highlights,
                                                         height=500, width=88)
         self._sources_table.frame.pack(side=tkinter.TOP, anchor="w")
 

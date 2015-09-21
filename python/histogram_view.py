@@ -12,19 +12,19 @@ class HistogramView():
       frame(Frame): the containing frame for this view.
     """
 
-    def __init__(self, master, identified_data, filters, offset_selection,
+    def __init__(self, master, identified_data, highlights, offset_selection,
                                                          range_selection):
         """Args:
           master(a UI container): Parent.
           identified_data(IdentifiedData): Identified data about the scan.
-          filters(Filters): Filters that impact the view.
+          highlights(Highlights): Highlights that impact the view.
           offset_selection(OffsetSelection): The selected offset.
           range_selection(RangeSelection): The selected range.
         """
 
         # data variables
         self._identified_data = identified_data
-        self._filters = filters
+        self._highlights = highlights
         self._offset_selection = offset_selection
         self._range_selection = range_selection
 
@@ -44,11 +44,11 @@ class HistogramView():
                                                         side=tkinter.LEFT)
         tkinter.Label(legend_frame,text="   ",background="#660000").pack(
                                                         side=tkinter.LEFT)
-        tkinter.Label(legend_frame,text="No filtered matches      ").pack(
+        tkinter.Label(legend_frame,text="No highlighted matches      ").pack(
                                                         side=tkinter.LEFT)
         tkinter.Label(legend_frame,text="   ",background="#004400").pack(
                                                         side=tkinter.LEFT)
-        tkinter.Label(legend_frame,text="Filtered matches only").pack(
+        tkinter.Label(legend_frame,text="Highlighted matches only").pack(
                                                         side=tkinter.LEFT)
 
         # create a bordered frame to contain the histogram and control buttons
@@ -57,7 +57,7 @@ class HistogramView():
 
         # add the histogram bar
         self._histogram_bar = HistogramBar(bordered_frame, identified_data,
-                                 filters, offset_selection, range_selection)
+                                highlights, offset_selection, range_selection)
         self._histogram_bar.frame.pack(side=tkinter.TOP)
 
         # add the frame for the button controls
@@ -80,25 +80,26 @@ class HistogramView():
         self._fit_range_button.pack(side=tkinter.LEFT)
         Tooltip(self._fit_range_button, "Zoom to range")
 
-        # filter sources in range
-        self._filter_sources_in_range_icon = tkinter.PhotoImage(
-                                  file=icon_path("filter_range"))
-        self._filter_sources_in_range_button = tkinter.Button(control_frame,
-                                  image=self._filter_sources_in_range_icon,
-                                  command=self._handle_filter_sources_in_range)
-        self._filter_sources_in_range_button.pack(side=tkinter.LEFT)
-        Tooltip(self._filter_sources_in_range_button, "Filter sources in range")
+        # highlight sources in range
+        self._highlight_sources_in_range_icon = tkinter.PhotoImage(
+                                  file=icon_path("highlight_range"))
+        self._highlight_sources_in_range_button = tkinter.Button(control_frame,
+                              image=self._highlight_sources_in_range_icon,
+                              command=self._handle_highlight_sources_in_range)
+        self._highlight_sources_in_range_button.pack(side=tkinter.LEFT)
+        Tooltip(self._highlight_sources_in_range_button,
+                                               "Highlight sources in range")
 
-        # filter all but sources in range
-        self._filter_all_but_sources_in_range_icon = tkinter.PhotoImage(
-                          file=icon_path("filter_all_but_range"))
-        self._filter_all_but_sources_in_range_button = tkinter.Button(
-                          control_frame,
-                          image=self._filter_all_but_sources_in_range_icon,
-                          command=self._handle_filter_all_but_sources_in_range)
-        self._filter_all_but_sources_in_range_button.pack(side=tkinter.LEFT)
-        Tooltip(self._filter_all_but_sources_in_range_button,
-                          "Filter all but sources in range")
+        # highlight all but sources in range
+        self._highlight_all_but_sources_in_range_icon = tkinter.PhotoImage(
+                          file=icon_path("highlight_all_but_range"))
+        self._highlight_all_but_sources_in_range_button = tkinter.Button(
+                      control_frame,
+                      image=self._highlight_all_but_sources_in_range_icon,
+                      command=self._handle_highlight_all_but_sources_in_range)
+        self._highlight_all_but_sources_in_range_button.pack(side=tkinter.LEFT)
+        Tooltip(self._highlight_all_but_sources_in_range_button,
+                          "Highlight all but sources in range")
 
         # deselect range
         self._deselect_range_icon = tkinter.PhotoImage(
@@ -117,38 +118,39 @@ class HistogramView():
         if self._range_selection.is_selected:
             # button states
             self._fit_range_button.config(state=tkinter.NORMAL)
-            self._filter_sources_in_range_button.config(state=tkinter.NORMAL)
-            self._filter_all_but_sources_in_range_button.config(
+            self._highlight_sources_in_range_button.config(state=tkinter.NORMAL)
+            self._highlight_all_but_sources_in_range_button.config(
                                                         state=tkinter.NORMAL)
             self._deselect_range_button.config(state=tkinter.NORMAL)
 
         else:
             # button states
             self._fit_range_button.config(state=tkinter.DISABLED)
-            self._filter_sources_in_range_button.config(state=tkinter.DISABLED)
-            self._filter_all_but_sources_in_range_button.config(
-                                                        state=tkinter.DISABLED)
+            self._highlight_sources_in_range_button.config(
+                                                       state=tkinter.DISABLED)
+            self._highlight_all_but_sources_in_range_button.config(
+                                                       state=tkinter.DISABLED)
             self._deselect_range_button.config(state=tkinter.DISABLED)
 
-    def _handle_filter_sources_in_range(self):
-        # clear existing filtered sources
-        self._filters.filtered_sources.clear()
+    def _handle_highlight_sources_in_range(self):
+        # clear existing highlighted sources
+        self._highlights.highlighted_sources.clear()
 
         # get start_byte and stop_byte range
         start_byte = self._range_selection.start_offset
         stop_byte = self._range_selection.stop_offset
 
-        # get local references to identified data and filter
+        # get local references to identified data and highlight variables
         hashes = self._identified_data.hashes
-        filtered_sources = self._filters.filtered_sources
+        highlighted_sources = self._highlights.highlighted_sources
         
-        # filter sources in range
+        # highlight sources in range
         seen_hashes = set()
         for forensic_path, block_hash in \
                                self._identified_data.forensic_paths.items():
             offset = int(forensic_path)
             if offset >= start_byte and offset <= stop_byte:
-                # hash is in range so filter its sources
+                # hash is in range so highlight its sources
                 if block_hash in seen_hashes:
                     # do not reprocess this hash
                     continue
@@ -159,33 +161,33 @@ class HistogramView():
                 # get sources associated with this hash
                 sources = hashes[block_hash]
 
-                # filter each source associated with this hash
+                # highlight each source associated with this hash
                 for source in sources:
-                    filtered_sources.add(source["source_id"])
+                    highlighted_sources.add(source["source_id"])
 
-        # fire filter change
-        self._filters.fire_change()
+        # fire highlight change
+        self._highlights.fire_change()
 
-    def _handle_filter_all_but_sources_in_range(self):
-        # start by filtering all sources
+    def _handle_highlight_all_but_sources_in_range(self):
+        # start by highlighting all sources
         for source_id, _ in self._identified_data.source_details.items():
-            self._filters.filtered_sources.add(source_id)
+            self._highlights.highlighted_sources.add(source_id)
 
         # get start_byte and stop_byte range
         start_byte = self._range_selection.start_offset
         stop_byte = self._range_selection.stop_offset
 
-        # get local references to identified data and filter
+        # get local references to identified data and highlight variables
         hashes = self._identified_data.hashes
-        filtered_sources = self._filters.filtered_sources
+        highlighted_sources = self._highlights.highlighted_sources
         
-        # unfilter sources in range
+        # unhighlight sources in range
         seen_hashes = set()
         for forensic_path, block_hash in \
                                self._identified_data.forensic_paths.items():
             offset = int(forensic_path)
             if offset >= start_byte and offset <= stop_byte:
-                # hash is in range so filter its sources
+                # hash is in range so highlight its sources
                 if block_hash in seen_hashes:
                     # do not reprocess this hash
                     continue
@@ -196,12 +198,12 @@ class HistogramView():
                 # get sources associated with this hash
                 sources = hashes[block_hash]
 
-                # unfilter each source associated with this hash
+                # unhighlight each source associated with this hash
                 for source in sources:
-                    filtered_sources.discard(source["source_id"])
+                    highlighted_sources.discard(source["source_id"])
 
-        # fire filter change
-        self._filters.fire_change()
+        # fire highlight change
+        self._highlights.fire_change()
 
     def _handle_deselect_range(self):
         # deselect range

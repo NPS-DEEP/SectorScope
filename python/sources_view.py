@@ -12,12 +12,12 @@ class SourcesView():
       frame(Frame): the containing frame for this view.
     """
 
-    def __init__(self, master, identified_data, filters):
+    def __init__(self, master, identified_data, highlights):
         """Args:
           master(a UI container): Parent.
           identified_data(IdentifiedData): All data related to the block
             hash scan.
-          filters(Filters): The filters that controll the view.
+          highlights(Highlights): The highlights that controll the view.
         """
 
         # colors
@@ -26,7 +26,7 @@ class SourcesView():
 
         # variables
         self._identified_data = identified_data
-        self._filters = filters
+        self._highlights = highlights
 
         # make the containing frame
         self.frame = tkinter.Frame(master)
@@ -45,7 +45,7 @@ class SourcesView():
                        image=self._clear_all_icon,
                        command=self._handle_clear_all_sources)
         clear_all_button.pack(side=tkinter.LEFT, padx=2)
-        Tooltip(clear_all_button, "Do not filter any sources")
+        Tooltip(clear_all_button, "Do not highlight any sources")
 
         # select button
         self._select_all_icon = tkinter.PhotoImage(file=icon_path("select_all"))
@@ -53,10 +53,11 @@ class SourcesView():
                        image=self._select_all_icon,
                        command=self._handle_set_all_sources)
         select_all_button.pack(side=tkinter.LEFT, padx=2)
-        Tooltip(select_all_button, "Filter all sources")
+        Tooltip(select_all_button, "Highlight all sources")
 
         # the sources table
-        self._sources_table = SourcesTable(self.frame, identified_data, filters,
+        self._sources_table = SourcesTable(self.frame, identified_data,
+                                                        highlights,
                                                         width=500, height=500)
         self._sources_table.frame.pack(side=tkinter.TOP, anchor="w")
 
@@ -72,14 +73,14 @@ class SourcesView():
 
 
     def _handle_clear_all_sources(self, *args):
-        # clear filtered sources and signal change
-        self._filters.filtered_sources.clear()
-        self._filters.fire_change()
+        # clear highlighted sources and signal change
+        self._highlights.highlighted_sources.clear()
+        self._highlights.fire_change()
 
     def _handle_set_all_sources(self, *args):
-        # set filtered sources and signal change
-        self._filters.filtered_sources.clear()
+        # set highlighted sources and signal change
+        self._highlights.highlighted_sources.clear()
         for source_id in self._identified_data.source_details:
-            self._filters.filtered_sources.add(source_id)
-        self._filters.fire_change()
+            self._highlights.highlighted_sources.add(source_id)
+        self._highlights.fire_change()
 

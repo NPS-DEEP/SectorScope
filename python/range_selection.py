@@ -14,7 +14,7 @@ class RangeSelection():
       stop_offset(int): Start offset of range.
 
     Requirement:
-      Tk must be initialized before Filters for tkinter.Variable to work.
+      Tk must be initialized for tkinter.Variable to work.
     """
 
     is_selected = False
@@ -48,6 +48,6 @@ class RangeSelection():
         self._range_selection_changed.set(True)
 
     def set_callback(self, f):
-        """Register function f to be called on filter change."""
+        """Register function f to be called on range selection change."""
         self._range_selection_changed.trace_variable('w', f)
 

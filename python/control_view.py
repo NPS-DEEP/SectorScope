@@ -7,21 +7,21 @@ from be_import_window import BEImportWindow
 
 class ControlView():
     """Provides a frame containing user controls including launchers
-    and filters.
+    and highlight control.
 
     Attributes:
       frame(Frame): the containing frame for this view.
     """
 
-    def __init__(self, master, filters, open_manager):
+    def __init__(self, master, highlights, open_manager):
         """Args:
           master(a UI container): Parent.
-          filters(Filters): Filters that filter hashes and sources.
+          highlights(Highlights): Highlights for hashes and sources.
           open_mangaer(OpenManager): Able to open a new dataset.
         """
 
-        # filters
-        self._filters = filters
+        # highlights
+        self._highlights = highlights
 
         # open manager
         self._open_manager = open_manager
@@ -68,17 +68,18 @@ class ControlView():
                                    self._handle_max_hashes_selection, add='+')
 
         # set up the local checkbutton trace var so change function gets called
-        self._filter_flagged_blocks_trace_var = tkinter.IntVar()
-        self._filter_flagged_blocks_trace_var.set(filters.filter_flagged_blocks)
-        self._filter_flagged_blocks_trace_var.trace_variable('w',
-                               self._handle_filter_flagged_blocks_selection)
+        self._highlight_flagged_blocks_trace_var = tkinter.IntVar()
+        self._highlight_flagged_blocks_trace_var.set(
+                                         highlights.highlight_flagged_blocks)
+        self._highlight_flagged_blocks_trace_var.trace_variable('w',
+                             self._handle_highlight_flagged_blocks_selection)
 
-        # filter_flagged_blocks checkbutton
-        self.filter_flagged_blocks_checkbutton = tkinter.Checkbutton(
-                           self.frame, text="Filter Flagged Blocks",
-                           variable=self._filter_flagged_blocks_trace_var,
+        # highlight_flagged_blocks checkbutton
+        self.highlight_flagged_blocks_checkbutton = tkinter.Checkbutton(
+                           self.frame, text="Highlight Flagged Blocks",
+                           variable=self._highlight_flagged_blocks_trace_var,
                            bd=0,padx=0,pady=0)
-        self.filter_flagged_blocks_checkbutton.pack(side=tkinter.TOP,
+        self.highlight_flagged_blocks_checkbutton.pack(side=tkinter.TOP,
                                                     anchor="w")
 
     def _handle_open(self):
@@ -105,12 +106,12 @@ class ControlView():
             self.max_hashes_entry.insert(0, "%s"%max_hashes)
 
         # only set if max_hashes changes
-        if max_hashes != self._filters.max_hashes:
-            self._filters.max_hashes = max_hashes
-            self._filters.fire_change()
+        if max_hashes != self._highlights.max_hashes:
+            self._highlights.max_hashes = max_hashes
+            self._highlights.fire_change()
 
-    def _handle_filter_flagged_blocks_selection(self, *args):
-        self._filters.filter_flagged_blocks = \
-                              self._filter_flagged_blocks_trace_var.get()
-        self._filters.fire_change()
+    def _handle_highlight_flagged_blocks_selection(self, *args):
+        self._highlights.highlight_flagged_blocks = \
+                              self._highlight_flagged_blocks_trace_var.get()
+        self._highlights.fire_change()
 

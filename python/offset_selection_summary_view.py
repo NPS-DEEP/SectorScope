@@ -13,17 +13,17 @@ class OffsetSelectionSummaryView():
       frame(Frame): the containing frame for this view.
     """
 
-    def __init__(self, master, identified_data, filters, offset_selection):
+    def __init__(self, master, identified_data, highlights, offset_selection):
         """Args:
           master(a UI container): Parent.
           identified_data(IdentifiedData): Identified data about the scan.
-          filters(Filters): Filters that impact the view.
+          highlights(Highlights): Highlights that impact the view.
           offset_selection(OffsetSelection): The selected offset.
         """
 
         # data variables
         self._identified_data = identified_data
-        self._filters = filters
+        self._highlights = highlights
         self._offset_selection = offset_selection
 
         # make the containing frame
@@ -58,19 +58,19 @@ class OffsetSelectionSummaryView():
         self._add_hash_button = tkinter.Button(controls_frame,
                                 image=self._add_hash_icon,
                                 state=tkinter.DISABLED,
-                                command=self._handle_add_hash_to_filter)
+                                command=self._handle_add_hash_to_highlight)
         self._add_hash_button.pack(side=tkinter.LEFT, padx=(0,0))
-        Tooltip(self._add_hash_button, "Filter the selected hash")
+        Tooltip(self._add_hash_button, "Highlight the selected hash")
 
         # button to remove hash
         self._remove_hash_icon = tkinter.PhotoImage(file=icon_path(
                                                               "remove_hash"))
         self._remove_hash_button = tkinter.Button(controls_frame,
-                                image=self._remove_hash_icon,
-                                state=tkinter.DISABLED,
-                                command=self._handle_remove_hash_from_filter)
+                              image=self._remove_hash_icon,
+                              state=tkinter.DISABLED,
+                              command=self._handle_remove_hash_from_highlight)
         self._remove_hash_button.pack(side=tkinter.LEFT)
-        Tooltip(self._remove_hash_button, "Stop filtering the selected hash")
+        Tooltip(self._remove_hash_button, "Stop highlighting the selected hash")
 
         # button to show hex view
         self._show_hex_view_icon = tkinter.PhotoImage(file=icon_path(
@@ -95,15 +95,15 @@ class OffsetSelectionSummaryView():
 
         # create the image hex window that the show hex view button can show
         self._image_hex_window = ImageHexWindow(self.frame, identified_data,
-                                                filters, offset_selection)
+                                                highlights, offset_selection)
 
-        # register to receive filter change events
-        filters.set_callback(self._handle_filter_change)
+        # register to receive highlight change events
+        highlights.set_callback(self._handle_highlight_change)
 
         # register to receive offset selection change events
         offset_selection.set_callback(self._handle_offset_selection_change)
 
-    def _handle_filter_change(self, *args):
+    def _handle_highlight_change(self, *args):
         self._set_add_and_remove_button_states()
 
     def _handle_offset_selection_change(self, *args):
@@ -146,27 +146,29 @@ class OffsetSelectionSummaryView():
         selected_hash = self._offset_selection.block_hash
 
         # set enabled state of the add hash button
-        if selected_hash not in self._filters.filtered_hashes and \
+        if selected_hash not in self._highlights.highlighted_hashes and \
                            selected_hash in self._identified_data.hashes:
             self._add_hash_button.config(state=tkinter.NORMAL)
         else:
             self._add_hash_button.config(state=tkinter.DISABLED)
 
         # set enabled state of the remove hash button
-        if selected_hash in self._filters.filtered_hashes:
+        if selected_hash in self._highlights.highlighted_hashes:
             self._remove_hash_button.config(state=tkinter.NORMAL)
         else:
             self._remove_hash_button.config(state=tkinter.DISABLED)
 
-    # button changes filter
-    def _handle_add_hash_to_filter(self):
-        self._filters.filtered_hashes.add(self._offset_selection.block_hash)
-        self._filters.fire_change()
+    # button changes highlight state
+    def _handle_add_hash_to_highlight(self):
+        self._highlights.highlighted_hashes.add(
+                                           self._offset_selection.block_hash)
+        self._highlights.fire_change()
 
-    # button changes filter
-    def _handle_remove_hash_from_filter(self):
-        self._filters.filtered_hashes.remove(self._offset_selection.block_hash)
-        self._filters.fire_change()
+    # button changes highlight state
+    def _handle_remove_hash_from_highlight(self):
+        self._highlights.highlighted_hashes.remove(
+                                           self._offset_selection.block_hash)
+        self._highlights.fire_change()
 
     # button shows hex view
     def _handle_show_hex_view(self):

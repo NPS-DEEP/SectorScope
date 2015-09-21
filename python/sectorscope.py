@@ -10,7 +10,7 @@ import tkinter
 
 # local import
 from identified_data import IdentifiedData
-from filters import Filters
+from highlights import Highlights
 from offset_selection import OffsetSelection
 from range_selection import RangeSelection
 from control_view import ControlView
@@ -23,7 +23,7 @@ from forensic_path import offset_string
 from open_manager import OpenManager
 
 # compose the GUI
-def build_gui(root_window, identified_data, filters, offset_selection,
+def build_gui(root_window, identified_data, highlights, offset_selection,
                                               range_selection, open_manager):
     # set root window attributes
     START_WIDTH = 1000
@@ -36,38 +36,39 @@ def build_gui(root_window, identified_data, filters, offset_selection,
     image_frame = tkinter.Frame(root_window)
     image_frame.pack(side=tkinter.LEFT, anchor="n")
 
-    # the filter and identified data summary views in image_frame at the top
+    # the highlight and identified data summary views in image_frame at the top
     control_and_summary_frame = tkinter.Frame(image_frame)
     control_and_summary_frame.pack(side=tkinter.TOP, anchor="w")
 
-    # the filter view in control_and_summary_frame on left
-    control_view = ControlView(control_and_summary_frame, filters, open_manager)
+    # the highlight view in control_and_summary_frame on left
+    control_view = ControlView(control_and_summary_frame, highlights,
+                                                               open_manager)
     control_view.frame.pack(side=tkinter.LEFT, padx=8, pady=8)
 
     # the summary view in control_and_summary_frame on right
     identified_data_summary_view = IdentifiedDataSummaryView(
-                                  control_and_summary_frame, identified_data)
+                                control_and_summary_frame, identified_data)
     identified_data_summary_view.frame.pack(side=tkinter.LEFT, padx=40)
 
     # the hash histogram view in image_frame in the middle
     histogram_view = HistogramView(image_frame, identified_data,
-                                  filters, offset_selection, range_selection)
+                                highlights, offset_selection, range_selection)
     histogram_view.frame.pack(side=tkinter.TOP, padx=8, pady=8, anchor="w")
 
     # the offset selection summary view in image_frame below
     offset_selection_summary_view = OffsetSelectionSummaryView(image_frame,
-                                  identified_data, filters, offset_selection)
+                                identified_data, highlights, offset_selection)
     offset_selection_summary_view.frame.pack(side=tkinter.TOP,
-                                                  padx=8, pady=8, anchor="w")
+                                                padx=8, pady=8, anchor="w")
 
     # the selected sources table in image_frame below
     selected_sources_view = SelectedSourcesView(image_frame, identified_data,
-                                                  filters, offset_selection)
+                                                highlights, offset_selection)
     selected_sources_view.frame.pack(side=tkinter.TOP, padx=8, pady=8,
                                                               anchor="w")
 
     # root_window.source_frame holds source views on the right
-    sources_view = SourcesView(root_window, identified_data, filters)
+    sources_view = SourcesView(root_window, identified_data, highlights)
     sources_view.frame.pack(side=tkinter.LEFT, padx=8, pady=8, anchor="n")
 
 # main
@@ -89,8 +90,8 @@ if __name__=="__main__":
     # the identified data dataset
     identified_data = IdentifiedData()
 
-    # the filters including the filter_changed trace variable
-    filters = Filters()
+    # the highlights data including the highlight_changed trace variable
+    highlights = Highlights()
 
     # the byte offset selection
     offset_selection = OffsetSelection()
@@ -99,11 +100,11 @@ if __name__=="__main__":
     range_selection = RangeSelection()
 
     # the open manager
-    open_manager = OpenManager(root_window, identified_data, filters,
+    open_manager = OpenManager(root_window, identified_data, highlights,
                                offset_selection, range_selection)
 
     # build the GUI
-    build_gui(root_window, identified_data, filters,
+    build_gui(root_window, identified_data, highlights,
                              offset_selection, range_selection, open_manager)
 
     # now open the be_dir

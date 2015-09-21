@@ -17,7 +17,6 @@ class HistogramPan():
         self._histogram_bar = histogram_bar
 
         # bind control mouse events
-        print(platform)
         if platform == 'darwin':
             # mac right-click is Button-2
             pan_widget.bind('<Button-2>', self._handle_pan_press, add='+')

@@ -14,21 +14,21 @@ class SourcesTable():
       Source columns are tab-spaced and contain:
         Source ID, %match, #match, file size, repository name, filename.
       Mouse motion events change the Source line background color.
-      Mouse click events toggle source filtering for that source ID.
-      The background for the Source ID is red or green based on filter.
+      Mouse click events toggle source highlighting for that source ID.
+      The background for the Source ID is red or green based on highlight.
 
     Attributes:
       frame(Frame): the containing frame for this sources table.
       _source_text(Text): The Text widget to render sources in.
     """
 
-    def __init__(self, master, identified_data, filters,
+    def __init__(self, master, identified_data, highlights,
                  *, width=40, height=12):
         """Args:
           master(a UI container): Parent.
           identified_data(IdentifiedData): All data related to the block
             hash scan.
-          filters(Filters): The filters that controll the view.
+          highlights(Highlights): The highlights that controll the view.
           width, height(int): size in characters of table.
         """
 
@@ -45,7 +45,7 @@ class SourcesTable():
 
         # variables
         self._identified_data = identified_data
-        self._filters = filters
+        self._highlights = highlights
 
         # state
         self._line_to_id = {}
@@ -83,8 +83,8 @@ class SourcesTable():
         self._source_text.bind('<Enter>', self._handle_enter, add='+')
         self._source_text.bind('<Leave>', self._handle_leave, add='+')
 
-        # register to receive filter change events
-        filters.set_callback(self._handle_filter_change)
+        # register to receive highlight change events
+        highlights.set_callback(self._handle_highlight_change)
 
     def set_data(self, source_id_set):
         """Set the view to show the source IDs in the source ID set"""
@@ -116,8 +116,8 @@ class SourcesTable():
         sector_size = self._identified_data.sector_size
         sources_offsets = self._identified_data.sources_offsets
 
-        # local reference to filtered sources
-        filtered_sources = self._filters.filtered_sources
+        # local reference to highlighted sources
+        highlighted_sources = self._highlights.highlighted_sources
 
         # put in source lines
         line = 2
@@ -174,7 +174,7 @@ class SourcesTable():
         tag_name = "line_%s" % line
 
         # determine the background color
-        if source_id in self._filters.filtered_sources:
+        if source_id in self._highlights.highlighted_sources:
             # use FILTERED color scheme
             if line == self._cursor_line:
                 foreground = "white"
@@ -235,15 +235,15 @@ class SourcesTable():
         if line not in self._line_to_id:
             return
 
-        # toggle filter state for source
+        # toggle highlight state for source
         source_id = self._line_to_id[line]
-        if source_id in self._filters.filtered_sources:
-            self._filters.filtered_sources.remove(source_id)
+        if source_id in self._highlights.highlighted_sources:
+            self._highlights.highlighted_sources.remove(source_id)
         else:
-            self._filters.filtered_sources.add(source_id)
+            self._highlights.highlighted_sources.add(source_id)
 
         # fire change
-        self._filters.fire_change()
+        self._highlights.fire_change()
 
     def _handle_enter(self, e):
         self._handle_mouse_move(e)
@@ -255,6 +255,6 @@ class SourcesTable():
             self._cursor_line = -1
             self._set_tag(old_cursor_line, self._line_to_id[old_cursor_line])
 
-    def _handle_filter_change(self, *args):
+    def _handle_highlight_change(self, *args):
         self._set_tags()
 

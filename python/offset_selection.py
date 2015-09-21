@@ -16,7 +16,7 @@ class OffsetSelection():
         zero extended.
 
     Requirement:
-      Tk must be initialized before Filters for tkinter.Variable to work.
+      Tk must be initialized for tkinter.Variable to work.
     """
 
     offset = -1
@@ -53,6 +53,6 @@ class OffsetSelection():
         self._offset_selection_changed.set(True)
 
     def set_callback(self, f):
-        """Register function f to be called on filter change."""
+        """Register function f to be called on offset selection change."""
         self._offset_selection_changed.trace_variable('w', f)
 

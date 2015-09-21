@@ -1,6 +1,6 @@
 import tkinter 
 import identified_data
-import filters
+import highlights
 
 class OpenManager():
     """Opens a bulk_extractor directory, sets data, and fires events.
@@ -10,12 +10,12 @@ class OpenManager():
       active_be_dir(str): The be_dir currently open, or "".
     """
 
-    def __init__(self, master, identified_data, filters, offset_selection,
+    def __init__(self, master, identified_data, highlights, offset_selection,
                                                          range_selection):
         """Args:
           master(a UI container): Parent.
           identified_data(IdentifiedData): Identified data about the scan.
-          filters(Filters): Filters that impact the view.
+          highlights(Highlights): Highlights that impact the view.
           offset_selection(OffsetSelection): The selected offset.
           range_selection(RangeSelection): The selected range.
         """
@@ -23,7 +23,7 @@ class OpenManager():
         # local references
         self._master = master
         self._identified_data = identified_data
-        self._filters = filters
+        self._highlights = highlights
         self._offset_selection = offset_selection
         self._range_selection = range_selection
 
@@ -53,8 +53,8 @@ class OpenManager():
         # clear any byte offset selection
         self._offset_selection.clear()
 
-        # clear any filter settings
-        self._filters.clear()
+        # clear any highlight settings
+        self._highlights.clear()
 
         # clear any byte range selection
         self._range_selection.clear()
