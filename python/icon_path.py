@@ -14,7 +14,9 @@ def icon_path(name):
         return _absolute_path("database-add.gif")
     if name == "select_all":
         return _absolute_path("plus_blue.gif")
-    if name == "clear_all":
+    if name == "clear_highlighted_sources":
+        return _absolute_path("minus_blue.gif")
+    if name == "clear_highlighted_hashes":
         return _absolute_path("minus_blue.gif")
     if name == "add_hash":
         return _absolute_path("plus_blue.gif")

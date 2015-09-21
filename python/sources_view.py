@@ -20,10 +20,6 @@ class SourcesView():
           highlights(Highlights): The highlights that controll the view.
         """
 
-        # colors
-        self.LEGEND_FILTERED = "#006633"
-        self.LEGEND_UNFILTERED = "#990000"
-
         # variables
         self._identified_data = identified_data
         self._highlights = highlights
@@ -32,28 +28,8 @@ class SourcesView():
         self.frame = tkinter.Frame(master)
 
         # add the title
-        tkinter.Label(self.frame, text='Matched Sources') \
+        tkinter.Label(self.frame, text='All Sources') \
                                             .pack(side=tkinter.TOP)
-
-        # add the select all and clear all buttons
-        select_clear_frame = tkinter.Frame(self.frame)
-        select_clear_frame.pack(pady=(0,4))
-
-        # clear button
-        self._clear_all_icon = tkinter.PhotoImage(file=icon_path("clear_all"))
-        clear_all_button = tkinter.Button(select_clear_frame,
-                       image=self._clear_all_icon,
-                       command=self._handle_clear_all_sources)
-        clear_all_button.pack(side=tkinter.LEFT, padx=2)
-        Tooltip(clear_all_button, "Do not highlight any sources")
-
-        # select button
-        self._select_all_icon = tkinter.PhotoImage(file=icon_path("select_all"))
-        select_all_button = tkinter.Button(select_clear_frame,
-                       image=self._select_all_icon,
-                       command=self._handle_set_all_sources)
-        select_all_button.pack(side=tkinter.LEFT, padx=2)
-        Tooltip(select_all_button, "Highlight all sources")
 
         # the sources table
         self._sources_table = SourcesTable(self.frame, identified_data,
@@ -70,17 +46,4 @@ class SourcesView():
         for source_id, _ in self._identified_data.source_details.items():
             source_id_set.add(source_id)
         self._sources_table.set_data(source_id_set)
-
-
-    def _handle_clear_all_sources(self, *args):
-        # clear highlighted sources and signal change
-        self._highlights.highlighted_sources.clear()
-        self._highlights.fire_change()
-
-    def _handle_set_all_sources(self, *args):
-        # set highlighted sources and signal change
-        self._highlights.highlighted_sources.clear()
-        for source_id in self._identified_data.source_details:
-            self._highlights.highlighted_sources.add(source_id)
-        self._highlights.fire_change()
 

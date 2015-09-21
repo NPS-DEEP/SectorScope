@@ -10,11 +10,12 @@ import tkinter
 
 # local import
 from identified_data import IdentifiedData
+from menu_view import MenuView
 from highlights import Highlights
 from offset_selection import OffsetSelection
 from range_selection import RangeSelection
-from control_view import ControlView
-from identified_data_summary_view import IdentifiedDataSummaryView
+from highlights_summary_view import HighlightsSummaryView
+from project_summary_view import ProjectSummaryView
 from histogram_view import HistogramView
 from offset_selection_summary_view import OffsetSelectionSummaryView
 from sources_view import SourcesView
@@ -25,6 +26,9 @@ from open_manager import OpenManager
 # compose the GUI
 def build_gui(root_window, identified_data, highlights, offset_selection,
                                               range_selection, open_manager):
+    """The left frame holds the banner, histogram, and table of selected
+    sources.  The right frame holds the table of all sources."""
+
     # set root window attributes
     START_WIDTH = 1000
     START_HEIGHT = 800
@@ -32,43 +36,51 @@ def build_gui(root_window, identified_data, highlights, offset_selection,
     root_window.minsize(width=400,height=300)
     root_window.geometry("1000x700")
 
-    # root_window.image_frame holds media image windows on the left
-    image_frame = tkinter.Frame(root_window)
-    image_frame.pack(side=tkinter.LEFT, anchor="n")
+    # banner frame on top for menu, highlights, project data
+    banner_frame = tkinter.Frame(root_window)
+    banner_frame.pack(side=tkinter.TOP, anchor="w", padx=8, pady=8)
 
-    # the highlight and identified data summary views in image_frame at the top
-    control_and_summary_frame = tkinter.Frame(image_frame)
-    control_and_summary_frame.pack(side=tkinter.TOP, anchor="w")
+    # menu
+    menu_view = MenuView(banner_frame, open_manager)
+    menu_view.frame.pack(side=tkinter.LEFT, anchor="n")
 
-    # the highlight view in control_and_summary_frame on left
-    control_view = ControlView(control_and_summary_frame, highlights,
-                                                               open_manager)
-    control_view.frame.pack(side=tkinter.LEFT, padx=8, pady=8)
+    # highlights
+    highlights_summary_view = HighlightsSummaryView(banner_frame, highlights)
+    highlights_summary_view.frame.pack(side=tkinter.LEFT, anchor="n",
+                                                           padx=(40,60))
 
-    # the summary view in control_and_summary_frame on right
-    identified_data_summary_view = IdentifiedDataSummaryView(
-                                control_and_summary_frame, identified_data)
-    identified_data_summary_view.frame.pack(side=tkinter.LEFT, padx=40)
+    # project summary
+    project_summary_view = ProjectSummaryView(
+                            banner_frame, identified_data)
+    project_summary_view.frame.pack(side=tkinter.LEFT, anchor="n")
 
-    # the hash histogram view in image_frame in the middle
-    histogram_view = HistogramView(image_frame, identified_data,
+    # middle frame
+    middle_frame = tkinter.Frame(root_window)
+    middle_frame.pack(side=tkinter.TOP, anchor="w")
+
+    # left middle
+    left_frame = tkinter.Frame(middle_frame)
+    left_frame.pack(side=tkinter.LEFT)
+
+    # the hash histogram view in left_frame in the middle
+    histogram_view = HistogramView(left_frame, identified_data,
                                 highlights, offset_selection, range_selection)
     histogram_view.frame.pack(side=tkinter.TOP, padx=8, pady=8, anchor="w")
 
-    # the offset selection summary view in image_frame below
-    offset_selection_summary_view = OffsetSelectionSummaryView(image_frame,
+    # the offset selection summary view in left_frame below
+    offset_selection_summary_view = OffsetSelectionSummaryView(left_frame,
                                 identified_data, highlights, offset_selection)
     offset_selection_summary_view.frame.pack(side=tkinter.TOP,
                                                 padx=8, pady=8, anchor="w")
 
-    # the selected sources table in image_frame below
-    selected_sources_view = SelectedSourcesView(image_frame, identified_data,
+    # the selected sources table in left_frame below
+    selected_sources_view = SelectedSourcesView(left_frame, identified_data,
                                                 highlights, offset_selection)
     selected_sources_view.frame.pack(side=tkinter.TOP, padx=8, pady=8,
                                                               anchor="w")
 
-    # root_window.source_frame holds source views on the right
-    sources_view = SourcesView(root_window, identified_data, highlights)
+    # root_window.source_frame holds source views in the middle right
+    sources_view = SourcesView(middle_frame, identified_data, highlights)
     sources_view.frame.pack(side=tkinter.LEFT, padx=8, pady=8, anchor="n")
 
 # main

@@ -44,7 +44,8 @@ class HistogramView():
                                                         side=tkinter.LEFT)
         tkinter.Label(legend_frame,text="   ",background="#660000").pack(
                                                         side=tkinter.LEFT)
-        tkinter.Label(legend_frame,text="No highlighted matches      ").pack(
+        tkinter.Label(legend_frame,
+                          text="Highlighted matches removed      ").pack(
                                                         side=tkinter.LEFT)
         tkinter.Label(legend_frame,text="   ",background="#004400").pack(
                                                         side=tkinter.LEFT)

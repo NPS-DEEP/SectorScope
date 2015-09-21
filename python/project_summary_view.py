@@ -1,8 +1,9 @@
 import tkinter 
 from forensic_path import offset_string
 
-class IdentifiedDataSummaryView():
-    """Provides a frame that prints a brief summary of the identified data.
+class ProjectSummaryView():
+    """Provides a frame that prints a brief summary of the opened project
+    from fields in identified data.
 
     Attributes:
       frame(Frame): the containing frame for the identified data summary
@@ -19,13 +20,22 @@ class IdentifiedDataSummaryView():
         # make the containing frame
         self.frame = tkinter.Frame(master)
 
+        # title
+        tkinter.Label(self.frame, text="Project").pack(side=tkinter.TOP,
+                                                               pady=(0,4))
+
+        # media image
         self._image_text = tkinter.Label(self.frame,
                       text='Image: %s' % identified_data.image_filename)
         self._image_text.pack(side=tkinter.TOP, anchor="w")
+
+        # media image size
         self._image_size_text = tkinter.Label(self.frame,
                           text='Image size: %s ' %
                           offset_string(identified_data.image_size))
         self._image_size_text.pack(side=tkinter.TOP, anchor="w")
+
+        # hashdb database path
         self._database_text = tkinter.Label(self.frame,
                       text='Database: %s'%identified_data.hashdb_dir)
         self._database_text.pack(side=tkinter.TOP, anchor="w")
@@ -35,8 +45,10 @@ class IdentifiedDataSummaryView():
 
     # this function is registered to and called by IdentifiedData
     def _handle_identified_data_change(self, *args):
-        self._image_text["text"] = 'Image: %s' % self._identified_data.image_filename
+        self._image_text["text"] = 'Image: %s' % \
+                               self._identified_data.image_filename
         self._image_size_text["text"] = 'Image size: %s' % \
-                          offset_string(self._identified_data.image_size)
-        self._database_text["text"] = 'Database: %s' % self._identified_data.hashdb_dir
+                               offset_string(self._identified_data.image_size)
+        self._database_text["text"] = 'Database: %s' % \
+                               self._identified_data.hashdb_dir
 
