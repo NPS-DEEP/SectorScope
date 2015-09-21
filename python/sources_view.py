@@ -32,7 +32,7 @@ class SourcesView():
         self.frame = tkinter.Frame(master)
 
         # add the title
-        tkinter.Label(self.frame, text='All Matched Sources') \
+        tkinter.Label(self.frame, text='Matched Sources') \
                                             .pack(side=tkinter.TOP)
 
         # add the select all and clear all buttons

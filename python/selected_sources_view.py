@@ -5,7 +5,7 @@ from sources_table import SourcesTable
 from icon_path import icon_path
 from tooltip import Tooltip
 
-class SimilarSourcesView():
+class SelectedSourcesView():
     """Provides a view for sources that match the selected hash.
 
     Attributes:
@@ -27,7 +27,7 @@ class SimilarSourcesView():
         self.frame = tkinter.Frame(master)
 
         # the title
-        tkinter.Label(self.frame, text='Similar Matched Sources') \
+        tkinter.Label(self.frame, text='Selected Sources') \
                                             .pack(side=tkinter.TOP)
 
         # the sources table
