@@ -40,16 +40,16 @@ class HistogramView():
         legend_frame.pack(side=tkinter.TOP, pady=4)
         tkinter.Label(legend_frame,text="   ",background="#000066").pack(
                                                         side=tkinter.LEFT)
-        tkinter.Label(legend_frame,text="All matches      ").pack(
+        tkinter.Label(legend_frame,text="All      ").pack(
                                                         side=tkinter.LEFT)
         tkinter.Label(legend_frame,text="   ",background="#660000").pack(
                                                         side=tkinter.LEFT)
         tkinter.Label(legend_frame,
-                          text="Highlighted matches removed      ").pack(
+                          text="Not highlighted      ").pack(
                                                         side=tkinter.LEFT)
         tkinter.Label(legend_frame,text="   ",background="#004400").pack(
                                                         side=tkinter.LEFT)
-        tkinter.Label(legend_frame,text="Highlighted matches only").pack(
+        tkinter.Label(legend_frame,text="Highlighted").pack(
                                                         side=tkinter.LEFT)
 
         # create a bordered frame to contain the histogram and control buttons

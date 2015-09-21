@@ -89,10 +89,10 @@ class HistogramBar():
         # enable pan support
         HistogramPan(self, l)
 
-        Tooltip(l, "Click to select offset\n"
-                   "Right-click drag to select region\n"
-                   "Left-click drag to pan\n"
-                   "Scroll to zoom")
+#        Tooltip(l, "Click to select offset\n"
+#                   "Right-click drag to select region\n"
+#                   "Left-click drag to pan\n"
+#                   "Scroll to zoom")
 
         # add the frame for offset values
         offsets_frame = tkinter.Frame(self.frame, height=18+0)
