@@ -34,7 +34,6 @@ class Highlights():
         self.highlight_flagged_blocks = True
         self.highlighted_sources.clear()
         self.highlighted_hashes.clear()
-        self.fire_change()
 
     def fire_change(self):
         """Call this function to alert that highlighting changed."""

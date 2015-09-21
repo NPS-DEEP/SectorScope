@@ -55,6 +55,7 @@ class OpenManager():
 
         # clear any highlight settings
         self._highlights.clear()
+        self._highlights.fire_change()
 
         # clear any byte range selection
         self._range_selection.clear()
