@@ -414,10 +414,14 @@ class HistogramBar():
     # convert mouse coordinate to byte offset
     def _mouse_to_offset(self, e):
         # get x from mouse
-        image_offset = int(self.start_offset + self._bytes_per_pixel * (e.x))
+        image_offset = self.start_offset + self._bytes_per_pixel * (e.x)
 
-        # return offset rounded down to sector boundary
-        return image_offset - image_offset % self._sector_size
+        # get bucket offset
+        bucket_offset = int(image_offset - image_offset % (
+                                  self._bytes_per_pixel * self.BUCKET_WIDTH))
+
+        # return bucket offset rounded down to sector boundary
+        return bucket_offset - bucket_offset % self._sector_size
 
     # convert byte offset to pixel
     def _offset_to_pixel(self, image_offset):
