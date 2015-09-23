@@ -29,8 +29,8 @@ class HistogramBar():
     HISTOGRAM_BAR_HEIGHT = 180 # make divisible by 3 so bar rows align
 
     # histogram bar start offset and scale
-    start_offset = None
-    _bytes_per_pixel = None
+    start_offset = 0
+    _bytes_per_pixel = 0
 
     # cursor byte offset
     _is_valid_cursor = False
@@ -42,13 +42,14 @@ class HistogramBar():
     _histogram_dragged = False
 
     def __init__(self, master, identified_data, highlights, offset_selection,
-                                                         range_selection):
+                                       range_selection, fit_range_selection):
         """Args:
           master(a UI container): Parent.
           identified_data(IdentifiedData): Identified data about the scan.
           highlights(Highlights): Highlights that impact the view.
           offset_selection(OffsetSelection): The selected offset.
           range_selection(RangeSelection): The selected range.
+          fit_range_selection(FitRangeSelection): Receive signal to fit range.
         """
 
         # data variables
@@ -68,7 +69,8 @@ class HistogramBar():
         self.frame.pack()
 
         # add the label containing the histogram bar PhotoImage
-        l = tkinter.Label(self.frame, image=self._photo_image)
+        l = tkinter.Label(self.frame, image=self._photo_image,
+                                                relief=tkinter.SUNKEN, bd=1)
         l.pack(side=tkinter.TOP)
 
         # bind histogram mouse motion events
@@ -122,6 +124,12 @@ class HistogramBar():
         # register to receive range selection change events
         offset_selection.set_callback(self._handle_range_selection_change)
 
+        # register to receive fit range selection change events
+        offset_selection.set_callback(self._handle_fit_range_selection_change)
+
+        # set to basic initial state
+        self._handle_identified_data_change()
+
     # this function is registered to and called by Highlights
     def _handle_highlight_change(self, *args):
 
@@ -164,6 +172,10 @@ class HistogramBar():
     def _handle_range_selection_change(self, *args):
         # draw
         self._draw()
+
+    # this function is registered to and called by FitRangeSelection
+    def _handle_fit_range_selection_change(self, *args):
+        self._fit_range()
 
     def _calculate_hash_counts(self):
 
@@ -546,7 +558,7 @@ class HistogramBar():
             self._calculate_bucket_data()
             self._draw()
 
-    def fit_range(self):
+    def _fit_range(self):
         """Fit view to range selection."""
         # get start_byte and stop_byte range
         start_byte = self._range_selection.start_offset

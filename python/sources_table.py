@@ -86,6 +86,9 @@ class SourcesTable():
         # register to receive highlight change events
         highlights.set_callback(self._handle_highlight_change)
 
+        # set initial state
+        self.set_data(set())
+
     def set_data(self, source_id_set):
         """Set the view to show the source IDs in the source ID set"""
 

@@ -113,7 +113,9 @@ class IdentifiedData():
         be_report_file = os.path.join(be_dir, "report.xml")
 
         if not os.path.exists(be_report_file):
-            raise ValueError("bulk_extractor Report file '%s'\ndoes not exist.")
+            print("id.b", be_report_file)
+            raise ValueError("bulk_extractor Report file '%s'\n"
+                             "does not exist." % be_report_file)
 
         xmldoc = xml.dom.minidom.parse(open(be_report_file, 'r'))
 

@@ -6,8 +6,8 @@ from offset_selection import OffsetSelection
 from histogram_bar import HistogramBar
 from image_hex_window import ImageHexWindow
 
-class OffsetSelectionSummaryView():
-    """Provides a summary and controls for the selected offset.
+class OffsetSelectionView():
+    """The selection view including title, offset, MD5, and button controls.
 
     Attributes:
       frame(Frame): the containing frame for this view.
@@ -29,69 +29,61 @@ class OffsetSelectionSummaryView():
         # make the containing frame
         self.frame = tkinter.Frame(master)
 
-#        # add the title
-#        tkinter.Label(self.frame, text="Selected Offset:").pack(
-#                                                 side=tkinter.LEFT, padx=20)
+        # title
+        tkinter.Label(self.frame, text="Offset Selection").pack(
+                                                side=tkinter.TOP, anchor="w")
 
-        # add the selection frame
-        selection_frame = tkinter.Frame(self.frame)
-        selection_frame.pack(side=tkinter.LEFT, anchor="w")
+        # offset label
+        self._offset_label = tkinter.Label(self.frame, anchor="w")
+        self._offset_label.pack(side=tkinter.TOP, anchor="w", fill=tkinter.X)
 
-        # add the selected image byte offset label
-        self._selected_image_offset_label = tkinter.Label(selection_frame,
-                                    anchor=tkinter.W)
-        self._selected_image_offset_label.pack(side=tkinter.TOP, anchor="w",
-                                                             fill=tkinter.X)
+        # MD5 label
+        self._md5_label = tkinter.Label(self.frame, anchor="w", width=50)
+        self._md5_label.pack(side=tkinter.TOP, anchor="w", fill=tkinter.X)
 
-        # add the selected image byte offset hash label
-        self._selected_image_offset_hash_label = tkinter.Label(selection_frame,
-                                                    anchor="w", width=55)
-        self._selected_image_offset_hash_label.pack(side=tkinter.TOP,
-                                                    anchor="w", fill=tkinter.X)
+        # button frame
+        button_frame = tkinter.Frame(self.frame)
+        button_frame.pack(side=tkinter.LEFT)
 
-        # add the controls frame
-        controls_frame = tkinter.Frame(self.frame)
-        controls_frame.pack(side=tkinter.LEFT)
-
-        # button to add hash
+        # button to add selected hash
         self._add_hash_icon = tkinter.PhotoImage(file=icon_path("add_hash"))
-        self._add_hash_button = tkinter.Button(controls_frame,
+        self._add_hash_button = tkinter.Button(button_frame,
                                 image=self._add_hash_icon,
                                 state=tkinter.DISABLED,
                                 command=self._handle_add_hash_to_highlight)
         self._add_hash_button.pack(side=tkinter.LEFT, padx=(0,0))
         Tooltip(self._add_hash_button, "Highlight the selected hash")
 
-        # button to remove hash
+        # button to remove selected hash
         self._remove_hash_icon = tkinter.PhotoImage(file=icon_path(
                                                               "remove_hash"))
-        self._remove_hash_button = tkinter.Button(controls_frame,
+        self._remove_hash_button = tkinter.Button(button_frame,
                               image=self._remove_hash_icon,
                               state=tkinter.DISABLED,
                               command=self._handle_remove_hash_from_highlight)
         self._remove_hash_button.pack(side=tkinter.LEFT)
         Tooltip(self._remove_hash_button, "Stop highlighting the selected hash")
 
-        # button to show hex view
+        # button to show hex view for selection
         self._show_hex_view_icon = tkinter.PhotoImage(file=icon_path(
                                                               "show_hex_view"))
-        self._show_hex_view_button = tkinter.Button(controls_frame,
+        self._show_hex_view_button = tkinter.Button(button_frame,
                                 image=self._show_hex_view_icon,
                                 state=tkinter.DISABLED,
                                 command=self._handle_show_hex_view)
         self._show_hex_view_button.pack(side=tkinter.LEFT, padx=8)
         Tooltip(self._show_hex_view_button, "Show hex view of selection")
 
-        # button to deselect offset selection
-        self._deselect_offset_selection_icon = tkinter.PhotoImage(
-                                file=icon_path( "deselect_offset_selection"))
-        self._deselect_offset_selection_button = tkinter.Button(controls_frame,
-                                image=self._deselect_offset_selection_icon,
+        # button to clear the offset selection
+        self._clear_offset_selection_icon = tkinter.PhotoImage(
+                                file=icon_path( "clear_offset_selection"))
+        self._clear_offset_selection_button = tkinter.Button(button_frame,
+                                image=self._clear_offset_selection_icon,
                                 state=tkinter.DISABLED,
-                                command=self._handle_deselect_offset_selection)
-        self._deselect_offset_selection_button.pack(side=tkinter.LEFT)
-        Tooltip(self._deselect_offset_selection_button,
-                                             "Deselect the selection")
+                                command=self._handle_clear_offset_selection)
+        self._clear_offset_selection_button.pack(side=tkinter.LEFT)
+        Tooltip(self._clear_offset_selection_button,
+                                             "Clear the selected range")
 
         # create the image hex window that the show hex view button can show
         self._image_hex_window = ImageHexWindow(self.frame, identified_data,
@@ -103,39 +95,11 @@ class OffsetSelectionSummaryView():
         # register to receive offset selection change events
         offset_selection.set_callback(self._handle_offset_selection_change)
 
+        # set initial state
+        self._handle_highlight_change()
+        self._handle_offset_selection_change()
+
     def _handle_highlight_change(self, *args):
-        self._set_add_and_remove_button_states()
-
-    def _handle_offset_selection_change(self, *args):
-        self._set_add_and_remove_button_states()
-
-        # set the selected image offset and its associated hash value
-        if self._offset_selection.offset == -1:
-            # clear
-            self._selected_image_offset_label['text'] = \
-                               "Selected offset: Not selected"
-            self._selected_image_offset_hash_label['text'] = \
-                               "MD5 at offset: Not selected"
-
-        else:
-            # set to selection
-            self._selected_image_offset_label["text"] = \
-                                       "Selected offset: %s" % offset_string(
-                                       self._offset_selection.offset)
-            self._selected_image_offset_hash_label["text"] = \
-                 "MD5 at offset: %s" % self._offset_selection.block_hash
-
-        # enable or disable buttons that use an offset selection
-        if self._offset_selection.offset == -1:
-            self._show_hex_view_button.config(state=tkinter.DISABLED)
-            self._deselect_offset_selection_button.config(
-                                              state=tkinter.DISABLED)
-        else:
-            self._show_hex_view_button.config(state=tkinter.NORMAL)
-            self._deselect_offset_selection_button.config(
-                                              state=tkinter.NORMAL)
-
-    def _set_add_and_remove_button_states(self):
         # disable both if there is no active selection
         if self._offset_selection.offset == -1:
             self._add_hash_button.config(state=tkinter.DISABLED)
@@ -158,6 +122,30 @@ class OffsetSelectionSummaryView():
         else:
             self._remove_hash_button.config(state=tkinter.DISABLED)
 
+
+    def _handle_offset_selection_change(self, *args):
+
+        # set the selected image offset and its associated hash value
+        if self._offset_selection.offset == -1:
+            # clear
+            self._offset_label['text'] = "Selected offset: Not selected"
+            self._md5_label['text'] = "MD5 at offset: Not selected"
+
+            self._show_hex_view_button.config(state=tkinter.DISABLED)
+            self._clear_offset_selection_button.config(
+                                              state=tkinter.DISABLED)
+
+        else:
+            # set to selection
+            self._offset_label["text"] = "Selected offset: %s" % offset_string(
+                                       self._offset_selection.offset)
+            self._md5_label["text"] = \
+                 "MD5 at offset: %s" % self._offset_selection.block_hash
+
+            self._show_hex_view_button.config(state=tkinter.NORMAL)
+            self._clear_offset_selection_button.config(
+                                              state=tkinter.NORMAL)
+
     # button changes highlight state
     def _handle_add_hash_to_highlight(self):
         self._highlights.highlighted_hashes.add(
@@ -174,7 +162,7 @@ class OffsetSelectionSummaryView():
     def _handle_show_hex_view(self):
         self._image_hex_window.show()
 
-    # button deselects the current offset selection
-    def _handle_deselect_offset_selection(self):
+    # button clears the current offset selection
+    def _handle_clear_offset_selection(self):
         self._offset_selection.clear()
 
