@@ -69,24 +69,24 @@ def build_gui(root_window, identified_data, highlights, offset_selection,
                       offset_selection, range_selection, fit_range_selection)
     histogram_view.frame.pack(side=tkinter.TOP, padx=8, pady=8, anchor="w")
 
-    # the selection and range selection frame
-    selection_and_range_selection_frame = tkinter.Frame(left_frame)
-    selection_and_range_selection_frame.pack(side=tkinter.TOP, anchor="w")
-
-    # the selection view
-    offset_selection_view = OffsetSelectionView(
-                                selection_and_range_selection_frame,
-                                identified_data, highlights, offset_selection)
-    offset_selection_view.frame.pack(side=tkinter.LEFT,
-                                                padx=8, pady=8, anchor="w")
+    # the range and offset selection frame
+    range_and_offset_selection_frame = tkinter.Frame(left_frame)
+    range_and_offset_selection_frame.pack(side=tkinter.TOP, anchor="w")
 
     # the range selection view
     range_selection_view = RangeSelectionView(
-                                        selection_and_range_selection_frame,
+                                        range_and_offset_selection_frame,
                                         identified_data, highlights,
                                         range_selection, fit_range_selection)
     range_selection_view.frame.pack(side=tkinter.LEFT,
                                                 padx=8, pady=8, anchor="w")
+
+    # the offset selection view
+    offset_selection_view = OffsetSelectionView(
+                                range_and_offset_selection_frame,
+                                identified_data, highlights, offset_selection)
+    offset_selection_view.frame.pack(side=tkinter.LEFT,
+                                            padx=8, pady=0, anchor="w")
 
     # the selected sources table in left_frame below
     selected_sources_view = SelectedSourcesView(left_frame, identified_data,

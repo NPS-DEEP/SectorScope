@@ -50,12 +50,12 @@ class OpenManager():
             self._show_error(e)
             return
 
-        # clear any byte offset selection
-        self._offset_selection.clear()
-
         # clear any highlight settings
         self._highlights.clear()
         self._highlights.fire_change()
+
+        # clear any byte offset selection
+        self._offset_selection.clear()
 
         # clear any byte range selection
         self._range_selection.clear()

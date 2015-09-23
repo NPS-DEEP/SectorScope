@@ -119,13 +119,14 @@ class HistogramBar():
         highlights.set_callback(self._handle_highlight_change)
 
         # register to receive offset selection change events
-        range_selection.set_callback(self._handle_offset_selection_change)
+        offset_selection.set_callback(self._handle_offset_selection_change)
 
         # register to receive range selection change events
-        offset_selection.set_callback(self._handle_range_selection_change)
+        range_selection.set_callback(self._handle_range_selection_change)
 
         # register to receive fit range selection change events
-        offset_selection.set_callback(self._handle_fit_range_selection_change)
+        fit_range_selection.set_callback(
+                                    self._handle_fit_range_selection_change)
 
         # set to basic initial state
         self._handle_identified_data_change()
@@ -147,7 +148,7 @@ class HistogramBar():
         self._image_size = self._identified_data.image_size
         self._sector_size = self._identified_data.sector_size
 
-        # initial zoomed-out position variables
+        # start fully zoomed out
         self.start_offset = 0
         self._bytes_per_pixel = self._image_size / self.HISTOGRAM_BAR_WIDTH
 
@@ -313,6 +314,9 @@ class HistogramBar():
 
     # draw all the buckets
     def _draw_buckets(self):
+        # skip empty initial-state data
+        if self._bytes_per_pixel == 0:
+            return
 
         # valid bucket boundaries map inside the image
         leftmost_bucket = max(int((0 - self.start_offset) /

@@ -55,8 +55,8 @@ class IdentifiedData():
         self.image_size = 0
         self.image_filename = ""
         self.hashdb_dir = ""
-        self.sector_size = 512
-        self.block_size = 512
+        self.sector_size = 0
+        self.block_size = 0
         self.forensic_paths = dict()
         self.hashes = dict()
         self.source_details = dict()

@@ -36,6 +36,8 @@ def icon_path(name):
         return _absolute_path("list-remove-3.gif")
     if name == "show_hex_view":
         return _absolute_path("text-x-hex.gif")
+    if name == "view_annotations":
+        return _absolute_path("window.gif")
     if name == "clear_offset_selection":
         return _absolute_path("list-remove-3.gif")
 

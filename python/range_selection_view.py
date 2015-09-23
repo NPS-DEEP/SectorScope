@@ -35,10 +35,10 @@ class RangeSelectionView():
 
         # title
         tkinter.Label(self.frame, text="Range Selection").pack(
-                                               side=tkinter.TOP, anchor="w")
+                                               side=tkinter.TOP, pady=(0,4))
 
         # range from
-        self._from_label = tkinter.Label(self.frame)
+        self._from_label = tkinter.Label(self.frame, anchor="w", width=35)
         self._from_label.pack(side=tkinter.TOP, anchor="w")
 
         # range to
@@ -47,7 +47,7 @@ class RangeSelectionView():
 
         # button frame
         button_frame = tkinter.Frame(self.frame)
-        button_frame.pack(side=tkinter.TOP, anchor="w")
+        button_frame.pack(side=tkinter.TOP)
 
         # zoom to fit range
         self._fit_range_icon = tkinter.PhotoImage(file=icon_path("fit_range"))
