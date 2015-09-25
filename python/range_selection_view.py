@@ -1,4 +1,5 @@
 import tkinter
+from colors import background, activebackground
 from forensic_path import offset_string
 from icon_path import icon_path
 from tooltip import Tooltip
@@ -31,18 +32,19 @@ class RangeSelectionView():
         self._fit_range_selection = fit_range_selection
 
         # make the containing frame
-        self.frame = tkinter.Frame(master)
+        self.frame = tkinter.Frame(master, bg=background)
 
         # title
-        tkinter.Label(self.frame, text="Range Selection").pack(
+        tkinter.Label(self.frame, text="Range Selection", bg=background).pack(
                                                side=tkinter.TOP, pady=(0,4))
 
         # range from
-        self._from_label = tkinter.Label(self.frame, anchor="w", width=35)
+        self._from_label = tkinter.Label(self.frame, anchor="w", width=38,
+                                                             bg=background)
         self._from_label.pack(side=tkinter.TOP, anchor="w")
 
         # range to
-        self._to_label = tkinter.Label(self.frame)
+        self._to_label = tkinter.Label(self.frame, bg=background)
         self._to_label.pack(side=tkinter.TOP, anchor="w")
 
         # button frame
@@ -53,7 +55,9 @@ class RangeSelectionView():
         self._fit_range_icon = tkinter.PhotoImage(file=icon_path("fit_range"))
         self._fit_range_button = tkinter.Button(button_frame,
                               image=self._fit_range_icon,
-                              command=self._fit_range_selection.fire_change)
+                              command=self._fit_range_selection.fire_change,
+                              bg=background, activebackground=activebackground,
+                              highlightthickness=0)
         self._fit_range_button.pack(side=tkinter.LEFT)
         Tooltip(self._fit_range_button, "Zoom to range")
 
@@ -62,7 +66,9 @@ class RangeSelectionView():
                                   file=icon_path("highlight_range"))
         self._highlight_sources_in_range_button = tkinter.Button(button_frame,
                               image=self._highlight_sources_in_range_icon,
-                              command=self._handle_highlight_sources_in_range)
+                              command=self._handle_highlight_sources_in_range,
+                              bg=background, activebackground=activebackground,
+                              highlightthickness=0)
         self._highlight_sources_in_range_button.pack(side=tkinter.LEFT)
         Tooltip(self._highlight_sources_in_range_button,
                                                "Highlight sources in range")
@@ -73,7 +79,9 @@ class RangeSelectionView():
         self._highlight_all_but_sources_in_range_button = tkinter.Button(
                       button_frame,
                       image=self._highlight_all_but_sources_in_range_icon,
-                      command=self._handle_highlight_all_but_sources_in_range)
+                      command=self._handle_highlight_all_but_sources_in_range,
+                      bg=background, activebackground=activebackground,
+                      highlightthickness=0)
         self._highlight_all_but_sources_in_range_button.pack(side=tkinter.LEFT)
         Tooltip(self._highlight_all_but_sources_in_range_button,
                           "Highlight all but sources in range")
@@ -82,8 +90,10 @@ class RangeSelectionView():
         self._clear_range_icon = tkinter.PhotoImage(
                                   file=icon_path("clear_range"))
         self._clear_range_button = tkinter.Button(button_frame,
-                                  image=self._clear_range_icon,
-                                  command=self._handle_clear_range)
+                              image=self._clear_range_icon,
+                              command=self._handle_clear_range,
+                              bg=background, activebackground=activebackground,
+                              highlightthickness=0)
         self._clear_range_button.pack(side=tkinter.LEFT)
         Tooltip(self._clear_range_button, "Deselect range")
 

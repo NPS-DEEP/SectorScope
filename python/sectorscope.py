@@ -24,6 +24,7 @@ from sources_view import SourcesView
 from selected_sources_view import SelectedSourcesView
 from forensic_path import offset_string
 from open_manager import OpenManager
+from colors import background
 
 # compose the GUI
 def build_gui(root_window, identified_data, highlights, offset_selection,
@@ -37,10 +38,11 @@ def build_gui(root_window, identified_data, highlights, offset_selection,
     root_window.title("SectorScope")
     root_window.minsize(width=400,height=300)
     root_window.geometry("1000x700")
+    root_window.configure(bg=background)
 
     # banner frame on top for menu, highlights, project data
-    banner_frame = tkinter.Frame(root_window)
-    banner_frame.pack(side=tkinter.TOP, anchor="w", padx=8, pady=8)
+    banner_frame = tkinter.Frame(root_window, bg=background)
+    banner_frame.pack(side=tkinter.TOP, anchor="w", padx=4, pady=(4,0))
 
     # menu
     menu_view = MenuView(banner_frame, open_manager)
@@ -57,46 +59,43 @@ def build_gui(root_window, identified_data, highlights, offset_selection,
     project_summary_view.frame.pack(side=tkinter.LEFT, anchor="n")
 
     # middle frame
-    middle_frame = tkinter.Frame(root_window)
-    middle_frame.pack(side=tkinter.TOP, anchor="w")
+    middle_frame = tkinter.Frame(root_window, bg=background)
+    middle_frame.pack(side=tkinter.TOP, anchor="w", padx=4, pady=4)
 
     # left middle
-    left_frame = tkinter.Frame(middle_frame)
+    left_frame = tkinter.Frame(middle_frame, bg=background)
     left_frame.pack(side=tkinter.LEFT)
 
-    # the hash histogram view in left_frame in the middle
+    # the histogram view in left_frame in the middle
     histogram_view = HistogramView(left_frame, identified_data, highlights,
                       offset_selection, range_selection, fit_range_selection)
-    histogram_view.frame.pack(side=tkinter.TOP, padx=8, pady=8, anchor="w")
+    histogram_view.frame.pack(side=tkinter.TOP, anchor="w")
 
     # the range and offset selection frame
     range_and_offset_selection_frame = tkinter.Frame(left_frame)
-    range_and_offset_selection_frame.pack(side=tkinter.TOP, anchor="w")
+    range_and_offset_selection_frame.pack(side=tkinter.TOP, anchor="w", pady=4)
 
     # the range selection view
     range_selection_view = RangeSelectionView(
                                         range_and_offset_selection_frame,
                                         identified_data, highlights,
                                         range_selection, fit_range_selection)
-    range_selection_view.frame.pack(side=tkinter.LEFT,
-                                                padx=8, pady=8, anchor="w")
+    range_selection_view.frame.pack(side=tkinter.LEFT, anchor="w")
 
     # the offset selection view
     offset_selection_view = OffsetSelectionView(
                                 range_and_offset_selection_frame,
                                 identified_data, highlights, offset_selection)
-    offset_selection_view.frame.pack(side=tkinter.LEFT,
-                                            padx=8, pady=0, anchor="w")
+    offset_selection_view.frame.pack(side=tkinter.LEFT, anchor="w")
 
     # the selected sources table in left_frame below
     selected_sources_view = SelectedSourcesView(left_frame, identified_data,
                                                 highlights, offset_selection)
-    selected_sources_view.frame.pack(side=tkinter.TOP, padx=8, pady=8,
-                                                              anchor="w")
+    selected_sources_view.frame.pack(side=tkinter.TOP, anchor="w")
 
     # root_window.source_frame holds source views in the middle right
     sources_view = SourcesView(middle_frame, identified_data, highlights)
-    sources_view.frame.pack(side=tkinter.LEFT, padx=8, pady=8, anchor="n")
+    sources_view.frame.pack(side=tkinter.LEFT, anchor="n", padx=(4,0))
 
 # main
 if __name__=="__main__":

@@ -1,4 +1,5 @@
 import tkinter 
+from colors import background
 from forensic_path import offset_string
 
 class ProjectSummaryView():
@@ -18,22 +19,22 @@ class ProjectSummaryView():
         self._identified_data = identified_data
 
         # make the containing frame
-        self.frame = tkinter.Frame(master)
+        self.frame = tkinter.Frame(master, bg=background)
 
         # title
-        tkinter.Label(self.frame, text="Project").pack(side=tkinter.TOP,
-                                                               pady=(0,4))
+        tkinter.Label(self.frame, text="Project", bg=background).pack(
+                                             side=tkinter.TOP, pady=(0,4))
 
         # media image
-        self._image_text = tkinter.Label(self.frame)
+        self._image_text = tkinter.Label(self.frame, bg=background)
         self._image_text.pack(side=tkinter.TOP, anchor="w")
 
         # media image size
-        self._image_size_text = tkinter.Label(self.frame)
+        self._image_size_text = tkinter.Label(self.frame, bg=background)
         self._image_size_text.pack(side=tkinter.TOP, anchor="w")
 
         # hashdb database path
-        self._database_text = tkinter.Label(self.frame)
+        self._database_text = tkinter.Label(self.frame, bg=background)
         self._database_text.pack(side=tkinter.TOP, anchor="w")
 
         # register to receive identified_data change events

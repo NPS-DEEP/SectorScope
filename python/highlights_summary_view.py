@@ -4,6 +4,7 @@ from icon_path import icon_path
 from tooltip import Tooltip
 from be_scan_window import BEScanWindow
 from be_import_window import BEImportWindow
+from colors import background, activebackground
 
 class HighlightsSummaryView():
     """Provides a highlight summary frame containing highlight controls.
@@ -28,16 +29,18 @@ class HighlightsSummaryView():
         self._highlights = highlights
 
         # make the containing frame
-        self.frame = tkinter.Frame(master, padx=4, pady=4)
+        self.frame = tkinter.Frame(master, bg=background)
 
         # title
-        tkinter.Label(self.frame, text="Highlights").pack(pady=(0,4))
+        tkinter.Label(self.frame, text="Highlights", bg=background).pack(
+                                                               pady=(0,4))
 
         # max hashes text entry
-        max_hashes_frame = tkinter.Frame(self.frame)
+        max_hashes_frame = tkinter.Frame(self.frame, bg=background)
         max_hashes_frame.pack(side=tkinter.TOP, anchor="w")
-        tkinter.Label(max_hashes_frame, text="Max Same Hashes:") \
-                                        .pack(side=tkinter.LEFT, anchor="w")
+        tkinter.Label(max_hashes_frame, text="Max Same Hashes:", padx=0, pady=0,
+                                        bg=background).pack(
+                                        side=tkinter.LEFT, anchor="w")
         self.max_hashes_entry = tkinter.Entry(max_hashes_frame, width=6)
         self.max_hashes_entry.insert(0, "None")
         self.max_hashes_entry.pack(side=tkinter.LEFT, anchor="w")
@@ -50,9 +53,10 @@ class HighlightsSummaryView():
 
         # highlight_flagged_blocks checkbutton
         self.highlight_flagged_blocks_checkbutton = tkinter.Checkbutton(
-                           self.frame, text="Highlight Flagged Blocks",
-                           variable=self._highlight_flagged_blocks_trace_var,
-                           bd=0,padx=2,pady=2)
+                        self.frame, text="Highlight Flagged Blocks",
+                        variable=self._highlight_flagged_blocks_trace_var,
+                        bd=0, bg=background, activebackground=activebackground,
+                        pady=4, highlightthickness=0)
         self.highlight_flagged_blocks_checkbutton.pack(side=tkinter.TOP,
                                                     anchor="w")
 
@@ -62,7 +66,7 @@ class HighlightsSummaryView():
         self._highlight_flagged_blocks_trace_var.trace_variable('w',
                              self._handle_highlight_flagged_blocks_selection)
 
-        buttons_frame = tkinter.Frame(self.frame)
+        buttons_frame = tkinter.Frame(self.frame, bg=background)
         buttons_frame.pack(side=tkinter.TOP, anchor="w")
 
         # clear highlighted sources button
@@ -70,28 +74,32 @@ class HighlightsSummaryView():
                                  file=icon_path("clear_highlighted_sources"))
         clear_highlighted_sources_button = tkinter.Button(buttons_frame,
                            image=self._clear_highlighted_sources_icon,
-                           command=self._handle_clear_highlighted_sources)
-        clear_highlighted_sources_button.pack(side=tkinter.LEFT, padx=2)
+                           command=self._handle_clear_highlighted_sources,
+                           bg=background, activebackground=activebackground,
+                           highlightthickness=0)
+        clear_highlighted_sources_button.pack(side=tkinter.LEFT)
         Tooltip(clear_highlighted_sources_button,
                                              "Clear all highlighted sources")
 
         # clear highlighted sources label
-        tkinter.Label(buttons_frame, text="Sources"
-                          ).pack(side=tkinter.LEFT, anchor="w", padx=(0,16))
+        tkinter.Label(buttons_frame, text="Sources", bg=background
+                          ).pack(side=tkinter.LEFT, anchor="w", padx=(2,16))
 
         # clear highlighted hashes button
         self._clear_highlighted_hashes_icon = tkinter.PhotoImage(
                                  file=icon_path("clear_highlighted_hashes"))
         clear_highlighted_hashes_button = tkinter.Button(buttons_frame,
                            image=self._clear_highlighted_hashes_icon,
-                           command=self._handle_clear_highlighted_hashes)
-        clear_highlighted_hashes_button.pack(side=tkinter.LEFT, padx=2)
+                           command=self._handle_clear_highlighted_hashes,
+                           bg=background, activebackground=activebackground,
+                           highlightthickness=0)
+        clear_highlighted_hashes_button.pack(side=tkinter.LEFT)
         Tooltip(clear_highlighted_hashes_button,
                                              "Clear all highlighted hashes")
 
         # clear highlighted hashes label
-        tkinter.Label(buttons_frame, text="Hashes"
-                                        ).pack(side=tkinter.LEFT, anchor="w")
+        tkinter.Label(buttons_frame, text="Hashes", bg=background
+                          ).pack(side=tkinter.LEFT, anchor="w", padx=(2,0))
 
         # register to receive highlight change events
         highlights.set_callback(self._handle_highlight_change)

@@ -1,4 +1,5 @@
 import tkinter 
+from colors import background
 from collections import defaultdict
 from scrolled_text import ScrolledText
 from icon_path import icon_path
@@ -25,11 +26,11 @@ class SourcesView():
         self._highlights = highlights
 
         # make the containing frame
-        self.frame = tkinter.Frame(master)
+        self.frame = tkinter.Frame(master, bg=background)
 
         # add the title
-        tkinter.Label(self.frame, text='All Sources') \
-                                            .pack(side=tkinter.TOP)
+        tkinter.Label(self.frame, text='All Sources', bg=background).pack(
+                                                             side=tkinter.TOP)
 
         # the sources table
         self._sources_table = SourcesTable(self.frame, identified_data,

@@ -1,4 +1,5 @@
 import tkinter 
+from colors import background, activebackground
 from forensic_path import offset_string
 from icon_path import icon_path
 from tooltip import Tooltip
@@ -27,18 +28,21 @@ class OffsetSelectionView():
         self._offset_selection = offset_selection
 
         # make the containing frame
-        self.frame = tkinter.Frame(master)
+        self.frame = tkinter.Frame(master, bg=background)
 
         # title
-        tkinter.Label(self.frame, text="Offset Selection").pack(
+        tkinter.Label(self.frame, text="Offset Selection", bg=background).pack(
                                         side=tkinter.TOP, pady=(0,4))
 
-        # offset label
-        self._offset_label = tkinter.Label(self.frame, anchor="w")
-        self._offset_label.pack(side=tkinter.TOP, anchor="w", fill=tkinter.X)
+        # offset selection label
+        self._offset_selection_label = tkinter.Label(self.frame, anchor="w",
+                                                           bg=background)
+        self._offset_selection_label.pack(side=tkinter.TOP, anchor="w",
+                                                           fill=tkinter.X)
 
         # MD5 label
-        self._md5_label = tkinter.Label(self.frame, anchor="w", width=45)
+        self._md5_label = tkinter.Label(self.frame, anchor="w", width=40,
+                                                           bg=background)
         self._md5_label.pack(side=tkinter.TOP, anchor="w", fill=tkinter.X)
 
         # button frame
@@ -48,8 +52,11 @@ class OffsetSelectionView():
         # button to add selected hash
         self._add_hash_icon = tkinter.PhotoImage(file=icon_path("add_hash"))
         self._add_hash_button = tkinter.Button(button_frame,
-                                image=self._add_hash_icon,
-                                command=self._handle_add_hash_to_highlight)
+                              image=self._add_hash_icon,
+                              command=self._handle_add_hash_to_highlight,
+                              bg=background, activebackground=activebackground,
+                              highlightthickness=0)
+ 
         self._add_hash_button.pack(side=tkinter.LEFT)
         Tooltip(self._add_hash_button, "Highlight the selected hash")
 
@@ -58,7 +65,9 @@ class OffsetSelectionView():
                                                               "remove_hash"))
         self._remove_hash_button = tkinter.Button(button_frame,
                               image=self._remove_hash_icon,
-                              command=self._handle_remove_hash_from_highlight)
+                              command=self._handle_remove_hash_from_highlight,
+                              bg=background, activebackground=activebackground,
+                              highlightthickness=0)
         self._remove_hash_button.pack(side=tkinter.LEFT)
         Tooltip(self._remove_hash_button, "Stop highlighting the selected hash")
 
@@ -66,8 +75,10 @@ class OffsetSelectionView():
         self._show_hex_view_icon = tkinter.PhotoImage(file=icon_path(
                                                               "show_hex_view"))
         self._show_hex_view_button = tkinter.Button(button_frame,
-                                image=self._show_hex_view_icon,
-                                command=self._handle_show_hex_view)
+                              image=self._show_hex_view_icon,
+                              command=self._handle_show_hex_view,
+                              bg=background, activebackground=activebackground,
+                              highlightthickness=0)
         self._show_hex_view_button.pack(side=tkinter.LEFT)
         Tooltip(self._show_hex_view_button, "Show hex view of selection")
 
@@ -75,9 +86,11 @@ class OffsetSelectionView():
         self._clear_offset_selection_icon = tkinter.PhotoImage(
                                 file=icon_path( "clear_offset_selection"))
         self._clear_offset_selection_button = tkinter.Button(button_frame,
-                                image=self._clear_offset_selection_icon,
-                                state=tkinter.DISABLED,
-                                command=self._handle_clear_offset_selection)
+                              image=self._clear_offset_selection_icon,
+                              state=tkinter.DISABLED,
+                              command=self._handle_clear_offset_selection,
+                              bg=background, activebackground=activebackground,
+                              highlightthickness=0)
         self._clear_offset_selection_button.pack(side=tkinter.LEFT)
         Tooltip(self._clear_offset_selection_button,
                                              "Deselect the selection")
@@ -127,8 +140,8 @@ class OffsetSelectionView():
         # set selection labels and button states
         if self._offset_selection.offset == -1:
             # clear
-            self._offset_label['text'] = "Selected offset: Not selected"
-            self._md5_label['text'] = "MD5 at offset: Not selected"
+            self._offset_selection_label['text'] = "Selection: Not selected"
+            self._md5_label['text'] = "MD5: Not selected"
 
             self._show_hex_view_button.config(state=tkinter.DISABLED)
             self._clear_offset_selection_button.config(
@@ -136,10 +149,10 @@ class OffsetSelectionView():
 
         else:
             # set to selection
-            self._offset_label["text"] = "Selected offset: %s" % offset_string(
-                                       self._offset_selection.offset)
+            self._offset_selection_label["text"] = "Selection: %s" % \
+                                 offset_string(self._offset_selection.offset)
             self._md5_label["text"] = \
-                 "MD5 at offset: %s" % self._offset_selection.block_hash
+                 "MD5: %s" % self._offset_selection.block_hash
 
             self._show_hex_view_button.config(state=tkinter.NORMAL)
             self._clear_offset_selection_button.config(

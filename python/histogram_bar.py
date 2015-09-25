@@ -1,4 +1,5 @@
 import tkinter 
+from colors import background
 from sys import platform
 from sys import maxsize
 from forensic_path import offset_string
@@ -80,7 +81,7 @@ class HistogramBar():
                                                 self.HISTOGRAM_BAR_HEIGHT))
 
         # make the containing frame
-        self.frame = tkinter.Frame(master)
+        self.frame = tkinter.Frame(master, bg="blue")
         self.frame.pack()
 
         # add the label containing the histogram bar PhotoImage
@@ -121,19 +122,19 @@ class HistogramBar():
 #                   "Scroll to zoom")
 
         # add the frame for offset values
-        offsets_frame = tkinter.Frame(self.frame, height=18+0)
+        offsets_frame = tkinter.Frame(self.frame, height=18+0, bg=background)
         offsets_frame.pack(side=tkinter.TOP, fill=tkinter.X)
 
         # leftmost offset value
-        self._start_offset_label = tkinter.Label(offsets_frame)
+        self._start_offset_label = tkinter.Label(offsets_frame, bg=background)
         self._start_offset_label.place(relx=0.0, anchor=tkinter.NW)
 
         # cursor offset value
-        self._image_offset_label = tkinter.Label(offsets_frame)
+        self._image_offset_label = tkinter.Label(offsets_frame, bg=background)
         self._image_offset_label.place(relx=0.5, anchor=tkinter.N)
 
         # rightmost offset value
-        self._stop_offset_label = tkinter.Label(offsets_frame)
+        self._stop_offset_label = tkinter.Label(offsets_frame, bg=background)
         self._stop_offset_label.place(relx=1.0, anchor=tkinter.NE)
 
         # register to receive identified_data change events
