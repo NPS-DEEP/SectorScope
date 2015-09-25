@@ -28,6 +28,8 @@ def icon_path(name):
         return _absolute_path("zoom-in-3.gif")
     if name == "fit_image":
         return _absolute_path("zoom-original-2.gif")
+    if name == "view_annotations":
+        return _absolute_path("table-go.gif")
     if name == "highlight_range":
         return _absolute_path("bullet-green.gif")
     if name == "highlight_all_but_range":
@@ -36,8 +38,6 @@ def icon_path(name):
         return _absolute_path("list-remove-3.gif")
     if name == "show_hex_view":
         return _absolute_path("text-x-hex.gif")
-    if name == "view_annotations":
-        return _absolute_path("window.gif")
     if name == "clear_offset_selection":
         return _absolute_path("list-remove-3.gif")
 
