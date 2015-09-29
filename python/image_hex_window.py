@@ -1,5 +1,8 @@
-import tkinter 
 from image_hex_table import ImageHexTable
+try:
+    import tkinter
+except ImportError:
+    import Tkinter as tkinter
 
 class ImageHexWindow():
     """Provides a window to show a hex dump of specified bytes of a

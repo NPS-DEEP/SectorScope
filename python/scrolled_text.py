@@ -1,7 +1,10 @@
 # Use this to import hashes from a directory into a hash database.
 # Relative paths are replaced with absolute paths.
 
-import tkinter
+try:
+    import tkinter
+except ImportError:
+    import Tkinter as tkinter
 
 class ScrolledText():
     """A Text widget with scrollbars.
@@ -11,7 +14,7 @@ class ScrolledText():
       text(Text): The text widget being scrolled.
     """
 
-    def __init__(self, master, *, width=40, height=12):
+    def __init__(self, master, width=40, height=12):
         """Args:
           width, height(int): Dimension in text characers.
         """

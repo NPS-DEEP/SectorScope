@@ -1,6 +1,10 @@
-import tkinter 
 import identified_data
 import highlights
+from portable import askdirectory
+try:
+    import tkinter
+except ImportError:
+    import Tkinter as tkinter
 
 class OpenManager():
     """Opens a bulk_extractor directory, sets data, and fires events.
@@ -34,7 +38,7 @@ class OpenManager():
     def open_be_dir(self, be_dir):
         if not be_dir:
             # get be_dir from chooser
-            be_dir = tkinter.filedialog.askdirectory(
+            be_dir = askdirectory(
                      title="Open bulk_extractor directory",
                      mustexist=True, initialdir=self._identified_data.be_dir)
 

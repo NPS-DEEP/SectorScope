@@ -2,8 +2,11 @@ import os
 import xml
 import json
 import subprocess
-import tkinter
 from collections import defaultdict
+try:
+    import tkinter
+except ImportError:
+    import Tkinter as tkinter
 
 class IdentifiedData():
     """Provides hash, source, and image data related to a block hash scan.

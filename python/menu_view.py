@@ -1,10 +1,13 @@
-import tkinter 
 from colors import background, activebackground
 from forensic_path import offset_string
 from icon_path import icon_path
 from tooltip import Tooltip
 from be_scan_window import BEScanWindow
 from be_import_window import BEImportWindow
+try:
+    import tkinter
+except ImportError:
+    import Tkinter as tkinter
 
 class MenuView():
     """Provides a frame containing munu-level control buttons.

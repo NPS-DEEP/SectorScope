@@ -1,6 +1,9 @@
-import tkinter 
 from colors import background
 from forensic_path import offset_string
+try:
+    import tkinter
+except ImportError:
+    import Tkinter as tkinter
 
 class ProjectSummaryView():
     """Provides a frame that prints a brief summary of the opened project

@@ -1,4 +1,7 @@
-import tkinter
+try:
+    import tkinter
+except ImportError:
+    import Tkinter as tkinter
 
 class RangeSelection():
     """Manage a byte offset range selection.

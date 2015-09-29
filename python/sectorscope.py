@@ -6,7 +6,10 @@ import math
 import xml.dom.minidom
 import os
 import json
-import tkinter
+try:
+    import tkinter
+except ImportError:
+    import Tkinter as tkinter
 
 # local import
 from identified_data import IdentifiedData

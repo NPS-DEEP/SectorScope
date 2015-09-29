@@ -1,8 +1,11 @@
-import tkinter 
 from collections import defaultdict
 from scrolled_text import ScrolledText
 from icon_path import icon_path
 from tooltip import Tooltip
+try:
+    import tkinter
+except ImportError:
+    import Tkinter as tkinter
 
 class SourcesTable():
     """Manages the view for a set of sources.
@@ -23,7 +26,7 @@ class SourcesTable():
     """
 
     def __init__(self, master, identified_data, highlights,
-                 *, width=40, height=12):
+                 width=40, height=12):
         """Args:
           master(a UI container): Parent.
           identified_data(IdentifiedData): All data related to the block

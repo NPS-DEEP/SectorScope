@@ -1,10 +1,13 @@
-import tkinter 
 from colors import background
 from collections import defaultdict
 from scrolled_text import ScrolledText
 from icon_path import icon_path
 from tooltip import Tooltip
 from sources_table import SourcesTable
+try:
+    import tkinter
+except ImportError:
+    import Tkinter as tkinter
 
 class SourcesView():
     """Presents the view for the list of all matched sources.

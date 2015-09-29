@@ -1,18 +1,26 @@
 # Use this to import hashes from a directory into a hash database.
 # Relative paths are replaced with absolute paths.
 
-import queue
 import os
 import sys
-import tkinter
-import tkinter.filedialog
 import threaded_subprocess
+from portable import askdirectory
+
+try:
+    import queue
+except ImportError:
+    import Queue as queue
+
+try:
+    import tkinter
+except ImportError:
+    import Tkinter as tkinter
 
 class BEImportWindow():
     """Import using a GUI interface.
     """
 
-    def __init__(self, master, *, source_dir="", be_dir="",
+    def __init__(self, master, source_dir="", be_dir="",
                  block_size=512, sector_size=512,
                  repository_name=""):
         """Args:
@@ -229,7 +237,7 @@ class BEImportWindow():
         self._close_button.config(state=tkinter.NORMAL)
 
     def _handle_source_directory_chooser(self, *args):
-        source_directory = tkinter.filedialog.askdirectory(
+        source_directory = askdirectory(
                                title="Open Input Source Directory",
                                mustexist=True)
         if source_directory:
@@ -237,7 +245,7 @@ class BEImportWindow():
             self._source_directory_entry.insert(0, source_directory)
 
     def _handle_output_directory_chooser(self, *args):
-        output_directory = tkinter.filedialog.askdirectory(
+        output_directory = askdirectory(
                                title="Open bulk_extractor output Directory",
                                mustexist=False)
         if output_directory:

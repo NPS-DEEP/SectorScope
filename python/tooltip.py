@@ -1,4 +1,7 @@
-import tkinter
+try:
+    import tkinter
+except ImportError:
+    import Tkinter as tkinter
 
 class Tooltip():
     """Create a pop-up tooltip and bind it to master."""

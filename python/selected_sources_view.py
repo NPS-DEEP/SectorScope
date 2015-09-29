@@ -1,10 +1,13 @@
-import tkinter 
 from colors import background
 from collections import defaultdict
 from scrolled_text import ScrolledText
 from sources_table import SourcesTable
 from icon_path import icon_path
 from tooltip import Tooltip
+try:
+    import tkinter
+except ImportError:
+    import Tkinter as tkinter
 
 class SelectedSourcesView():
     """Provides a view for sources that match the selected hash.

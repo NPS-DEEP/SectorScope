@@ -1,4 +1,7 @@
-import tkinter 
+try:
+    import tkinter
+except ImportError:
+    import Tkinter as tkinter
 
 # Code Adapted from http://effbot.org/zone/tkinter-autoscrollbar.htm.
 """Scrollbar that is only visible when scrollregion > window."""

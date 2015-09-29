@@ -1,6 +1,9 @@
-import tkinter
 import hashlib
 from be_image_reader import read
+try:
+    import tkinter
+except ImportError:
+    import Tkinter as tkinter
 
 class OffsetSelection():
     """Manage a byte offset selection.

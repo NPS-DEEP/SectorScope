@@ -1,4 +1,3 @@
-import tkinter 
 from colors import background
 from sys import platform
 from sys import maxsize
@@ -7,6 +6,10 @@ from icon_path import icon_path
 from offset_selection import OffsetSelection
 from tooltip import Tooltip
 from math import log
+try:
+    import tkinter
+except ImportError:
+    import Tkinter as tkinter
 
 class HistogramBar():
     """Renders a hash histogram bar widget.
@@ -449,8 +452,8 @@ class HistogramBar():
 
     # convert byte offset to bucket
     def _offset_to_bucket(self, image_offset):
-        bucket = round((image_offset - self._start_offset) /
-                                                    self._bytes_per_bucket)
+        bucket = int(round((image_offset - self._start_offset) /
+                                                    self._bytes_per_bucket))
         return bucket
 
     # see if the given offset is within the media image range
@@ -515,7 +518,7 @@ class HistogramBar():
     def _handle_b3_move(self, e):
         self._pan(self._b3_down_start_offset, int((self._b3_down_x - e.x) /
                                                          self.BUCKET_WIDTH))
-        b3_dragged = True
+        self._b3_dragged = True
 
     # pan stop or right click
     def _handle_b3_release(self, e):

@@ -1,9 +1,12 @@
 # Use this to execute a command.  stdout and stderr are sent to queue.
-
 import subprocess
-import queue
 import sys
 import threading
+from portable import CompatiblePopen
+try:
+    import queue
+except ImportError:
+    import Queue
 
 class ThreadedSubprocess(threading.Thread):
     def __init__(self, cmd, queue):
@@ -24,7 +27,7 @@ class ThreadedSubprocess(threading.Thread):
 
         # run the command
         try:
-            with subprocess.Popen(self._cmd,
+            with CompatiblePopen(self._cmd,
                                   stdout=subprocess.PIPE,
                                   stderr=subprocess.PIPE,
                                   bufsize=1) as self._p:
@@ -42,7 +45,8 @@ class ThreadedSubprocess(threading.Thread):
                 stdout_reader.join()
                 stderr_reader.join()
 
-        except FileNotFoundError:
+        # python 3 uses FileNotFoundError, python 2.7 uses superclass IOError
+        except IOError:
             self._queue.put("Error: %s not found.  Please check that %s "
                             "is installed.\n" %(self._cmd[0], self._cmd[0]))
             return

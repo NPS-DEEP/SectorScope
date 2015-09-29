@@ -1,4 +1,7 @@
-import tkinter
+try:
+    import tkinter
+except ImportError:
+    import Tkinter as tkinter
 
 class Highlights():
     """Contains all highlight variables used for specifying highlighting.

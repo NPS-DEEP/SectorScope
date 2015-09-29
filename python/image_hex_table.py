@@ -1,6 +1,9 @@
-import tkinter 
 import be_image_reader
 from scrolled_text import ScrolledText
+try:
+    import tkinter
+except ImportError:
+    import Tkinter as tkinter
 
 class ImageHexTable():
     """Manages the hex view for a selected offset into a media image.
@@ -12,7 +15,7 @@ class ImageHexTable():
  
     """
     def __init__(self, master, identified_data, highlights, offset_selection,
-                 *, width=88, height=32):
+                 width=88, height=32):
         """Args:
           master(a UI container): Parent.
           identified_data(IdentifiedData): Identified data about the scan.

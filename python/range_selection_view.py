@@ -1,10 +1,13 @@
-import tkinter
 from colors import background, activebackground
 from forensic_path import offset_string
 from icon_path import icon_path
 from tooltip import Tooltip
 from offset_selection import OffsetSelection
 from histogram_bar import HistogramBar
+try:
+    import tkinter
+except ImportError:
+    import Tkinter as tkinter
 
 class RangeSelectionView():
     """The range selection view including title, range values, and

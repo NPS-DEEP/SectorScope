@@ -1,4 +1,7 @@
-import tkinter
+try:
+    import tkinter
+except ImportError:
+    import Tkinter as tkinter
 
 class FitRangeSelection():
     """Manage a byte offset fit range selection event.
