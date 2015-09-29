@@ -1,5 +1,6 @@
 import be_image_reader
 from scrolled_text import ScrolledText
+from show_error import ShowError
 try:
     import tkinter
 except ImportError:
@@ -145,8 +146,11 @@ class ImageHexTable():
             self._hex_text.config(state=tkinter.NORMAL)
 
             # read page of image bytes starting at offset
-            buf = be_image_reader.read(self._identified_data.image_filename,
+            try:
+                buf = be_image_reader.read(self._identified_data.image_filename,
                                                        offset, self.PAGESIZE)
+            except Exception as e:
+                ShowError(self.frame, "Open Error", e)
 
             # write the hex lines
             self._set_lines(offset, buf)

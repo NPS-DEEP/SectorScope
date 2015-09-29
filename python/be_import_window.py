@@ -4,7 +4,6 @@
 import os
 import sys
 import threaded_subprocess
-from portable import askdirectory
 
 try:
     import queue
@@ -13,8 +12,10 @@ except ImportError:
 
 try:
     import tkinter
+    import tkinter.filedialog as fd
 except ImportError:
     import Tkinter as tkinter
+    import tkFileDialog as fd
 
 class BEImportWindow():
     """Import using a GUI interface.
@@ -237,7 +238,7 @@ class BEImportWindow():
         self._close_button.config(state=tkinter.NORMAL)
 
     def _handle_source_directory_chooser(self, *args):
-        source_directory = askdirectory(
+        source_directory = fd.askdirectory(
                                title="Open Input Source Directory",
                                mustexist=True)
         if source_directory:
@@ -245,7 +246,7 @@ class BEImportWindow():
             self._source_directory_entry.insert(0, source_directory)
 
     def _handle_output_directory_chooser(self, *args):
-        output_directory = askdirectory(
+        output_directory = fd.askdirectory(
                                title="Open bulk_extractor output Directory",
                                mustexist=False)
         if output_directory:

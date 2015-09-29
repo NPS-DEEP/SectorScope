@@ -4,15 +4,16 @@
 import os
 import sys
 import threaded_subprocess
-from portable import askdirectory, askopenfilename
 try:
     import queue
 except ImportError:
     import Queue as queue
 try:
     import tkinter
+    import tkinter.filedialog as fd
 except ImportError:
     import Tkinter as tkinter
+    import tkFileDialog as fd
 
 class BEScanWindow():
     """Scan using a GUI interface.
@@ -242,13 +243,13 @@ class BEScanWindow():
         self._close_button.config(state=tkinter.NORMAL)
 
     def _handle_image_chooser(self, *args):
-        image_file = askopenfilename(title="Open Media Image")
+        image_file = fd.askopenfilename(title="Open Media Image")
         if image_file:
             self._image_entry.delete(0, tkinter.END)
             self._image_entry.insert(0, image_file)
 
     def _handle_hashdb_directory_chooser(self, *args):
-        hashdb_directory = askdirectory(
+        hashdb_directory = fd.askdirectory(
                                title="Open hashdb Database Directory",
                                mustexist=True)
         if hashdb_directory:
@@ -256,7 +257,7 @@ class BEScanWindow():
             self._hashdb_directory_entry.insert(0, hashdb_directory)
 
     def _handle_output_directory_chooser(self, *args):
-        output_directory = askdirectory(
+        output_directory = fd.askdirectory(
                                title="Open bulk_extractor output Directory",
                                mustexist=False)
         if output_directory:

@@ -2,7 +2,7 @@
 import subprocess
 import sys
 import threading
-from portable import CompatiblePopen
+from compatible_popen import CompatiblePopen
 try:
     import queue
 except ImportError:

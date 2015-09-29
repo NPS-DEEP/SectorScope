@@ -1,10 +1,12 @@
 import identified_data
 import highlights
-from portable import askdirectory
+from show_error import ShowError
 try:
     import tkinter
+    import tkinter.filedialog as fd
 except ImportError:
     import Tkinter as tkinter
+    import tkFileDialog as fd
 
 class OpenManager():
     """Opens a bulk_extractor directory, sets data, and fires events.
@@ -38,7 +40,7 @@ class OpenManager():
     def open_be_dir(self, be_dir):
         if not be_dir:
             # get be_dir from chooser
-            be_dir = askdirectory(
+            be_dir = fd.askdirectory(
                      title="Open bulk_extractor directory",
                      mustexist=True, initialdir=self._identified_data.be_dir)
 
@@ -51,7 +53,7 @@ class OpenManager():
             self._identified_data.read(be_dir)
 
         except Exception as e:
-            self._show_error(e)
+            ShowError(self._master, "Open Error", e)
             return
 
         # clear any highlight settings
@@ -63,26 +65,4 @@ class OpenManager():
 
         # clear any byte range selection
         self._range_selection.clear()
-
-    def _show_error(self, e):
-        # make toplevel window
-        self._root_window = tkinter.Toplevel(self._master)
-        self._root_window.title("Open Error")
-        self._root_window.transient(self._master)
-
-        tkinter.Label(self._root_window, text="Error:").pack( \
-                            side=tkinter.TOP, padx=8, pady=(8,0), anchor="w")
-        error_text = tkinter.Text(self._root_window, width=60, height=8, bd=0)
-        error_text.pack(anchor="w", padx=8, pady=0)
-        error_text.insert(tkinter.END, "%s\n" %e)
-        error_text.config(state=tkinter.DISABLED)
-        tkinter.Button(self._root_window, text="OK",
-                       command=self._handle_ok).pack( \
-                            side=tkinter.TOP, padx=8, pady=8)
-
-    def _handle_ok(self):
-        self._root_window.destroy()
-
-
-
 

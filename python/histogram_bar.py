@@ -6,6 +6,7 @@ from icon_path import icon_path
 from offset_selection import OffsetSelection
 from tooltip import Tooltip
 from math import log
+from show_error import ShowError
 try:
     import tkinter
 except ImportError:
@@ -498,10 +499,15 @@ class HistogramBar():
             sector_offset = self._x_to_aligned_offset(e.x)
             if self._in_image_range(sector_offset):
                 # sector is in image range
-                self._offset_selection.set(self._identified_data.image_filename,
-                                           sector_offset,
-                                           self._identified_data.block_size)
-
+                try:
+                    self._offset_selection.set(
+                                        self._identified_data.image_filename,
+                                        sector_offset,
+                                        self._identified_data.block_size)
+                except Exception as ex:
+                    # read failed so note and clear selection
+                    ShowError(self.frame, "Open Error", ex)
+                    self._offset_selection.clear()
             else:
                 self._offset_selection.clear()
 
