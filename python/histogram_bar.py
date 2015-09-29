@@ -349,10 +349,10 @@ class HistogramBar():
             return
 
         # valid bucket boundaries map inside the image
-        leftmost_bucket = max(-self._start_offset //
-                                (self._bytes_per_bucket), 0)
-        rightmost_bucket = min((self._image_size - self._start_offset) //
-                                (self._bytes_per_bucket), self.NUM_BUCKETS)
+        leftmost_bucket = max(round(-self._start_offset /
+                                self._bytes_per_bucket), 0)
+        rightmost_bucket = min(round((self._image_size - self._start_offset) /
+                                self._bytes_per_bucket), self.NUM_BUCKETS)
 
         # draw the buckets
         for bucket in range(self.NUM_BUCKETS):
