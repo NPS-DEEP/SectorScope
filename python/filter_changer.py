@@ -4,6 +4,7 @@ from tooltip import Tooltip
 from be_scan_window import BEScanWindow
 from be_import_window import BEImportWindow
 from colors import background, activebackground
+import selection_tools
 try:
     import tkinter
 except ImportError:
@@ -44,18 +45,14 @@ class FilterChanger():
 
     # ignore hashes in range
     def ignore_hashes_in_range(self, *args):
+        # get hashes in range
+        hashes = selection_tools.hashes_in_range(self._identified_data,
+                                        self._range_selection.start_offset,
+                                        self._range_selection.stop_offset)
 
-        # get start_byte and stop_byte range
-        start_byte = self._range_selection.start_offset
-        stop_byte = self._range_selection.stop_offset
-
-        ignored_hashes = self._filters.ignored_hashes
-        for forensic_path, block_hash in \
-                               self._identified_data.forensic_paths.items():
-            offset = int(forensic_path)
-            if offset >= start_byte and offset <= stop_byte:
-                # hash is in range so ignore it
-                ignored_hashes.add(block_hash)
+        # add to ignored hashes
+        for block_hash in hashes:
+            self._filters.ignored_hashes.add(block_hash)
 
         # fire filter change
         self._filters.fire_change()
@@ -73,34 +70,15 @@ class FilterChanger():
     # ignore sources with hashes in range
     def ignore_sources_with_hashes_in_range(self, *args):
 
-        # get start_byte and stop_byte range
-        start_byte = self._range_selection.start_offset
-        stop_byte = self._range_selection.stop_offset
+        # get set of sources in range
+        source_ids = selection_tools.sources_in_range(self._identified_data,
+                                        self._range_selection.start_offset,
+                                        self._range_selection.stop_offset)
 
-        # get local references to identified data and filter variables
-        hashes = self._identified_data.hashes
+        # add set to ignored sources
         ignored_sources = self._filters.ignored_sources
-        
-        # ignore sources in range
-        seen_hashes = set()
-        for forensic_path, block_hash in \
-                               self._identified_data.forensic_paths.items():
-            offset = int(forensic_path)
-            if offset >= start_byte and offset <= stop_byte:
-                # hash is in range so ignore its sources
-                if block_hash in seen_hashes:
-                    # do not reprocess this hash
-                    continue
-
-                # remember this hash
-                seen_hashes.add(block_hash)
-
-                # get sources associated with this hash
-                sources = hashes[block_hash]
-
-                # ignore each source associated with this hash
-                for source in sources:
-                    ignored_sources.add(source["source_id"])
+        for source_id in source_ids:
+            ignored_sources.add(source_id)
 
         # fire filter change
         self._filters.fire_change()
@@ -139,17 +117,14 @@ class FilterChanger():
     # ignore hashes in range
     def highlight_hashes_in_range(self, *args):
 
-        # get start_byte and stop_byte range
-        start_byte = self._range_selection.start_offset
-        stop_byte = self._range_selection.stop_offset
+        # get hashes in range
+        hashes = selection_tools.hashes_in_range(self._identified_data,
+                                        self._range_selection.start_offset,
+                                        self._range_selection.stop_offset)
 
-        highlighted_hashes = self._filters.highlighted_hashes
-        for forensic_path, block_hash in \
-                               self._identified_data.forensic_paths.items():
-            offset = int(forensic_path)
-            if offset >= start_byte and offset <= stop_byte:
-                # hash is in range so highlight it
-                highlighted_hashes.add(block_hash)
+        # add to highlighted hashes
+        for block_hash in hashes:
+            self._filters.highlighted_hashes.add(block_hash)
 
         # fire filter change
         self._filters.fire_change()
@@ -168,34 +143,15 @@ class FilterChanger():
     # highlight sources with hashes in range
     def highlight_sources_with_hashes_in_range(self, *args):
 
-        # get start_byte and stop_byte range
-        start_byte = self._range_selection.start_offset
-        stop_byte = self._range_selection.stop_offset
+        # get set of sources in range
+        source_ids = selection_tools.sources_in_range(self._identified_data,
+                                        self._range_selection.start_offset,
+                                        self._range_selection.stop_offset)
 
-        # get local references to identified data and filter variables
-        hashes = self._identified_data.hashes
+        # add set to ignored sources
         highlighted_sources = self._filters.highlighted_sources
-        
-        # highlight sources in range
-        seen_hashes = set()
-        for forensic_path, block_hash in \
-                               self._identified_data.forensic_paths.items():
-            offset = int(forensic_path)
-            if offset >= start_byte and offset <= stop_byte:
-                # hash is in range so highlight its sources
-                if block_hash in seen_hashes:
-                    # do not reprocess this hash
-                    continue
-
-                # remember this hash
-                seen_hashes.add(block_hash)
-
-                # get sources associated with this hash
-                sources = hashes[block_hash]
-
-                # highlight each source associated with this hash
-                for source in sources:
-                    highlighted_sources.add(source["source_id"])
+        for source_id in source_ids:
+            highlighted_sources.add(source_id)
 
         # fire filter change
         self._filters.fire_change()
