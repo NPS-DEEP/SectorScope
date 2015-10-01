@@ -353,6 +353,3 @@ class SourcesTable():
     def _handle_range_selection_change(self, *args):
         print("range selection")
 
-    def _handle_fit_range_selection_change(self, *args):
-        print("fit range selection")
-

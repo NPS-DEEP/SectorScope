@@ -42,33 +42,26 @@ def build_gui(root_window, identified_data, filters, offset_selection,
     root_window.geometry("1000x700")
     root_window.configure(bg=background)
 
-    # banner frame on top for menu, filters, project data
-    banner_frame = tkinter.Frame(root_window, bg=background)
-    banner_frame.pack(side=tkinter.TOP, anchor="w", padx=4, pady=(4,0))
+    # left frame for most of view, top down
+    left_frame = tkinter.Frame(root_window, bg=background)
+    left_frame.pack(side=tkinter.LEFT, anchor="n", padx=4, pady=(4,0))
 
     # menu
-    menu_view = MenuView(banner_frame, open_manager)
-    menu_view.frame.pack(side=tkinter.LEFT, anchor="n")
-
-    # filters
-    filters_view = FiltersView(banner_frame, filters,
-                                        offset_selection, range_selection)
-    filters_view.frame.pack(side=tkinter.LEFT, anchor="n", padx=(40,60))
+    menu_view = MenuView(left_frame, open_manager)
+    menu_view.frame.pack(side=tkinter.TOP, anchor="w")
 
     # project summary
     project_summary_view = ProjectSummaryView(
-                            banner_frame, identified_data)
-    project_summary_view.frame.pack(side=tkinter.LEFT, anchor="n")
+                            left_frame, identified_data)
+    project_summary_view.frame.pack(side=tkinter.TOP, anchor="w")
 
-    # middle frame
-    middle_frame = tkinter.Frame(root_window, bg=background)
-    middle_frame.pack(side=tkinter.TOP, anchor="w", padx=4, pady=4)
 
-    # left middle
-    left_frame = tkinter.Frame(middle_frame, bg=background)
-    left_frame.pack(side=tkinter.LEFT, anchor="n")
+    # filters
+    filters_view = FiltersView(left_frame, identified_data, filters,
+                                        offset_selection, range_selection)
+    filters_view.frame.pack(side=tkinter.TOP, anchor="w", padx=4, pady=4)
 
-    # the range and offset selection frame in left frame
+    # the range and offset selection frame
     range_and_offset_selection_frame = tkinter.Frame(left_frame)
     range_and_offset_selection_frame.pack(side=tkinter.TOP, anchor="w", pady=4)
 
@@ -85,13 +78,13 @@ def build_gui(root_window, identified_data, filters, offset_selection,
                                 identified_data, filters, offset_selection)
     offset_selection_view.frame.pack(side=tkinter.LEFT, anchor="w")
 
-    # the histogram view in left_frame
+    # the histogram view
     histogram_view = HistogramView(left_frame, identified_data, filters,
                       offset_selection, range_selection, fit_range_selection)
     histogram_view.frame.pack(side=tkinter.TOP, anchor="w")
 
-    # root_window.source_frame holds source views in the middle right
-    sources_view = SourcesView(middle_frame, identified_data, filters,
+    # the whole right side for the sources view
+    sources_view = SourcesView(root_window, identified_data, filters,
                       offset_selection, range_selection)
     sources_view.frame.pack(side=tkinter.LEFT, anchor="n", padx=(4,0))
 
