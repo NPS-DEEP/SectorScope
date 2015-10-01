@@ -6,6 +6,7 @@ def _absolute_path(filename):
     return os.path.join(base_dir, "icons", filename)
 
 def icon_path(name):
+    # menu icons
     if name == "open":
         return _absolute_path("document-open-2.gif")
     if name == "scan":
@@ -14,30 +15,50 @@ def icon_path(name):
         return _absolute_path("database-add.gif")
     if name == "select_all":
         return _absolute_path("plus_blue.gif")
-    if name == "clear_highlighted_sources":
+
+    # ignore filters
+    if name == "ignore_hashes_in_range":
+        return _absolute_path("plus_blue.gif")
+    if name == "ignore_selected_hash":
+        return _absolute_path("plus_blue.gif")
+    if name == "ignore_sources_with_hashes_in_range":
+        return _absolute_path("plus_blue.gif")
+    if name == "ignore_sources_with_selected_hash":
+        return _absolute_path("plus_blue.gif")
+    if name == "clear_ignored_hashes":
         return _absolute_path("minus_blue.gif")
+    if name == "clear_ignored_sources":
+        return _absolute_path("minus_blue.gif")
+
+    # highlight filters
+    if name == "highlight_hashes_in_range":
+        return _absolute_path("plus_blue.gif")
+    if name == "highlight_selected_hash":
+        return _absolute_path("plus_blue.gif")
+    if name == "highlight_sources_with_hashes_in_range":
+        return _absolute_path("plus_blue.gif")
+    if name == "highlight_sources_with_selected_hash":
+        return _absolute_path("plus_blue.gif")
     if name == "clear_highlighted_hashes":
         return _absolute_path("minus_blue.gif")
-    if name == "add_hash":
-        return _absolute_path("plus_blue.gif")
-    if name == "remove_hash":
+    if name == "clear_highlighted_sources":
         return _absolute_path("minus_blue.gif")
-    if name == "pan":
-        return _absolute_path("arrow_plain_blue_E_W.gif")
+
+    # range selection control
     if name == "fit_range":
         return _absolute_path("zoom-in-3.gif")
-    if name == "fit_image":
-        return _absolute_path("zoom-original-2.gif")
-    if name == "view_annotations":
-        return _absolute_path("table-go.gif")
-    if name == "highlight_range":
-        return _absolute_path("bullet-green.gif")
-    if name == "highlight_all_but_range":
-        return _absolute_path("bullet-red.gif")
     if name == "clear_range":
         return _absolute_path("list-remove-3.gif")
+
+    # offset selection control
     if name == "show_hex_view":
         return _absolute_path("text-x-hex.gif")
     if name == "clear_offset_selection":
         return _absolute_path("list-remove-3.gif")
+
+    # histogram bar control
+    if name == "fit_image":
+        return _absolute_path("zoom-original-2.gif")
+    if name == "view_annotations":
+        return _absolute_path("table-go.gif")
 

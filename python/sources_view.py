@@ -16,38 +16,32 @@ class SourcesView():
       frame(Frame): the containing frame for this view.
     """
 
-    def __init__(self, master, identified_data, highlights):
+    def __init__(self, master, identified_data, filters, offset_selection,
+                                       range_selection):
         """Args:
           master(a UI container): Parent.
           identified_data(IdentifiedData): All data related to the block
             hash scan.
-          highlights(Highlights): The highlights that controll the view.
-        """
+          filters(Filters): Filters that impact the view.
+          offset_selection(OffsetSelection): The selected offset.
+          range_selection(RangeSelection): The selected range.
+         """
 
         # variables
         self._identified_data = identified_data
-        self._highlights = highlights
+        self._filters = filters
 
         # make the containing frame
         self.frame = tkinter.Frame(master, bg=background)
 
         # add the title
-        tkinter.Label(self.frame, text='All Sources', bg=background).pack(
+        tkinter.Label(self.frame, text='Sources', bg=background).pack(
                                                              side=tkinter.TOP)
 
         # the sources table
         self._sources_table = SourcesTable(self.frame, identified_data,
-                                                        highlights,
-                                                        width=500, height=500)
+                                         filters, offset_selection,
+                                         range_selection,
+                                         width=500, height=500)
         self._sources_table.frame.pack(side=tkinter.TOP, anchor="w")
-
-        # register to receive identified data change events
-        identified_data.set_callback(self._handle_identified_data_change)
-
-    def _handle_identified_data_change(self, *args):
-        # show all the source IDs
-        source_id_set = set()
-        for source_id, _ in self._identified_data.source_details.items():
-            source_id_set.add(source_id)
-        self._sources_table.set_data(source_id_set)
 

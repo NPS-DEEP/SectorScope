@@ -1,5 +1,5 @@
 import identified_data
-import highlights
+import filters
 from show_error import ShowError
 try:
     import tkinter
@@ -16,12 +16,12 @@ class OpenManager():
       active_be_dir(str): The be_dir currently open, or "".
     """
 
-    def __init__(self, master, identified_data, highlights, offset_selection,
+    def __init__(self, master, identified_data, filters, offset_selection,
                                                          range_selection):
         """Args:
           master(a UI container): Parent.
           identified_data(IdentifiedData): Identified data about the scan.
-          highlights(Highlights): Highlights that impact the view.
+          filters(Filters): Filters that impact the view.
           offset_selection(OffsetSelection): The selected offset.
           range_selection(RangeSelection): The selected range.
         """
@@ -29,7 +29,7 @@ class OpenManager():
         # local references
         self._master = master
         self._identified_data = identified_data
-        self._highlights = highlights
+        self._filters = filters
         self._offset_selection = offset_selection
         self._range_selection = range_selection
 
@@ -56,9 +56,9 @@ class OpenManager():
             ShowError(self._master, "Open Error", e)
             return
 
-        # clear any highlight settings
-        self._highlights.clear()
-        self._highlights.fire_change()
+        # clear any filter settings
+        self._filters.clear()
+        self._filters.fire_change()
 
         # clear any byte offset selection
         self._offset_selection.clear()

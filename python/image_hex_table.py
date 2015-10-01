@@ -15,19 +15,19 @@ class ImageHexTable():
       _hex_text(Text): The Text widget to render the hex table in.
  
     """
-    def __init__(self, master, identified_data, highlights, offset_selection,
+    def __init__(self, master, identified_data, filters, offset_selection,
                  width=88, height=32):
         """Args:
           master(a UI container): Parent.
           identified_data(IdentifiedData): Identified data about the scan.
-          highlights(Highlights): Highlights that impact the view.
+          filters(Filters): Filters that impact the view.
           offset_selection(OffsetSelection): The selected offset.
         """
         # variables
         self.PAGESIZE = 16384 # 2^14
         self.LINESIZE = 16
         self._identified_data = identified_data
-        self._highlights = highlights
+        self._filters = filters
         self._offset_selection = offset_selection
 
         # make the containing frame
@@ -41,24 +41,26 @@ class ImageHexTable():
         self._hex_text = scrolled_text.text
 
         # tags available for the hex text lines
-        self._hex_text.tag_config("even_unmatched", background="#eeeeff")
-        self._hex_text.tag_config("odd_unmatched", background="#ddddff")
+        # states are: unmatched=gray, matched=blue, ignored=red,
+        # highlighted=green, outside=white
+        self._hex_text.tag_config("even_unmatched", background="#eeeeee")
+        self._hex_text.tag_config("odd_unmatched", background="#dddddd")
+        self._hex_text.tag_config("even_matched", background="#eeeeff")
+        self._hex_text.tag_config("odd_matched", background="#ddddff")
+        self._hex_text.tag_config("even_ignored", background="#ffdddd")
+        self._hex_text.tag_config("odd_ignored", background="#ffcccc")
         self._hex_text.tag_config("even_highlighted", background="#ccffcc")
         self._hex_text.tag_config("odd_highlighted", background="#aaffaa")
-        self._hex_text.tag_config("even_highlighted", background="#ccffcc")
-        self._hex_text.tag_config("odd_highlighted", background="#aaffaa")
-        self._hex_text.tag_config("even_unhighlighted", background="#ffdddd")
-        self._hex_text.tag_config("odd_unhighlighted", background="#ffcccc")
         self._hex_text.tag_config("outside_block", background="white")
 
-        # register to receive highlight change events
-        highlights.set_callback(self._handle_highlight_change)
+        # register to receive filter change events
+        filters.set_callback(self._handle_filter_change)
 
         # register to receive offset selection change events
         offset_selection.set_callback(self._handle_offset_selection_change)
 
     def _get_hash_match_state(self):
-        # match state is highlighted, unhighlighted, or unmatched
+        # match states are "unmatched", "matched", "ignored", "highlighted"
 
         # get selected block hash value
         block_hash = self._offset_selection.block_hash
@@ -67,60 +69,69 @@ class ImageHexTable():
         if block_hash not in self._identified_data.hashes:
             return "unmatched"
 
-        # hash was matched
-        # see histogram_bar _calculate_hash_counts for highlight reference
+        # hash matched
+        # see histogram_bar _calculate_hash_counts for filter rules
         sources = self._identified_data.hashes[block_hash]
 
         # count exceeds max_hashes
-        if self._highlights.max_hashes != 0 and count > \
-                                                self._highlights.max_hashes:
-            return "highlighted"
+        if self._filters.ignore_max_hashes != 0 and len(sources) > \
+                                            self._filters.ignore_max_hashes:
+            return "ignored"
+
+        # hash is ignored
+        if block_hash in self._filters.ignored_hashes:
+            return "ignored"
 
         # hash is highlighted
-        if block_hash in self._highlights.highlighted_hashes:
+        if block_hash in self._filters.highlighted_hashes:
             return "highlighted"
 
-        # a source is flagged or a source itself is highlighted
+        # a source is flagged or a source itself is ignored or highlighted
         else:
             for source in sources:
-                if self._highlights.highlight_flagged_blocks and \
-                                                          "label" in source:
+                if self._filters.ignore_flagged_blocks and "label" in source:
                     # source has a label flag
-                    return "highlighted"
-                if source["source_id"] in self._highlights.highlighted_sources:
+                    return "ignored"
+                if source["source_id"] in self._filters.ignored_sources:
+                    # a source is ignored
+                    return "ignored"
+                if source["source_id"] in self._filters.highlighted_sources:
                     # a source is highlighted
                     return "highlighted"
 
-        # not highlighted
-        return "unhighlighted"
+        # not filtered
+        return "matched"
 
     def _get_line_tag(self, i):
         # return the line tag associated with the match and line state
         if i >= self._identified_data.block_size:
             return "outside_block"
-
-        if self._match_state == "highlighted":
-            if (i / self.LINESIZE) % 2 == 0:
-                return "even_highlighted"
-            else:
-                return "odd_highlighted"
-        if self._match_state == "unhighlighted":
-            if (i / self.LINESIZE) % 2 == 0:
-                return "even_unhighlighted"
-            else:
-                return "odd_unhighlighted"
-        if self._match_state == "unmatched":
+        elif self._match_state == "unmatched":
             if (i / self.LINESIZE) % 2 == 0:
                 return "even_unmatched"
             else:
                 return "odd_unmatched"
+        elif self._match_state == "matched":
+            if (i / self.LINESIZE) % 2 == 0:
+                return "even_matched"
+            else:
+                return "odd_matched"
+        elif self._match_state == "ignored":
+            if (i / self.LINESIZE) % 2 == 0:
+                return "even_ignored"
+            else:
+                return "odd_ignored"
+        elif self._match_state == "highlighted":
+            if (i / self.LINESIZE) % 2 == 0:
+                return "even_highlighted"
+            else:
+                return "odd_highlighted"
+
+        # program error
         raise RuntimeError("program error")
 
-    def _handle_highlight_change(self, *args):
+    def _handle_filter_change(self, *args):
         self._set_view()
-
-        # Note that highlight change is not sufficient to deiconify,
-        # but offset selection is.
 
     def _handle_offset_selection_change(self, *args):
         self._set_view()

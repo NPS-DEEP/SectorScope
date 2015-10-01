@@ -1,3 +1,4 @@
+from sys import platform
 from collections import defaultdict
 from scrolled_text import ScrolledText
 from icon_path import icon_path
@@ -8,47 +9,69 @@ except ImportError:
     import Tkinter as tkinter
 
 class SourcesTable():
-    """Manages the view for a set of sources.
+    """Provides the table view of the sources.
 
     The text view:
       The first line contains the column annotation.  It is non-selectable
         with a gray background.
       The remaining lines are sources, alternating colors.
       Source columns are tab-spaced and contain:
-        Source ID, %match, #match, file size, repository name, filename.
-      Mouse motion events change the Source line background color.
-      Mouse click events toggle source highlighting for that source ID.
-      The background for the Source ID is red or green based on highlight.
+        range selection indicator,
+        offset selection indicator,
+        Source ID,
+        %match, #match, file size, repository name, filename.
+      Mouse motion events change the Source line background hover color.
+      Mouse left click events toggle source highlighting for that source ID.
+      Mouse right click events toggle source ignoring for that source ID.
+      The background color for the Source ID depends on the filtering mode:
+        "normal":      gray
+        "ignored":     red
+        "highlighted": green
+        "ignored_and_highlighted": teal
+      The background shade is further modified by line index or cursor over:
+        even index: lighter
+        odd index:  darker
+        hover:      much darker, with white foreground
 
     Attributes:
       frame(Frame): the containing frame for this sources table.
       _source_text(Text): The Text widget to render sources in.
     """
 
-    def __init__(self, master, identified_data, highlights,
-                 width=40, height=12):
+    def __init__(self, master, identified_data, filters, offset_selection,
+                 range_selection, width=40, height=12):
         """Args:
           master(a UI container): Parent.
           identified_data(IdentifiedData): All data related to the block
             hash scan.
-          highlights(Highlights): The highlights that controll the view.
+          filters(Filters): Filters that impact the view.
+          offset_selection(OffsetSelection): The selected offset.
+          range_selection(RangeSelection): The selected range.
           width, height(int): size in characters of table.
         """
 
-        # colors
+        # RGB colors
         self.TITLE = "gray90"
-        self.EVEN_FILTERED = "#ccffcc"
-        self.ODD_FILTERED = "#aaffaa"
-        self.HOVERED_FILTERED = "#006633"
-        self.LEGEND_FILTERED = "#006633"
-        self.EVEN_UNFILTERED = "#ffdddd"
-        self.ODD_UNFILTERED = "#ffcccc"
-        self.HOVERED_UNFILTERED = "#990000"
-        self.LEGEND_UNFILTERED = "#990000"
+
+        self.EVEN_NORMAL = "#f8f8f8"
+        self.ODD_NORMAL = "#eeeeee"
+        self.HOVERED_NORMAL = "#aaaaaa"
+
+        self.EVEN_IGNORED = "#ffdddd"
+        self.ODD_IGNORED = "#ffcccc"
+        self.HOVERED_IGNORED = "#990000"
+
+        self.EVEN_HIGHLIGHTED = "#ccffcc"
+        self.ODD_HIGHLIGHTED = "#aaffaa"
+        self.HOVERED_HIGHLIGHTED = "#006633"
+
+        self.EVEN_IGNORED_AND_HIGHLIGHTED = "#bbffff"
+        self.ODD_IGNORED_AND_HIGHLIGHTED = "#99ffff"
+        self.HOVERED_IGNORED_AND_HIGHLIGHTED = "#008888"
 
         # variables
         self._identified_data = identified_data
-        self._highlights = highlights
+        self._filters = filters
 
         # state
         self._line_to_id = {}
@@ -68,12 +91,15 @@ class SourcesTable():
         self._source_text = scrolled_text.text
 
         # text widget tab settng
-        self._source_text.config(tabs=('1.0c', tkinter.RIGHT,
-                                       '1.8c', tkinter.NUMERIC,
-                                       '4.0c', tkinter.RIGHT,
-                                       '6.1c', tkinter.RIGHT,
-                                       '6.6c',
-                                       '10.6c'))
+        self._source_text.config(tabs=(
+                     '0.5c', tkinter.CENTER,      # range indicator
+                     '1.0c', tkinter.CENTER,      # selection indicator
+                     '2.0c', tkinter.RIGHT,       # ID
+                     '2.8c', tkinter.NUMERIC,     # %match
+                     '5.0c', tkinter.RIGHT,       # #match
+                     '7.1c', tkinter.RIGHT,       # filesize
+                     '7.6c',                      # repository name
+                     '11.6c'))                    # filename
 
         # text widget cursor setting
         self._source_text.config(cursor="arrow")
@@ -83,17 +109,36 @@ class SourcesTable():
                                                                     add='+')
         self._source_text.bind('<Button-1>', self._handle_b1_mouse_press,
                                                                     add='+')
+        self._source_text.bind('<Button-1>', self._handle_b1_mouse_press,
+                                                                    add='+')
         self._source_text.bind('<Enter>', self._handle_enter, add='+')
         self._source_text.bind('<Leave>', self._handle_leave, add='+')
+        if platform == 'darwin':
+            # mac right-click is Button-2
+            self._source_text.bind('<Button-2>', self._handle_b3_mouse_press,
+                                                                    add='+')
+        else:
+            # Linux, Win right-click is Button-3
+            self._source_text.bind('<Button-3>', self._handle_b3_mouse_press,
+                                                                    add='+')
 
-        # register to receive highlight change events
-        highlights.set_callback(self._handle_highlight_change)
+        # register to receive identified data change events
+        identified_data.set_callback(self._handle_identified_data_change)
+
+        # register to receive filter change events
+        filters.set_callback(self._handle_filter_change)
+
+        # register to receive offset selection change events
+        offset_selection.set_callback(self._handle_offset_selection_change)
+
+        # register to receive range selection change events
+        range_selection.set_callback(self._handle_range_selection_change)
 
         # set initial state
-        self.set_data(set())
+        self._set_data()
 
-    def set_data(self, source_id_set):
-        """Set the view to show the source IDs in the source ID set"""
+    def _set_data(self):
+        """Set the view to show the sources in identified_dta.source_details"""
 
         # initialize the line and ID lookup dictionaries
         self._line_to_id.clear()
@@ -113,7 +158,8 @@ class SourcesTable():
 
         # put in the first line containing the column titles
         self._source_text.insert(tkinter.END,
-                                 "\tID\t%Match\t#Match\tSize\t"
+                                 "\tR\u2713\tO\u2714\tID\t"
+                                 "%Match\t#Match\tSize\t"
                                  "Repository Name\tFilename\n",
                                  "title")
 
@@ -122,31 +168,23 @@ class SourcesTable():
         sector_size = self._identified_data.sector_size
         sources_offsets = self._identified_data.sources_offsets
 
-        # local reference to highlighted sources
-        highlighted_sources = self._highlights.highlighted_sources
-
         # put in source lines
         line = 2
-        for source_id in source_id_set:
+        for source_id, source in source_details.items():
 
             # set the tag for the source text
             self._set_tag(line, source_id)
 
-            # get source, still in JSON format
-            source = source_details[source_id]
-
             # compose the source text
             # handle missing fields, which can happen if an image was
-            # imported instead of a directory of files
+            # imported, instead of a directory of files
             if "filesize" in source:
 
                 # calculate percent of this source file found
                 percent_found = len(sources_offsets[source_id]) / \
-                                 (int(source["filesize"] / 
-                                 self._identified_data.sector_size)) * \
-                                 100
+                               (int(source["filesize"] / sector_size)) * 100
 
-                source_text = '\t%s\t%.2f%%\t%d\t%d\t%s\t%s\n' \
+                source_text = '\t \t \t%s\t%.2f%%\t%d\t%d\t%s\t%s\n' \
                                     %(source_id,
                                       percent_found,
                                       len(sources_offsets[source_id]),
@@ -155,7 +193,7 @@ class SourcesTable():
                                       source["filename"])
 
             else:
-                source_text = '\t%s\t%.2f%%\t?%d\t?\t%s\t%s\n' \
+                source_text = '\t \t \t%s\t%.2f%%\t?%d\t?\t%s\t%s\n' \
                                     %(source_id,
                                       len(sources_offsets[source_id]),
                                       source["repository_name"],
@@ -180,28 +218,51 @@ class SourcesTable():
         tag_name = "line_%s" % line
 
         # determine the background color
-        if source_id in self._highlights.highlighted_sources:
-            # use FILTERED color scheme
+        if source_id in self._filters.ignored_sources and \
+                    source_id in self._filters.highlighted_sources:
+            # use IGNORED_AND_HIGHLIGHTED color scheme
             if line == self._cursor_line:
                 foreground = "white"
-                background = self.HOVERED_FILTERED
+                background = self.HOVERED_IGNORED_AND_HIGHLIGHTED
             else:
                 foreground = "black"
                 if line % 2 == 0:
-                    background = self.EVEN_FILTERED
+                    background = self.EVEN_IGNORED_AND_HIGHLIGHTED
                 else:
-                    background = self.ODD_FILTERED
+                    background = self.ODD_IGNORED_AND_HIGHLIGHTED
+        elif source_id in self._filters.ignored_sources:
+            # use IGNORED color scheme
+            if line == self._cursor_line:
+                foreground = "white"
+                background = self.HOVERED_IGNORED
+            else:
+                foreground = "black"
+                if line % 2 == 0:
+                    background = self.EVEN_IGNORED
+                else:
+                    background = self.ODD_IGNORED
+        elif source_id in self._filters.highlighted_sources:
+            # use HIGHLIGHTED color scheme
+            if line == self._cursor_line:
+                foreground = "white"
+                background = self.HOVERED_HIGHLIGHTED
+            else:
+                foreground = "black"
+                if line % 2 == 0:
+                    background = self.EVEN_HIGHLIGHTED
+                else:
+                    background = self.ODD_HIGHLIGHTED
         else:
-            # use UNFILTERED color scheme
+            # use NORMAL color scheme
             if line == self._cursor_line:
                 foreground = "white"
-                background = self.HOVERED_UNFILTERED
+                background = self.HOVERED_NORMAL
             else:
                 foreground = "black"
                 if line % 2 == 0:
-                    background = self.EVEN_UNFILTERED
+                    background = self.EVEN_NORMAL
                 else:
-                    background = self.ODD_UNFILTERED
+                    background = self.ODD_NORMAL
 
         # create or modify the tag
         self._source_text.tag_config(tag_name, background=background,
@@ -234,6 +295,7 @@ class SourcesTable():
             self._cursor_line = line
             self._set_tag(line, self._line_to_id[line])
 
+    # highlight this source
     def _handle_b1_mouse_press(self, e):
         line = self._mouse_to_line(e)
 
@@ -241,15 +303,33 @@ class SourcesTable():
         if line not in self._line_to_id:
             return
 
-        # toggle highlight state for source
+        # toggle filter state for source
         source_id = self._line_to_id[line]
-        if source_id in self._highlights.highlighted_sources:
-            self._highlights.highlighted_sources.remove(source_id)
+        if source_id in self._filters.highlighted_sources:
+            self._filters.highlighted_sources.remove(source_id)
         else:
-            self._highlights.highlighted_sources.add(source_id)
+            self._filters.highlighted_sources.add(source_id)
 
         # fire change
-        self._highlights.fire_change()
+        self._filters.fire_change()
+
+    # ignore this source
+    def _handle_b3_mouse_press(self, e):
+        line = self._mouse_to_line(e)
+
+        # line must be in bounds
+        if line not in self._line_to_id:
+            return
+
+        # toggle filter state for source
+        source_id = self._line_to_id[line]
+        if source_id in self._filters.ignored_sources:
+            self._filters.ignored_sources.remove(source_id)
+        else:
+            self._filters.ignored_sources.add(source_id)
+
+        # fire change
+        self._filters.fire_change()
 
     def _handle_enter(self, e):
         self._handle_mouse_move(e)
@@ -261,6 +341,18 @@ class SourcesTable():
             self._cursor_line = -1
             self._set_tag(old_cursor_line, self._line_to_id[old_cursor_line])
 
-    def _handle_highlight_change(self, *args):
+    def _handle_identified_data_change(self, *args):
+        self._set_data()
+
+    def _handle_filter_change(self, *args):
         self._set_tags()
+
+    def _handle_offset_selection_change(self, *args):
+        print("offset selection")
+
+    def _handle_range_selection_change(self, *args):
+        print("range selection")
+
+    def _handle_fit_range_selection_change(self, *args):
+        print("fit range selection")
 

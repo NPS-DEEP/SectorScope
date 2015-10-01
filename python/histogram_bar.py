@@ -21,8 +21,8 @@ class HistogramBar():
     Attributes:
       frame(Frame): the containing frame for this plot.
       _photo_image(PhotoImage): The image on which the plot is rendered.
-      _hash_counts(dict of <hash, (count, highlight_count)>): count
-        and calculated highlight count for each hash.
+      _hash_counts(dict of <hash, (count, is_ignored, is_highlighted)>):
+        hash and calculated count tuple for each hash.
 
     Notes about offset alignment:
       The start and end offsets may be any value, even fractional.
@@ -61,12 +61,12 @@ class HistogramBar():
     _b3_down_start_offset = None
 
 
-    def __init__(self, master, identified_data, highlights, offset_selection,
+    def __init__(self, master, identified_data, filters, offset_selection,
                                        range_selection, fit_range_selection):
         """Args:
           master(a UI container): Parent.
           identified_data(IdentifiedData): Identified data about the scan.
-          highlights(Highlights): Highlights that impact the view.
+          filters(Filters): Filters that impact the view.
           offset_selection(OffsetSelection): The selected offset.
           range_selection(RangeSelection): The selected range.
           fit_range_selection(FitRangeSelection): Receive signal to fit range.
@@ -74,7 +74,7 @@ class HistogramBar():
 
         # data variables
         self._identified_data = identified_data
-        self._highlights = highlights
+        self._filters = filters
         self._offset_selection = offset_selection
         self._range_selection = range_selection
 
@@ -87,6 +87,22 @@ class HistogramBar():
         # make the containing frame
         self.frame = tkinter.Frame(master, bg="blue")
         self.frame.pack()
+
+        # add the frame for offset values
+        offsets_frame = tkinter.Frame(self.frame, height=18+0, bg=background)
+        offsets_frame.pack(side=tkinter.TOP, fill=tkinter.X)
+
+        # leftmost offset value
+        self._start_offset_label = tkinter.Label(offsets_frame, bg=background)
+        self._start_offset_label.place(relx=0.0, anchor=tkinter.NW)
+
+        # cursor offset value
+        self._image_offset_label = tkinter.Label(offsets_frame, bg=background)
+        self._image_offset_label.place(relx=0.5, anchor=tkinter.N)
+
+        # rightmost offset value
+        self._stop_offset_label = tkinter.Label(offsets_frame, bg=background)
+        self._stop_offset_label.place(relx=1.0, anchor=tkinter.NE)
 
         # add the label containing the histogram bar PhotoImage
         l = tkinter.Label(self.frame, image=self._photo_image,
@@ -125,27 +141,11 @@ class HistogramBar():
 #                   "Left-click drag to pan\n"
 #                   "Scroll to zoom")
 
-        # add the frame for offset values
-        offsets_frame = tkinter.Frame(self.frame, height=18+0, bg=background)
-        offsets_frame.pack(side=tkinter.TOP, fill=tkinter.X)
-
-        # leftmost offset value
-        self._start_offset_label = tkinter.Label(offsets_frame, bg=background)
-        self._start_offset_label.place(relx=0.0, anchor=tkinter.NW)
-
-        # cursor offset value
-        self._image_offset_label = tkinter.Label(offsets_frame, bg=background)
-        self._image_offset_label.place(relx=0.5, anchor=tkinter.N)
-
-        # rightmost offset value
-        self._stop_offset_label = tkinter.Label(offsets_frame, bg=background)
-        self._stop_offset_label.place(relx=1.0, anchor=tkinter.NE)
-
         # register to receive identified_data change events
         identified_data.set_callback(self._handle_identified_data_change)
 
-        # register to receive highlight change events
-        highlights.set_callback(self._handle_highlight_change)
+        # register to receive filter change events
+        filters.set_callback(self._handle_filter_change)
 
         # register to receive offset selection change events
         offset_selection.set_callback(self._handle_offset_selection_change)
@@ -160,8 +160,8 @@ class HistogramBar():
         # set to basic initial state
         self._handle_identified_data_change()
 
-    # this function is registered to and called by Highlights
-    def _handle_highlight_change(self, *args):
+    # this function is registered to and called by Filters
+    def _handle_filter_change(self, *args):
 
         # calculate this view
         self._calculate_hash_counts()
@@ -209,54 +209,59 @@ class HistogramBar():
 
     def _calculate_hash_counts(self):
 
-        # optimization: make local references to highlight variables
-        max_hashes = self._highlights.max_hashes
-        highlight_flagged_blocks = self._highlights.highlight_flagged_blocks
-        highlighted_sources = self._highlights.highlighted_sources
-        highlighted_hashes = self._highlights.highlighted_hashes
+        # optimization: make local references to filter variables
+        ignore_max_hashes = self._filters.ignore_max_hashes
+        ignore_flagged_blocks = self._filters.ignore_flagged_blocks
+        ignored_sources = self._filters.ignored_sources
+        ignored_hashes = self._filters.ignored_hashes
+        highlighted_sources = self._filters.highlighted_sources
+        highlighted_hashes = self._filters.highlighted_hashes
 
         # calculate _hash_counts based on identified data
-        # _hash_counts is dict<hash, (count, highlight_count)>
+        # _hash_counts is dict<hash, (count, is_ignored, is_highlighted)>
         self._hash_counts = dict()
         for block_hash, sources in self._identified_data.hashes.items():
             count = len(sources)
-            highlight_count = 0
+            is_ignored = False
+            is_highlighted = False
 
-            # determine highlight_count
+            # count exceeds ignore_max_hashes
+            if ignore_max_hashes != 0 and count > ignore_max_hashes:
+                is_ignored = True
 
-            # count exceeds max_hashes
-            if max_hashes != 0 and count > max_hashes:
-                highlight_count = count
+            # hash is ignored
+            if block_hash in ignored_hashes:
+                is_ignored = True
 
             # hash is highlighted
-            elif block_hash in highlighted_hashes:
-                highlight_count = count
+            if block_hash in highlighted_hashes:
+                is_highlighted = True
 
             # a source is flagged or a source itself is highlighted
-            else:
-                for source in sources:
-                    if highlight_flagged_blocks and "label" in source:
-                        # source has a label flag
-                        highlight_count += 1
-                        continue
-                    if source["source_id"] in highlighted_sources:
-                        # source is to be highlighted
-                        highlight_count += 1
-                        continue
+            for source in sources:
+                if ignore_flagged_blocks and "label" in source:
+                    # source has a label flag
+                    is_ignored = True
+                if source["source_id"] in ignored_sources:
+                    # source is to be ignored 
+                    is_ignored = True
+                if source["source_id"] in highlighted_sources:
+                    # source is to be highlighted
+                    is_highlighted = True
 
-            # set the count and highlight_count for the hash
-            self._hash_counts[block_hash] = (count, highlight_count)
+            # set the count tuple for the hash
+            self._hash_counts[block_hash] = (count, is_ignored, is_highlighted)
 
     def _calculate_bucket_data(self):
-        """Buckets show hashes per bucket and sources per bucket.  Bucket
-        types show all, highlight removed, and highlight only matches.
+        """Buckets show hashes per bucket and sources per bucket.
         """
+        # initialize empty buckets for each data type to plot
         self._hash_buckets = [0] * (self.NUM_BUCKETS)
         self._source_buckets = [0] * (self.NUM_BUCKETS)
-        self._highlight_removed_hash_buckets = [0] * (self.NUM_BUCKETS)
-        self._highlight_removed_source_buckets = [0] * (self.NUM_BUCKETS)
-        self._highlight_only_hash_buckets = [0] * (self.NUM_BUCKETS)
-        self._highlight_only_source_buckets = [0] * (self.NUM_BUCKETS)
+        self._ignored_hash_buckets = [0] * (self.NUM_BUCKETS)
+        self._ignored_source_buckets = [0] * (self.NUM_BUCKETS)
+        self._highlighted_hash_buckets = [0] * (self.NUM_BUCKETS)
+        self._highlighted_source_buckets = [0] * (self.NUM_BUCKETS)
 
         # calculate the histogram
         for forensic_path, block_hash in \
@@ -269,22 +274,21 @@ class HistogramBar():
                 continue
 
             # set values for buckets
-            count, highlight_count = self._hash_counts[block_hash]
+            count, is_ignored, is_highlighted = self._hash_counts[block_hash]
 
-            # hash buckets
+            # hash and source buckets
             self._hash_buckets[bucket] += 1
             self._source_buckets[bucket] += count
 
-            # hashes with highlight removed
-            if count - highlight_count > 0:
-                self._highlight_removed_hash_buckets[bucket] += 1
-                self._highlight_removed_source_buckets[bucket] += \
-                                                     count - highlight_count
+            # ignored hash and source buckets
+            if is_ignored:
+                self._ignored_hash_buckets[bucket] += 1
+                self._ignored_source_buckets[bucket] += count
 
-            # hashes with highlight
-            if highlight_count > 0:
-                self._highlight_only_hash_buckets[bucket] += 1
-                self._highlight_only_source_buckets[bucket] += highlight_count
+            # highlighted hash and source buckets
+            if is_highlighted:
+                self._highlighted_hash_buckets[bucket] += 1
+                self._highlighted_source_buckets[bucket] += count
 
     # redraw everything
     def _draw(self):
@@ -376,18 +380,23 @@ class HistogramBar():
     def _draw_bar(self, color, count, i, j):
         # i is bucket number
         # j is bar row number, either 2, 1, or 0
+
+        # do not plot bars when count==0
+        if not count:
+            return
+
         # x is pixel coordinate
         x=(i * self.BUCKET_WIDTH)
         y0 = int(self.HISTOGRAM_BAR_HEIGHT / 3 * j)
 
         # calculate y1 logarithmically based on count
-        """Rationale for formula "int(log(count + 1, 1.5) * 2)" follows:
-          * Each bar has 60 pixels of height because the widget
-            looks good at this size.
-          * A count of 1 is 3 pixels tall so that the smallest unit is
-            readily visible.
+        """Rationale for formula "int(log(count + 1, 1.23) * 2)" follows:
           * The scale should be as light as possible but still not clip.
-            This formula is tuned to clip at a count of 200,000."""
+          * A count of 1 should be 3 pixels tall so that the smallest unit is
+            readily visible.
+          * An arbitrarily chosen count of 200,000 should fully fill the
+            arbitrarily chosen 60-pixel high bar.
+        """
         y1 = int(log(count + 1, 1.5) * 2)
 
         # clip to keep in range
@@ -403,14 +412,21 @@ class HistogramBar():
     # draw all bars for one bucket
     def _draw_bucket(self, i):
 
-        # draw bars
-        self._draw_bar("#3399ff", self._source_buckets[i], i, 2)
-        self._draw_bar("#000066", self._hash_buckets[i], i, 2)
-        self._draw_bar("#ff5050", self._highlight_removed_source_buckets[i],
-                                                                           i, 1)
-        self._draw_bar("#660000", self._highlight_removed_hash_buckets[i], i, 1)
-        self._draw_bar("#33cc33", self._highlight_only_source_buckets[i], i, 0)
-        self._draw_bar("#004400", self._highlight_only_hash_buckets[i], i, 0)
+        # draw bars #rrggbb
+
+        # all hashes: black
+        self._draw_bar("#cccccc", self._hash_buckets[i], i, 2)
+        self._draw_bar("#333333", self._source_buckets[i], i, 2)
+
+        # ignored hashes removed: red
+        self._draw_bar("#ff5050", self._hash_buckets[i] -
+                                        self._ignored_hash_buckets[i], i, 1)
+        self._draw_bar("#660000", self._source_buckets[i] -
+                                        self._ignored_source_buckets[i], i, 1)
+
+        # highlighted hashes: green
+        self._draw_bar("#33cc33", self._highlighted_hash_buckets[i], i, 0)
+        self._draw_bar("#004400", self._highlighted_source_buckets[i], i, 0)
 
     # draw one gray bucket for out-of-range data
     def _draw_gray_bucket(self, i):

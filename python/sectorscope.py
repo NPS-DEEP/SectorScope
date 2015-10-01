@@ -14,23 +14,22 @@ except ImportError:
 # local import
 from identified_data import IdentifiedData
 from menu_view import MenuView
-from highlights import Highlights
+from filters import Filters
+from filters_view import FiltersView
 from offset_selection import OffsetSelection
 from range_selection import RangeSelection
 from range_selection_view import RangeSelectionView
 from fit_range_selection import FitRangeSelection
-from highlights_summary_view import HighlightsSummaryView
 from project_summary_view import ProjectSummaryView
 from histogram_view import HistogramView
 from offset_selection_view import OffsetSelectionView
 from sources_view import SourcesView
-from selected_sources_view import SelectedSourcesView
 from forensic_path import offset_string
 from open_manager import OpenManager
 from colors import background
 
 # compose the GUI
-def build_gui(root_window, identified_data, highlights, offset_selection,
+def build_gui(root_window, identified_data, filters, offset_selection,
                         range_selection, fit_range_selection, open_manager):
     """The left frame holds the banner, histogram, and table of selected
     sources.  The right frame holds the table of all sources."""
@@ -43,7 +42,7 @@ def build_gui(root_window, identified_data, highlights, offset_selection,
     root_window.geometry("1000x700")
     root_window.configure(bg=background)
 
-    # banner frame on top for menu, highlights, project data
+    # banner frame on top for menu, filters, project data
     banner_frame = tkinter.Frame(root_window, bg=background)
     banner_frame.pack(side=tkinter.TOP, anchor="w", padx=4, pady=(4,0))
 
@@ -51,10 +50,10 @@ def build_gui(root_window, identified_data, highlights, offset_selection,
     menu_view = MenuView(banner_frame, open_manager)
     menu_view.frame.pack(side=tkinter.LEFT, anchor="n")
 
-    # highlights
-    highlights_summary_view = HighlightsSummaryView(banner_frame, highlights)
-    highlights_summary_view.frame.pack(side=tkinter.LEFT, anchor="n",
-                                                           padx=(40,60))
+    # filters
+    filters_view = FiltersView(banner_frame, filters,
+                                        offset_selection, range_selection)
+    filters_view.frame.pack(side=tkinter.LEFT, anchor="n", padx=(40,60))
 
     # project summary
     project_summary_view = ProjectSummaryView(
@@ -67,37 +66,33 @@ def build_gui(root_window, identified_data, highlights, offset_selection,
 
     # left middle
     left_frame = tkinter.Frame(middle_frame, bg=background)
-    left_frame.pack(side=tkinter.LEFT)
+    left_frame.pack(side=tkinter.LEFT, anchor="n")
 
-    # the histogram view in left_frame in the middle
-    histogram_view = HistogramView(left_frame, identified_data, highlights,
-                      offset_selection, range_selection, fit_range_selection)
-    histogram_view.frame.pack(side=tkinter.TOP, anchor="w")
-
-    # the range and offset selection frame
+    # the range and offset selection frame in left frame
     range_and_offset_selection_frame = tkinter.Frame(left_frame)
     range_and_offset_selection_frame.pack(side=tkinter.TOP, anchor="w", pady=4)
 
     # the range selection view
     range_selection_view = RangeSelectionView(
                                         range_and_offset_selection_frame,
-                                        identified_data, highlights,
+                                        identified_data, filters,
                                         range_selection, fit_range_selection)
     range_selection_view.frame.pack(side=tkinter.LEFT, anchor="w")
 
     # the offset selection view
     offset_selection_view = OffsetSelectionView(
                                 range_and_offset_selection_frame,
-                                identified_data, highlights, offset_selection)
+                                identified_data, filters, offset_selection)
     offset_selection_view.frame.pack(side=tkinter.LEFT, anchor="w")
 
-    # the selected sources table in left_frame below
-    selected_sources_view = SelectedSourcesView(left_frame, identified_data,
-                                                highlights, offset_selection)
-    selected_sources_view.frame.pack(side=tkinter.TOP, anchor="w")
+    # the histogram view in left_frame
+    histogram_view = HistogramView(left_frame, identified_data, filters,
+                      offset_selection, range_selection, fit_range_selection)
+    histogram_view.frame.pack(side=tkinter.TOP, anchor="w")
 
     # root_window.source_frame holds source views in the middle right
-    sources_view = SourcesView(middle_frame, identified_data, highlights)
+    sources_view = SourcesView(middle_frame, identified_data, filters,
+                      offset_selection, range_selection)
     sources_view.frame.pack(side=tkinter.LEFT, anchor="n", padx=(4,0))
 
 # main
@@ -119,8 +114,8 @@ if __name__=="__main__":
     # the identified data dataset
     identified_data = IdentifiedData()
 
-    # the highlights data including the highlight_changed trace variable
-    highlights = Highlights()
+    # the filters data including the filter_changed trace variable
+    filters = Filters()
 
     # the byte offset selection
     offset_selection = OffsetSelection()
@@ -132,11 +127,11 @@ if __name__=="__main__":
     fit_range_selection = FitRangeSelection()
 
     # the open manager
-    open_manager = OpenManager(root_window, identified_data, highlights,
+    open_manager = OpenManager(root_window, identified_data, filters,
                                offset_selection, range_selection)
 
     # build the GUI
-    build_gui(root_window, identified_data, highlights, offset_selection,
+    build_gui(root_window, identified_data, filters, offset_selection,
                          range_selection, fit_range_selection, open_manager)
 
     # now open the be_dir

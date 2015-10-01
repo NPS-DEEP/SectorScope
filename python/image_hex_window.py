@@ -10,11 +10,11 @@ class ImageHexWindow():
 
     To get back the window after being closed reselect an offset.
     """
-    def __init__(self, master, identified_data, highlights, offset_selection):
+    def __init__(self, master, identified_data, filters, offset_selection):
         """Args:
           master(a UI container): Parent.
           identified_data(IdentifiedData): Identified data about the scan.
-          highlights(Highlights): Highlights that impact the view.
+          filters(Filters): Filters that impact the view.
           offset_selection(OffsetSelection): The selected offset.
         """
         # variables
@@ -26,20 +26,20 @@ class ImageHexWindow():
         self._root_window.transient(master)
         self._root_window.protocol('WM_DELETE_WINDOW', self._hide)
 
-        # add the frame to contain the color legend
-        # add the color legend
-        f = tkinter.Frame(self._root_window)
-        f.pack(side=tkinter.TOP, pady=4)
-        tkinter.Label(f,text="   ",background="#660000").pack(side=tkinter.LEFT)
-        tkinter.Label(f,text="Not highlighted      ").pack(side=tkinter.LEFT)
-        tkinter.Label(f,text="   ",background="#004400").pack(side=tkinter.LEFT)
-        tkinter.Label(f,text="Highlighted      ").pack(side=tkinter.LEFT)
-        tkinter.Label(f,text="   ",background="#ccccff").pack(side=tkinter.LEFT)
-        tkinter.Label(f,text="Not matched").pack(side=tkinter.LEFT)
+#        # add the frame to contain the color legend
+#        # add the color legend
+#        f = tkinter.Frame(self._root_window)
+#        f.pack(side=tkinter.TOP, pady=4)
+#        tkinter.Label(f,text="   ",background="#660000").pack(side=tkinter.LEFT)
+#        tkinter.Label(f,text="Not highlighted      ").pack(side=tkinter.LEFT)
+#        tkinter.Label(f,text="   ",background="#004400").pack(side=tkinter.LEFT)
+#        tkinter.Label(f,text="Highlighted      ").pack(side=tkinter.LEFT)
+#        tkinter.Label(f,text="   ",background="#ccccff").pack(side=tkinter.LEFT)
+#        tkinter.Label(f,text="Not matched").pack(side=tkinter.LEFT)
 
         # add the frame to contain the image hex table
         image_hex_table = ImageHexTable(self._root_window,
-                               identified_data, highlights, offset_selection,
+                               identified_data, filters, offset_selection,
                                                 width=88, height=32)
         image_hex_table.frame.pack(side=tkinter.TOP, anchor="w")
 
