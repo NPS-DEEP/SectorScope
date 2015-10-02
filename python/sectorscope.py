@@ -80,7 +80,7 @@ def build_gui(root_window, identified_data, filters, offset_selection,
 
     # the histogram view
     histogram_view = HistogramView(left_frame, identified_data, filters,
-                      offset_selection, range_selection, fit_range_selection)
+                                      range_selection, fit_range_selection)
     histogram_view.frame.pack(side=tkinter.TOP, anchor="w")
 
     # the whole right side for the sources view

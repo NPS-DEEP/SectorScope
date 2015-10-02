@@ -3,7 +3,6 @@ from sys import platform
 from sys import maxsize
 from forensic_path import offset_string
 from icon_path import icon_path
-from offset_selection import OffsetSelection
 from tooltip import Tooltip
 from math import log
 from show_error import ShowError
@@ -52,22 +51,19 @@ class HistogramBar():
 
     # mouse b1 left-click states
     _b1_pressed = False
-    _b1_start_offset = 0
-    _b1_dragged = False
+    _b1_pressed_offset = 0
 
     # mouse b3 right-click states
     _b3_down_x = None
     _b3_dragged = False
     _b3_down_start_offset = None
 
-
-    def __init__(self, master, identified_data, filters, offset_selection,
+    def __init__(self, master, identified_data, filters,
                                        range_selection, fit_range_selection):
         """Args:
           master(a UI container): Parent.
           identified_data(IdentifiedData): Identified data about the scan.
           filters(Filters): Filters that impact the view.
-          offset_selection(OffsetSelection): The selected offset.
           range_selection(RangeSelection): The selected range.
           fit_range_selection(FitRangeSelection): Receive signal to fit range.
         """
@@ -75,7 +71,6 @@ class HistogramBar():
         # data variables
         self._identified_data = identified_data
         self._filters = filters
-        self._offset_selection = offset_selection
         self._range_selection = range_selection
 
         # the photo_image
@@ -116,18 +111,6 @@ class HistogramBar():
         l.bind('<Enter>', self._handle_enter, add='+')
         l.bind('<Leave>', self._handle_leave, add='+')
 
-        # bind mouse b3 right-click events
-        if platform == 'darwin':
-            # mac right-click is Button-2
-            l.bind('<Button-2>', self._handle_b3_press, add='+')
-            l.bind('<B2-Motion>', self._handle_b3_move, add='+')
-            l.bind('<ButtonRelease-2>', self._handle_b3_release, add='+')
-        else:
-            # Linux, Win right-click is Button-3
-            l.bind('<Button-3>', self._handle_b3_press, add='+')
-            l.bind('<B3-Motion>', self._handle_b3_move, add='+')
-            l.bind('<ButtonRelease-3>', self._handle_b3_release, add='+')
-
         # bind mouse wheel events
         # https://www.daniweb.com/software-development/python/code/217059/using-the-mouse-wheel-with-tkinter-python
         # with Windows OS
@@ -141,14 +124,23 @@ class HistogramBar():
 #                   "Left-click drag to pan\n"
 #                   "Scroll to zoom")
 
+        # bind mouse b3 right-click events
+        if platform == 'darwin':
+            # mac right-click is Button-2
+            l.bind('<Button-2>', self._handle_b3_press, add='+')
+            l.bind('<B2-Motion>', self._handle_b3_move, add='+')
+            l.bind('<ButtonRelease-2>', self._handle_b3_release, add='+')
+        else:
+            # Linux, Win right-click is Button-3
+            l.bind('<Button-3>', self._handle_b3_press, add='+')
+            l.bind('<B3-Motion>', self._handle_b3_move, add='+')
+            l.bind('<ButtonRelease-3>', self._handle_b3_release, add='+')
+
         # register to receive identified_data change events
         identified_data.set_callback(self._handle_identified_data_change)
 
         # register to receive filter change events
         filters.set_callback(self._handle_filter_change)
-
-        # register to receive offset selection change events
-        offset_selection.set_callback(self._handle_offset_selection_change)
 
         # register to receive range selection change events
         range_selection.set_callback(self._handle_range_selection_change)
@@ -190,11 +182,6 @@ class HistogramBar():
         self._calculate_hash_counts()
         self._calculate_bucket_data()
 
-        # draw
-        self._draw()
-
-    # this function is registered to and called by OffsetSelection
-    def _handle_offset_selection_change(self, *args):
         # draw
         self._draw()
 
@@ -298,7 +285,6 @@ class HistogramBar():
         self._draw_buckets()
         self._draw_separator_lines()
         self._draw_cursor_marker()
-        self._draw_selection_marker()
 
     def _draw_text(self):
  
@@ -440,7 +426,7 @@ class HistogramBar():
     # draw the cursor marker
     def _draw_cursor_marker(self):
         # cursor marker when valid and not selecting a range
-        if self._is_valid_cursor and not self._b1_dragged:
+        if self._is_valid_cursor:
             x = self._offset_to_bucket(self._cursor_offset) * self.BUCKET_WIDTH
             if x >= 0 and x < self.HISTOGRAM_BAR_WIDTH:
                 self._photo_image.put("red",
@@ -482,54 +468,29 @@ class HistogramBar():
 
     def _handle_leave(self, e):
         self._is_valid_cursor = False
+        # set false in case error pop-up window prevented b1_release event
+        self._b1_pressed = False
         self._draw()
 
     def _handle_b1_press(self, e):
         self._b1_pressed = True
-        self._b1_start_offset = self._x_to_aligned_offset(e.x)
+        self._b1_pressed_offset = self._x_to_aligned_offset(e.x)
+        self._handle_motion_and_b1_motion(e)
 
     def _handle_motion_and_b1_motion(self, e):
-        if self._b1_pressed:
-            # mark as drag as opposed to click
-            self._b1_dragged = True
-
-            # select range
-            self._range_selection.set(self._b1_start_offset,
-                                           self._x_to_aligned_offset(e.x))
-
-        # show mouse motion
+        # set mouse cursor
         self._set_cursor(e)
-
-        # draw
         self._draw()
+
+        # select range if b1 down
+        if self._b1_pressed:
+            self._range_selection.set(self.frame, self._identified_data,
+                                      self._b1_pressed_offset,
+                                      self._x_to_aligned_offset(e.x))
 
     def _handle_b1_release(self, e):
+        self._handle_motion_and_b1_motion(e)
         self._b1_pressed = False
-
-        if self._b1_dragged:
-            # end b1 range selection motion
-            self._b1_dragged = False
-
-        else:
-            # select the clicked sector
-            sector_offset = self._x_to_aligned_offset(e.x)
-            if self._in_image_range(sector_offset):
-                # sector is in image range
-                try:
-                    self._offset_selection.set(
-                                        self._identified_data.image_filename,
-                                        sector_offset,
-                                        self._identified_data.block_size)
-                except Exception as ex:
-                    # read failed so note and clear selection
-                    ShowError(self.frame, "Open Error", ex)
-                    self._offset_selection.clear()
-            else:
-                self._offset_selection.clear()
-
-        # button up so show the cursor
-        self._set_cursor(e)
-        self._draw()
 
     # pan start or right click
     def _handle_b3_press(self, e):
@@ -549,31 +510,9 @@ class HistogramBar():
             self._b3_dragged = False
 
         else:
-            # right click so select hash in hovered bucket
-            start_offset = self._x_to_aligned_offset(e.x)
-            stop_offset = self._x_to_aligned_offset(e.x + self.BUCKET_WIDTH)
-            sector_offset = self._first_path(start_offset, stop_offset)
+            # right click so no action
+            pass
 
-            # select offset at path else select -1
-            self._offset_selection.set(self._identified_data.image_filename,
-                                       sector_offset,
-                                       self._identified_data.block_size)
-
-    # return lowest path in start_offset <= path < stop_offset else -1
-    def _first_path(self, start_offset, stop_offset):
-        first_path = maxsize
-        for forensic_path, block_hash in \
-                               self._identified_data.forensic_paths.items():
-            offset = int(forensic_path)
-            if offset >= start_offset and offset < stop_offset and \
-                                                       offset < first_path:
-                first_path = offset
-
-        if first_path == maxsize:
-            return -1
-        else:
-            return first_path
- 
     def _handle_mouse_wheel(self, e):
         # drag, so no action
         if self._b1_pressed:
@@ -657,18 +596,18 @@ class HistogramBar():
 
     def _fit_range(self):
         """Fit view to range selection."""
-        # get start_byte and stop_byte range
-        start_byte = self._range_selection.start_offset
-        stop_byte = self._range_selection.stop_offset
+        # get start_offset and stop_offset range
+        start_offset = self._range_selection.start_offset
+        stop_offset = self._range_selection.stop_offset
 
-        new_bytes_per_bucket = (stop_byte - start_byte) / self.NUM_BUCKETS
+        new_bytes_per_bucket = (stop_offset - start_offset) / self.NUM_BUCKETS
 
         # do not let bytes per pixel get too small
         if new_bytes_per_bucket < self._sector_size:
             new_bytes_per_bucket = self._sector_size
 
         # calculate the new start offset
-        new_start_offset = start_byte
+        new_start_offset = start_offset
 
         self._start_offset = new_start_offset
         self._bytes_per_bucket = new_bytes_per_bucket

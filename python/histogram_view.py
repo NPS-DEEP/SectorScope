@@ -2,7 +2,6 @@ from colors import background, activebackground
 from forensic_path import offset_string
 from icon_path import icon_path
 from tooltip import Tooltip
-from offset_selection import OffsetSelection
 from histogram_bar import HistogramBar
 try:
     import tkinter
@@ -16,13 +15,12 @@ class HistogramView():
       frame(Frame): the containing frame for this view.
     """
 
-    def __init__(self, master, identified_data, filters, offset_selection,
+    def __init__(self, master, identified_data, filters,
                                        range_selection, fit_range_selection):
         """Args:
           master(a UI container): Parent.
           identified_data(IdentifiedData): Identified data about the scan.
           filters(Filters): Filters that impact the view.
-          offset_selection(OffsetSelection): The selected offset.
           range_selection(RangeSelection): The selected range.
           fit_range_selection(FitRangeSelection): The selected range signal.
         """
@@ -92,7 +90,7 @@ class HistogramView():
 
         # add the histogram bar
         self._histogram_bar = HistogramBar(self.frame, identified_data,
-                                    filters, offset_selection,
+                                    filters,
                                     range_selection, fit_range_selection)
         self._histogram_bar.frame.pack(side=tkinter.TOP)
 

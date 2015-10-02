@@ -75,10 +75,6 @@ class OffsetSelectionView():
         Tooltip(self._clear_offset_selection_button,
                                              "Deselect the selection")
 
-        # create the image hex window that the show hex view button can show
-        self._image_hex_window = ImageHexWindow(self.frame, identified_data,
-                                                filters, offset_selection)
-
         # register to receive offset selection change events
         offset_selection.set_callback(self._handle_offset_selection_change)
 
