@@ -108,8 +108,6 @@ class SourcesTable():
                                                                     add='+')
         self._source_text.bind('<Button-1>', self._handle_b1_mouse_press,
                                                                     add='+')
-        self._source_text.bind('<Button-1>', self._handle_b1_mouse_press,
-                                                                    add='+')
         self._source_text.bind('<Enter>', self._handle_enter, add='+')
         self._source_text.bind('<Leave>', self._handle_leave, add='+')
         if platform == 'darwin':
