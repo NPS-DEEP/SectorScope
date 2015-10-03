@@ -38,14 +38,13 @@ class SourcesTable():
       _source_text(Text): The Text widget to render sources in.
     """
 
-    def __init__(self, master, identified_data, filters, offset_selection,
-                 range_selection, width=40, height=12):
+    def __init__(self, master, identified_data, filters, range_selection,
+                                                       width=40, height=12):
         """Args:
           master(a UI container): Parent.
           identified_data(IdentifiedData): All data related to the block
             hash scan.
           filters(Filters): Filters that impact the view.
-          offset_selection(OffsetSelection): The selected offset.
           range_selection(RangeSelection): The selected range.
           width, height(int): size in characters of table.
         """
@@ -127,9 +126,6 @@ class SourcesTable():
 
         # register to receive filter change events
         filters.set_callback(self._handle_filter_change)
-
-        # register to receive offset selection change events
-        offset_selection.set_callback(self._handle_offset_selection_change)
 
         # register to receive range selection change events
         range_selection.set_callback(self._handle_range_selection_change)
@@ -347,9 +343,6 @@ class SourcesTable():
     def _handle_filter_change(self, *args):
         self._set_tags()
 
-    def _handle_offset_selection_change(self, *args):
-        print("offset selection")
-
     def _handle_range_selection_change(self, *args):
-        print("range selection")
+        print("sources_table handle range selection")
 

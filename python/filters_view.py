@@ -17,18 +17,15 @@ class FiltersView():
       frame(Frame): the containing frame for this view.
     """
 
-    def __init__(self, master, identified_data, filters, offset_selection,
-                                                           range_selection):
+    def __init__(self, master, identified_data, filters, range_selection):
         """Args:
           master(a UI container): Parent.
           filters(Filters): Filters for hashes and sources.
-          offset_selection(OffsetSelection): The selected offset.
           range_selection(RangeSelection): The selected range.
          """
 
         # the filter changer helper
-        self._fc = FilterChanger(identified_data, filters, offset_selection,
-                                                           range_selection)
+        self._fc = FilterChanger(identified_data, filters, range_selection)
 
         # state to prevent infinite filter change loop
         self._is_handle_filter_change = False
@@ -38,7 +35,6 @@ class FiltersView():
 
         # local references
         self._filters = filters
-        self._offset_selection = offset_selection
         self._range_selection = range_selection
 
         # make the containing frame
@@ -74,20 +70,6 @@ class FiltersView():
         Tooltip(self._highlight_hashes_in_range_button,
                                          "Highlight hashes in range selection")
 
-        # highlight selected hash
-        self._highlight_selected_hash_icon = tkinter.PhotoImage(
-                                 file=icon_path("highlight_selected_hash"))
-        self._highlight_selected_hash_button = tkinter.Button(highlight_frame,
-                           image=self._highlight_selected_hash_icon,
-                           text="Selected hash",
-                           compound="left", padx=4, pady=0,
-                           command=self._fc.highlight_selected_hash,
-                           bg=background, activebackground=activebackground,
-                           highlightthickness=0)
-        self._highlight_selected_hash_button.pack(side=tkinter.TOP, anchor="w")
-        Tooltip(self._highlight_selected_hash_button,
-                                          "Highlight hash at offset selection")
-
         # highlight sources with hashes in range
         self._highlight_sources_with_hashes_in_range_icon = tkinter.PhotoImage(
                        file=icon_path("highlight_sources_with_hashes_in_range"))
@@ -103,22 +85,6 @@ class FiltersView():
                                                side=tkinter.TOP, anchor="w")
         Tooltip(self._highlight_sources_with_hashes_in_range_button,
                             "Highlight sources with hashes in range selection")
-
-        # highlight sources with selected hash
-        self._highlight_sources_with_selected_hash_icon = tkinter.PhotoImage(
-                       file=icon_path("highlight_sources_with_selected_hash"))
-        self._highlight_sources_with_selected_hash_button = tkinter.Button(
-                   highlight_frame,
-                   image=self._highlight_sources_with_selected_hash_icon,
-                   text="Sources with selected hash",
-                   compound="left", padx=4, pady=0,
-                   command=self._fc.highlight_sources_with_selected_hash,
-                   bg=background, activebackground=activebackground,
-                   highlightthickness=0)
-        self._highlight_sources_with_selected_hash_button.pack(
-                                               side=tkinter.TOP, anchor="w")
-        Tooltip(self._highlight_sources_with_selected_hash_button,
-                        "Highlight sources containing hash at offset selection")
 
         # clear highlighted hashes
         self._clear_highlighted_hashes_icon = tkinter.PhotoImage(
@@ -201,20 +167,6 @@ class FiltersView():
         Tooltip(self._ignore_hashes_in_range_button,
                                          "Ignore hashes in range selection")
 
-        # ignore selected hash
-        self._ignore_selected_hash_icon = tkinter.PhotoImage(
-                                 file=icon_path("ignore_selected_hash"))
-        self._ignore_selected_hash_button = tkinter.Button(ignore_frame,
-                           image=self._ignore_selected_hash_icon,
-                           text="Selected hash",
-                           compound="left", padx=4, pady=0,
-                           command=self._fc.ignore_selected_hash,
-                           bg=background, activebackground=activebackground,
-                           highlightthickness=0)
-        self._ignore_selected_hash_button.pack(side=tkinter.TOP, anchor="w")
-        Tooltip(self._ignore_selected_hash_button,
-                                         "Ignore hash at offset selection")
-
         # ignore sources with hashes in range
         self._ignore_sources_with_hashes_in_range_icon = tkinter.PhotoImage(
                        file=icon_path("ignore_sources_with_hashes_in_range"))
@@ -230,22 +182,6 @@ class FiltersView():
                                                               anchor="w")
         Tooltip(self._ignore_sources_with_hashes_in_range_button,
                              "Ignore sources with hashes in range selection")
-
-        # ignore sources with selected hash
-        self._ignore_sources_with_selected_hash_icon = tkinter.PhotoImage(
-                         file=icon_path("ignore_sources_with_selected_hash"))
-        self._ignore_sources_with_selected_hash_button = tkinter.Button(
-                   ignore_frame,
-                   image=self._ignore_sources_with_selected_hash_icon,
-                   text="Sources with selected hash",
-                   compound="left", padx=4, pady=0,
-                   command=self._fc.ignore_sources_with_selected_hash,
-                   bg=background, activebackground=activebackground,
-                   highlightthickness=0)
-        self._ignore_sources_with_selected_hash_button.pack(side=tkinter.TOP,
-                                                            anchor="w")
-        Tooltip(self._ignore_sources_with_selected_hash_button,
-                      "Ignore sources containing hash at offset selection")
 
         # clear ignored hashes
         self._clear_ignored_hashes_icon = tkinter.PhotoImage(
@@ -276,15 +212,11 @@ class FiltersView():
         # register to receive highlight change events
         filters.set_callback(self._handle_filter_change)
 
-        # register to receive offset selection change events
-        offset_selection.set_callback(self._handle_offset_selection_change)
-
         # register to receive range selection change events
         range_selection.set_callback(self._handle_range_selection_change)
 
         # set initial state
         self._handle_filter_change()
-        self._handle_offset_selection_change()
         self._handle_range_selection_change()
 
     def _handle_filter_change(self, *args):
@@ -321,16 +253,6 @@ class FiltersView():
         else:
             self._clear_highlighted_sources_button.config(
                                                        state=tkinter.DISABLED)
-
-    def _handle_offset_selection_change(self, *args):
-        if self._offset_selection.offset == -1:
-            state = tkinter.DISABLED
-        else:
-            state = tkinter.NORMAL
-        self._ignore_selected_hash_button.config(state=state)
-        self._ignore_sources_with_selected_hash_button.config(state=state)
-        self._highlight_selected_hash_button.config(state=state)
-        self._highlight_sources_with_selected_hash_button.config(state=state)
 
     def _handle_range_selection_change(self, *args):
         if self._range_selection.is_selected:

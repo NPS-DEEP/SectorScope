@@ -44,21 +44,13 @@ def icon_path(name):
     if name == "clear_highlighted_sources":
         return _absolute_path("minus_blue.gif")
 
-    # range selection control
-    if name == "fit_range":
-        return _absolute_path("zoom-in-3.gif")
-    if name == "clear_range":
-        return _absolute_path("list-remove-3.gif")
-
-    # offset selection control
-    if name == "show_hex_view":
-        return _absolute_path("text-x-hex.gif")
-    if name == "clear_offset_selection":
-        return _absolute_path("list-remove-3.gif")
-
     # histogram bar control
     if name == "fit_image":
         return _absolute_path("zoom-original-2.gif")
+    if name == "fit_range":
+        return _absolute_path("zoom-in-3.gif")
+    if name == "show_hex_view":
+        return _absolute_path("text-x-hex.gif")
     if name == "view_annotations":
         return _absolute_path("table-go.gif")
 

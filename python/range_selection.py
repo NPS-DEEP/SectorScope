@@ -65,7 +65,6 @@ class RangeSelection():
 
     def set(self, master, identified_data, offset1, offset2):
         """Set offsets.  Input can be out of order.  Equal offsets clears."""
-        print("range_selection.set")
 
         # clear when equal
         if offset1 == offset2:

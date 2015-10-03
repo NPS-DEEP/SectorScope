@@ -432,16 +432,6 @@ class HistogramBar():
                 self._photo_image.put("red",
                                       to=(x, 0, x+1, self.HISTOGRAM_BAR_HEIGHT))
 
-    # draw the offset selection marker
-    def _draw_selection_marker(self):
-        # sector selection marker
-        if self._offset_selection.offset != -1:
-            x = self._offset_to_bucket(self._offset_selection.offset) * \
-                                                           self.BUCKET_WIDTH
-            if x >= 0 and x < self.HISTOGRAM_BAR_WIDTH:
-                self._photo_image.put("red3",
-                                      to=(x, 0, x+1, self.HISTOGRAM_BAR_HEIGHT))
-
     # sector alignment
     def _sector_align(self, offset):
         # round down to sector boundary
