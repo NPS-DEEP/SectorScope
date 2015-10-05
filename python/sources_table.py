@@ -57,9 +57,9 @@ class SourcesTable():
         # RGB colors
         self.TITLE = "gray90"
 
-        self.EVEN_NORMAL = "#f8f8f8"
-        self.ODD_NORMAL = "#eeeeee"
-        self.HOVERED_NORMAL = "#aaaaaa"
+        self.EVEN_NORMAL = "#fcfcff"
+        self.ODD_NORMAL = "#f4f4ff"
+        self.HOVERED_NORMAL = "#4444ff"
 
         self.EVEN_IGNORED = "#ffdddd"
         self.ODD_IGNORED = "#ffcccc"
@@ -69,10 +69,9 @@ class SourcesTable():
         self.ODD_HIGHLIGHTED = "#aaffaa"
         self.HOVERED_HIGHLIGHTED = "#006633"
 
-        self.EVEN_IGNORED_AND_HIGHLIGHTED = "#bbffff"
-        self.ODD_IGNORED_AND_HIGHLIGHTED = "#99ffff"
-        self.HOVERED_IGNORED_AND_HIGHLIGHTED = "#008888"
-
+        self.EVEN_IGNORED_AND_HIGHLIGHTED = "#aaaaaa"
+        self.ODD_IGNORED_AND_HIGHLIGHTED = "#999999"
+        self.HOVERED_IGNORED_AND_HIGHLIGHTED = "#555555"
         self.IN_RANGE_BACKGROUND = "#3322ff"
         self.IN_RANGE_FOREGROUND = "white"
 

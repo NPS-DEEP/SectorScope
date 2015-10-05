@@ -443,8 +443,8 @@ class HistogramBar():
         self._draw_tick("#000066", self._hash_buckets[i], i, 2)
 
         # middle bar: highlighted matches: light, dark green
-        self._draw_bar("#33cc33", self._highlighted_source_buckets[i], i, 1)
-        self._draw_bar("#004400", self._highlighted_hash_buckets[i], i, 1)
+        self._draw_bar("#ccffcc", self._highlighted_source_buckets[i], i, 1)
+        self._draw_bar("#aaffaa", self._highlighted_hash_buckets[i], i, 1)
 
         # bottom bar: ignored matches: light, dark red
         self._draw_bar("#ffdddd", self._ignored_hash_buckets[i], i, 0)

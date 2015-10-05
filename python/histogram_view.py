@@ -104,7 +104,7 @@ class HistogramView():
                   background=background).pack(side=tkinter.LEFT, padx=(2,30))
 
         # highlighted matches: green
-        tkinter.Label(legend_frame, text="   ", background="#004400").pack(
+        tkinter.Label(legend_frame, text="   ", background="#aaffaa").pack(
                                                            side=tkinter.LEFT)
         tkinter.Label(legend_frame, text="Highlighted matches",
                   background=background).pack(side=tkinter.LEFT, padx=(2,30))
