@@ -458,8 +458,11 @@ class HistogramBar():
 
     def _handle_leave(self, e):
         self._is_valid_cursor = False
-        # set false in case error pop-up window prevented b1_release event
-        self._b1_pressed = False
+
+        # note: could also set b1_pressed false because pop-up window blocks
+        # b1 release, but doing so prevents drag outside bar, which is worse.
+
+        # redraw
         self._draw()
 
     def _handle_b1_press(self, e):
