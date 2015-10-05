@@ -97,22 +97,22 @@ class HistogramView():
         legend_frame = tkinter.Frame(button_and_legend_frame, bg=background)
         legend_frame.pack(side=tkinter.LEFT, padx=(40,0))
 
-        # all matches: black
-        tkinter.Label(legend_frame, text="   ", background="#333333").pack(
+        # all matches: blue
+        tkinter.Label(legend_frame, text="   ", background="#000066").pack(
                                                            side=tkinter.LEFT)
         tkinter.Label(legend_frame, text="All matches",
                   background=background).pack(side=tkinter.LEFT, padx=(2,30))
 
-        # ignored matches removed: red
-        tkinter.Label(legend_frame, text="   ", background="#660000").pack(
+        # highlighted matches: green
+        tkinter.Label(legend_frame, text="   ", background="#004400").pack(
                                                            side=tkinter.LEFT)
-        tkinter.Label(legend_frame, text="Ignored matches removed",
+        tkinter.Label(legend_frame, text="Highlighted matches",
                   background=background).pack(side=tkinter.LEFT, padx=(2,30))
 
-        # highlighted matches: green
-        tkinter.Label(legend_frame,text="   ", background="#004400").pack(
+        # ignored matches: red
+        tkinter.Label(legend_frame,text="   ", background="#ffcccc").pack(
                                                            side=tkinter.LEFT)
-        tkinter.Label(legend_frame,text="Highlighted matches",
+        tkinter.Label(legend_frame,text="Ignored matches",
                   background=background).pack(side=tkinter.LEFT, padx=(2,0))
 
         # add the histogram bar

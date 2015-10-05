@@ -362,6 +362,23 @@ class HistogramBar():
             self._photo_image.put("black",
                                   to=(0, y-1, self.HISTOGRAM_BAR_WIDTH, y))
 
+    """Calculate clipped bar height from count.
+      Rationale for formula "int(log(count + 1, 1.23) * 2)" follows:
+          * The scale should be as light as possible but still not clip.
+          * A count of 1 should be 3 pixels tall so that the smallest unit is
+            readily visible.
+          * An arbitrarily chosen count of 200,000 should fully fill the
+            arbitrarily chosen 60-pixel high bar.
+    """
+    def _bar_height(self, count):
+        h = int(log(count + 1, 1.5) * 2)
+
+        # clip to keep in range
+        if h > int(self.HISTOGRAM_BAR_HEIGHT / 3):
+            h = int(self.HISTOGRAM_BAR_HEIGHT / 3)
+
+        return h
+
     # draw one bar for one bucket
     def _draw_bar(self, color, count, i, j):
         # i is bucket number
@@ -371,27 +388,36 @@ class HistogramBar():
         if not count:
             return
 
-        # x is pixel coordinate
+        # get coordinates
         x=(i * self.BUCKET_WIDTH)
         y0 = int(self.HISTOGRAM_BAR_HEIGHT / 3 * j)
+        y1 = self._bar_height(count)
 
-        # calculate y1 logarithmically based on count
-        """Rationale for formula "int(log(count + 1, 1.23) * 2)" follows:
-          * The scale should be as light as possible but still not clip.
-          * A count of 1 should be 3 pixels tall so that the smallest unit is
-            readily visible.
-          * An arbitrarily chosen count of 200,000 should fully fill the
-            arbitrarily chosen 60-pixel high bar.
-        """
-        y1 = int(log(count + 1, 1.5) * 2)
-
-        # clip to keep in range
-        if y1 > int(self.HISTOGRAM_BAR_HEIGHT / 3):
-            y1 = int(self.HISTOGRAM_BAR_HEIGHT / 3)
-
+        # plot rectangle
         self._photo_image.put(color, to=(
              x,
              self.HISTOGRAM_BAR_HEIGHT - y0,
+             x+self.BUCKET_WIDTH,
+             self.HISTOGRAM_BAR_HEIGHT - (y0 + y1)))
+
+    # draw one tick mark for one bucket, see draw_bar
+    def _draw_tick(self, color, count, i, j):
+        # i is bucket number
+        # j is bar row number, either 2, 1, or 0
+
+        # do not plot bars when count==0
+        if not count:
+            return
+
+        # get coordinates
+        x=(i * self.BUCKET_WIDTH)
+        y0 = int(self.HISTOGRAM_BAR_HEIGHT / 3 * j)
+        y1 = self._bar_height(count)
+
+        # plot rectangle
+        self._photo_image.put(color, to=(
+             x,
+             self.HISTOGRAM_BAR_HEIGHT - (y0 + y1 - 1),
              x+self.BUCKET_WIDTH,
              self.HISTOGRAM_BAR_HEIGHT - (y0 + y1)))
 
@@ -400,19 +426,29 @@ class HistogramBar():
 
         # draw bars #rrggbb
 
-        # all hashes: black
-        self._draw_bar("#cccccc", self._hash_buckets[i], i, 2)
-        self._draw_bar("#333333", self._source_buckets[i], i, 2)
+        # top bar: all matches and ignored matches removed
 
-        # ignored hashes removed: red
-        self._draw_bar("#ff5050", self._hash_buckets[i] -
-                                        self._ignored_hash_buckets[i], i, 1)
-        self._draw_bar("#660000", self._source_buckets[i] -
-                                        self._ignored_source_buckets[i], i, 1)
+        # 1 all sources with ignored sources removed: light blue bar
+        self._draw_bar("#3399ff", self._source_buckets[i] -
+                                        self._ignored_source_buckets[i], i, 2)
 
-        # highlighted hashes: green
-        self._draw_bar("#33cc33", self._highlighted_hash_buckets[i], i, 0)
-        self._draw_bar("#004400", self._highlighted_source_buckets[i], i, 0)
+        # 2 all hashes with ignored hashes removed: dark blue bar
+        self._draw_bar("#000066", self._hash_buckets[i] -
+                                        self._ignored_hash_buckets[i], i, 2)
+
+        # 3 all sources: light blue tick
+        self._draw_tick("#3399ff", self._source_buckets[i], i, 2)
+
+        # 4 all hashes: dark blue tick
+        self._draw_tick("#000066", self._hash_buckets[i], i, 2)
+
+        # middle bar: highlighted matches: light, dark green
+        self._draw_bar("#33cc33", self._highlighted_source_buckets[i], i, 1)
+        self._draw_bar("#004400", self._highlighted_hash_buckets[i], i, 1)
+
+        # bottom bar: ignored matches: light, dark red
+        self._draw_bar("#ffdddd", self._ignored_hash_buckets[i], i, 0)
+        self._draw_bar("#ffcccc", self._ignored_source_buckets[i], i, 0)
 
     # draw one gray bucket for out-of-range data
     def _draw_gray_bucket(self, i):
