@@ -124,7 +124,7 @@ class FiltersView():
         ignore_max_hashes_frame = tkinter.Frame(ignore_frame, bg=background)
         ignore_max_hashes_frame.pack(side=tkinter.TOP, anchor="w")
         tkinter.Label(ignore_max_hashes_frame,
-                      text="Max Same Hashes:", padx=0, pady=0,
+                      text="Max Duplicate Hashes:", padx=0, pady=0,
                       bg=background).pack( side=tkinter.LEFT, anchor="w")
         self._ignore_max_hashes_entry = tkinter.Entry(ignore_max_hashes_frame,
                                                                width=6)
