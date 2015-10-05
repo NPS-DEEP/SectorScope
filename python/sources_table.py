@@ -3,6 +3,7 @@ from collections import defaultdict
 from scrolled_text import ScrolledText
 from icon_path import icon_path
 from tooltip import Tooltip
+from selection_tools import sources_in_range
 try:
     import tkinter
 except ImportError:
@@ -23,15 +24,19 @@ class SourcesTable():
       Mouse motion events change the Source line background hover color.
       Mouse left click events toggle source highlighting for that source ID.
       Mouse right click events toggle source ignoring for that source ID.
-      The background color for the Source ID depends on the filtering mode:
+      The color for the Source data depends on the filtering mode:
         "normal":      gray
         "ignored":     red
         "highlighted": green
         "ignored_and_highlighted": teal
-      The background shade is further modified by line index or cursor over:
+      This color is further modified by line index or cursor over:
         even index: lighter
         odd index:  darker
         hover:      much darker, with white foreground
+      The color for the source ID depends on the range selection.
+        If the source is selected, the source ID is shown as blue.
+        If the source is not selected, the source ID color is the same
+        as the color for the source data.
 
     Attributes:
       frame(Frame): the containing frame for this sources table.
@@ -68,13 +73,18 @@ class SourcesTable():
         self.ODD_IGNORED_AND_HIGHLIGHTED = "#99ffff"
         self.HOVERED_IGNORED_AND_HIGHLIGHTED = "#008888"
 
+        self.IN_RANGE_BACKGROUND = "#3322ff"
+        self.IN_RANGE_FOREGROUND = "white"
+
         # variables
         self._identified_data = identified_data
         self._filters = filters
+        self._range_selection = range_selection
 
         # state
         self._line_to_id = {}
         self._id_to_line = {}
+        self._selected_source_ids = set()
 
         # cursor line or -1
         self._cursor_line = -1
@@ -91,14 +101,12 @@ class SourcesTable():
 
         # text widget tab settng
         self._source_text.config(tabs=(
-                     '0.5c', tkinter.CENTER,      # range indicator
-                     '1.0c', tkinter.CENTER,      # selection indicator
-                     '2.0c', tkinter.RIGHT,       # ID
-                     '2.8c', tkinter.NUMERIC,     # %match
-                     '5.0c', tkinter.RIGHT,       # #match
-                     '7.1c', tkinter.RIGHT,       # filesize
-                     '7.6c',                      # repository name
-                     '11.6c'))                    # filename
+                     '1.0c', tkinter.RIGHT,       # ID
+                     '1.8c', tkinter.NUMERIC,     # %match
+                     '4.0c', tkinter.RIGHT,       # #match
+                     '6.1c', tkinter.RIGHT,       # filesize
+                     '6.6c',                      # repository name
+                     '10.6c'))                    # filename
 
         # text widget cursor setting
         self._source_text.config(cursor="arrow")
@@ -128,7 +136,7 @@ class SourcesTable():
         # register to receive range selection change events
         range_selection.set_callback(self._handle_range_selection_change)
 
-        # set initial state
+        # set initial state data
         self._set_data()
 
     def _set_data(self):
@@ -147,12 +155,12 @@ class SourcesTable():
         # delete any existing tags
         self._source_text.tag_delete(self._source_text.tag_names())
 
-        # put in the title tag
+        # create the title tag
         self._source_text.tag_config("title", background=self.TITLE)
 
         # put in the first line containing the column titles
         self._source_text.insert(tkinter.END,
-                                 "\tR\u2713\tO\u2714\tID\t"
+                                 "\tID\t"
                                  "%Match\t#Match\tSize\t"
                                  "Repository Name\tFilename\n",
                                  "title")
@@ -167,7 +175,7 @@ class SourcesTable():
         for source_id, source in source_details.items():
 
             # set the tag for the source text
-            self._set_tag(line, source_id)
+            self._set_data_color(line, source_id)
 
             # compose the source text
             # handle missing fields, which can happen if an image was
@@ -178,24 +186,25 @@ class SourcesTable():
                 percent_found = len(sources_offsets[source_id]) / \
                                (int(source["filesize"] / sector_size)) * 100
 
-                source_text = '\t \t \t%s\t%.2f%%\t%d\t%d\t%s\t%s\n' \
-                                    %(source_id,
-                                      percent_found,
+                source_text = '\t%.2f%%\t%d\t%d\t%s\t%s\n' \
+                                    %(percent_found,
                                       len(sources_offsets[source_id]),
                                       source["filesize"],
                                       source["repository_name"],
                                       source["filename"])
 
             else:
-                source_text = '\t \t \t%s\t%.2f%%\t?%d\t?\t%s\t%s\n' \
-                                    %(source_id,
-                                      len(sources_offsets[source_id]),
+                source_text = '\t?\t%d\t?\t%s\t%s\n' \
+                                    %(len(sources_offsets[source_id]),
                                       source["repository_name"],
                                       source["filename"])
 
             # add the source text
-            tag_name = "line_%s" % line
-            self._source_text.insert(tkinter.END, source_text, tag_name)
+            id_tag_name = "id_line_%s" % line
+            data_tag_name = "data_line_%s" % line
+            self._source_text.insert(tkinter.END, "\t%s" % source_id,
+                                                                 id_tag_name)
+            self._source_text.insert(tkinter.END, source_text, data_tag_name)
 
             # record the line and ID lookups
             self._line_to_id[line] = source_id
@@ -207,11 +216,9 @@ class SourcesTable():
         # set not editable
         self._source_text.config(state=tkinter.DISABLED)
 
-    def _set_tag(self, line, source_id):
-        # create the tag name for the line
-        tag_name = "line_%s" % line
-
-        # determine the background color
+    def _data_color(self, line, source_id):
+        # return foreground, background tuple depending on filtering
+        # and alternating line coloration
         if source_id in self._filters.ignored_sources and \
                     source_id in self._filters.highlighted_sources:
             # use IGNORED_AND_HIGHLIGHTED color scheme
@@ -258,13 +265,46 @@ class SourcesTable():
                 else:
                     background = self.ODD_NORMAL
 
-        # create or modify the tag
-        self._source_text.tag_config(tag_name, background=background,
-                                               foreground=foreground)
+        # return color
+        return (foreground, background)
 
-    def _set_tags(self):
-        for line, source_id in self._line_to_id.items():
-            self._set_tag(line, source_id)
+
+    def _set_data_color(self, line, source_id):
+        # compose the data tag name for the line
+        data_tag_name = "data_line_%s" % line
+
+        # get the data color
+        (foreground, background) = self._data_color(line, source_id)
+
+        # create or modify the data tag
+        self._source_text.tag_config(data_tag_name, background=background,
+                                                      foreground=foreground)
+
+    def _set_data_colors(self):
+        # set data color for each source
+        for source_id, _ in self._identified_data.source_details.items():
+            line = self._id_to_line[source_id]
+            self._set_data_color(line, source_id)
+
+    def _set_id_colors(self, source_ids):
+        # set ID color for each source
+        for source_id, _ in self._identified_data.source_details.items():
+
+            # compose the ID tag name for the line
+            line = self._id_to_line[source_id]
+            id_tag_name = "id_line_%s" % line
+
+            if source_id in source_ids:
+                # use blue range selection colors for the ID portion
+                self._source_text.tag_config(id_tag_name,
+                                        background=self.IN_RANGE_BACKGROUND,
+                                        foreground=self.IN_RANGE_FOREGROUND)
+
+            else:
+                # use data colors
+                (foreground, background) = self._data_color(line, source_id)
+                self._source_text.tag_config(id_tag_name,
+                                 background=background, foreground=foreground)
 
     def _mouse_to_line(self, e):
         index = self._source_text.index("@%s,%s" % (e.x, e.y))
@@ -282,12 +322,13 @@ class SourcesTable():
         old_cursor_line = self._cursor_line
         if old_cursor_line != -1:
             self._cursor_line = -1
-            self._set_tag(old_cursor_line, self._line_to_id[old_cursor_line])
+            self._set_data_color(old_cursor_line,
+                                          self._line_to_id[old_cursor_line])
 
         # set new cursor line if the line is in bounds
         if line in self._line_to_id:
             self._cursor_line = line
-            self._set_tag(line, self._line_to_id[line])
+            self._set_data_color(line, self._line_to_id[line])
 
     # highlight this source
     def _handle_b1_mouse_press(self, e):
@@ -333,14 +374,26 @@ class SourcesTable():
         if self._cursor_line != -1:
             old_cursor_line = self._cursor_line
             self._cursor_line = -1
-            self._set_tag(old_cursor_line, self._line_to_id[old_cursor_line])
+            self._set_data_color(old_cursor_line,
+                                         self._line_to_id[old_cursor_line])
 
     def _handle_identified_data_change(self, *args):
         self._set_data()
 
     def _handle_filter_change(self, *args):
-        self._set_tags()
+        self._set_data_colors()
 
     def _handle_range_selection_change(self, *args):
-        print("sources_table handle range selection")
+        if self._range_selection.is_selected:
+            # get source IDs in range
+            selected_source_ids = sources_in_range(self._identified_data,
+                                          self._range_selection.start_offset,
+                                          self._range_selection.stop_offset)
+
+        else:
+            # unmark source IDs
+            selected_source_ids = set()
+
+        # set source ID colors
+        self._set_id_colors(selected_source_ids)
 
