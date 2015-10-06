@@ -41,23 +41,23 @@ class MenuView():
         open_button.pack(side=tkinter.LEFT)
         Tooltip(open_button, "Open scanned output")
 
-        # scan button
-        self._scan_icon = tkinter.PhotoImage(file=icon_path("scan"))
-        scan_button = tkinter.Button(button_frame, image=self._scan_icon,
-                       command=self._handle_scan,
-                       bg=background, activebackground=activebackground,
-                       highlightthickness=0)
-        scan_button.pack(side=tkinter.LEFT, padx=4)
-        Tooltip(scan_button, "Scan a media iamge")
-
         # import button
         self._import_icon = tkinter.PhotoImage(file=icon_path("import"))
         import_button = tkinter.Button(button_frame, image=self._import_icon,
                        command=self._handle_import,
                        bg=background, activebackground=activebackground,
                        highlightthickness=0)
-        import_button.pack(side=tkinter.LEFT)
+        import_button.pack(side=tkinter.LEFT, padx=(8,4))
         Tooltip(import_button, "Import files into a\nnew hashdb database")
+
+        # scan button
+        self._scan_icon = tkinter.PhotoImage(file=icon_path("scan"))
+        scan_button = tkinter.Button(button_frame, image=self._scan_icon,
+                       command=self._handle_scan,
+                       bg=background, activebackground=activebackground,
+                       highlightthickness=0)
+        scan_button.pack(side=tkinter.LEFT)
+        Tooltip(scan_button, "Scan a media iamge")
 
     def _handle_open(self):
         self._open_manager.open_be_dir("")
