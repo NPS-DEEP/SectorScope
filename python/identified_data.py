@@ -193,7 +193,7 @@ class IdentifiedData():
                                                   "identified_blocks.txt")
 
             # make the hashdb command
-            cmd = ["hashdb", "expand_identified_blocks", self.hashdb_dir,
+            cmd = ["hashdb", "expand_identified_blocks", hashdb_dir,
                    identified_blocks_file]
 
             # run hashdb to make the identified blocks expanded file
@@ -246,10 +246,12 @@ class IdentifiedData():
                                 source_details[hash_source[ \
                                                    "source_id"]]=hash_source
 
-                except ValueError:
-                    raise ValueError("Error reading file '%s'\n"
-                                     "line %n:'%s'\n%s" % (
-                                     expanded_file, i, e))
+                except ValueError as e:
+                    raise ValueError("Error reading file '%s' "
+                             "line %d:'%s':%s\nPlease check that "
+                             "identified_blocks_expanded.txt was made "
+                             "using the hash database at '%s'." % (
+                                     expanded_file, i, line, e, be_dir))
 
         return (forensic_paths, hashes, source_details)
 
