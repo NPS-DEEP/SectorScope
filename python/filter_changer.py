@@ -3,7 +3,6 @@ from icon_path import icon_path
 from tooltip import Tooltip
 from be_scan_window import BEScanWindow
 from be_import_window import BEImportWindow
-from colors import background, activebackground
 import selection_tools
 try:
     import tkinter

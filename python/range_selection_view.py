@@ -1,4 +1,4 @@
-from colors import background, activebackground
+import colors
 from forensic_path import offset_string
 from icon_path import icon_path
 from tooltip import Tooltip
@@ -30,28 +30,28 @@ class RangeSelectionView():
         self._range_selection = range_selection
 
         # make the containing frame
-        self.frame = tkinter.Frame(master, bg=background)
+        self.frame = tkinter.Frame(master, bg=colors.BACKGROUND)
 
         # title
-        tkinter.Label(self.frame, text="Range Selection", bg=background).pack(
-                                               side=tkinter.TOP, pady=(0,4))
+        tkinter.Label(self.frame, text="Range Selection",
+                     bg=colors.BACKGROUND).pack(side=tkinter.TOP, pady=(0,4))
 
         # range from
         self._from_label = tkinter.Label(self.frame, anchor="w", width=38,
-                                                             bg=background)
+                                                        bg=colors.BACKGROUND)
         self._from_label.pack(side=tkinter.TOP, anchor="w")
 
         # range to
-        self._to_label = tkinter.Label(self.frame, bg=background)
+        self._to_label = tkinter.Label(self.frame, bg=colors.BACKGROUND)
         self._to_label.pack(side=tkinter.TOP, anchor="w")
 
         # MD5 offset label
-        self._md5_offset_label = tkinter.Label(self.frame, bg=background)
+        self._md5_offset_label = tkinter.Label(self.frame, bg=colors.BACKGROUND)
         self._md5_offset_label .pack(side=tkinter.TOP, anchor="w")
 
         # MD5 label
         self._md5_label = tkinter.Label(self.frame, anchor="w", width=40,
-                                                           bg=background)
+                                                        bg=colors.BACKGROUND)
         self._md5_label.pack(side=tkinter.TOP, anchor="w", fill=tkinter.X)
 
         # register to receive range selection change events

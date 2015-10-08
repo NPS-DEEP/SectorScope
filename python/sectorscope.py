@@ -23,7 +23,7 @@ from histogram_view import HistogramView
 from sources_view import SourcesView
 from forensic_path import offset_string
 from open_manager import OpenManager
-from colors import background
+import colors
 
 # compose the GUI
 def build_gui(root_window, identified_data, filters, range_selection,
@@ -37,10 +37,10 @@ def build_gui(root_window, identified_data, filters, range_selection,
     root_window.title("SectorScope")
     root_window.minsize(width=400,height=300)
     root_window.geometry("1000x700")
-    root_window.configure(bg=background)
+    root_window.configure(bg=colors.BACKGROUND)
 
     # left frame for most of view, top down
-    left_frame = tkinter.Frame(root_window, bg=background)
+    left_frame = tkinter.Frame(root_window, bg=colors.BACKGROUND)
     left_frame.pack(side=tkinter.LEFT, anchor="n", padx=4, pady=(4,0))
 
     # menu

@@ -1,4 +1,4 @@
-from colors import background
+import colors
 from sys import platform
 from sys import maxsize
 from forensic_path import offset_string
@@ -84,19 +84,23 @@ class HistogramBar():
         self.frame.pack()
 
         # add the frame for offset values
-        offsets_frame = tkinter.Frame(self.frame, height=18+0, bg=background)
+        offsets_frame = tkinter.Frame(self.frame, height=18+0,
+                                                         bg=colors.BACKGROUND)
         offsets_frame.pack(side=tkinter.TOP, fill=tkinter.X)
 
         # leftmost offset value
-        self._start_offset_label = tkinter.Label(offsets_frame, bg=background)
+        self._start_offset_label = tkinter.Label(offsets_frame,
+                                                         bg=colors.BACKGROUND)
         self._start_offset_label.place(relx=0.0, anchor=tkinter.NW)
 
         # cursor offset value
-        self._image_offset_label = tkinter.Label(offsets_frame, bg=background)
+        self._image_offset_label = tkinter.Label(offsets_frame,
+                                                         bg=colors.BACKGROUND)
         self._image_offset_label.place(relx=0.5, anchor=tkinter.N)
 
         # rightmost offset value
-        self._stop_offset_label = tkinter.Label(offsets_frame, bg=background)
+        self._stop_offset_label = tkinter.Label(offsets_frame,
+                                                         bg=colors.BACKGROUND)
         self._stop_offset_label.place(relx=1.0, anchor=tkinter.NE)
 
         # add the label containing the histogram bar PhotoImage
@@ -330,7 +334,7 @@ class HistogramBar():
             if x2 == x1: x2 += 1
 
             # fill the range with the range selection color
-            self._photo_image.put("#ccffff",
+            self._photo_image.put(colors.RANGE,
                                  to=(x1, 0, x2, self.HISTOGRAM_BAR_HEIGHT))
 
     # draw all the buckets
@@ -431,26 +435,30 @@ class HistogramBar():
         # top bar: all matches and ignored matches removed
 
         # 1 all sources with ignored sources removed: light blue bar
-        self._draw_bar("#3399ff", self._source_buckets[i] -
+        self._draw_bar(colors.ALL_LIGHTER, self._source_buckets[i] -
                                         self._ignored_source_buckets[i], i, 2)
 
         # 2 all hashes with ignored hashes removed: dark blue bar
-        self._draw_bar("#000066", self._hash_buckets[i] -
+        self._draw_bar(colors.ALL_DARKER, self._hash_buckets[i] -
                                         self._ignored_hash_buckets[i], i, 2)
 
         # 3 all sources: light blue tick
-        self._draw_tick("#3399ff", self._source_buckets[i], i, 2)
+        self._draw_tick(colors.ALL_LIGHTER, self._source_buckets[i], i, 2)
 
         # 4 all hashes: dark blue tick
-        self._draw_tick("#000066", self._hash_buckets[i], i, 2)
+        self._draw_tick(colors.ALL_DARKER, self._hash_buckets[i], i, 2)
 
         # middle bar: highlighted matches: light, dark green
-        self._draw_bar("#ccffcc", self._highlighted_source_buckets[i], i, 1)
-        self._draw_bar("#aaffaa", self._highlighted_hash_buckets[i], i, 1)
+        self._draw_bar(colors.HIGHLIGHTED_LIGHTER,
+                                    self._highlighted_source_buckets[i], i, 1)
+        self._draw_bar(colors.HIGHLIGHTED_DARKER,
+                                    self._highlighted_hash_buckets[i], i, 1)
 
         # bottom bar: ignored matches: light, dark red
-        self._draw_bar("#ffdddd", self._ignored_hash_buckets[i], i, 0)
-        self._draw_bar("#ffcccc", self._ignored_source_buckets[i], i, 0)
+        self._draw_bar(colors.IGNORED_LIGHTER,
+                                    self._ignored_hash_buckets[i], i, 0)
+        self._draw_bar(colors.IGNORED_DARKER,
+                                    self._ignored_source_buckets[i], i, 0)
 
     # draw one gray bucket for out-of-range data
     def _draw_gray_bucket(self, i):

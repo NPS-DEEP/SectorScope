@@ -3,7 +3,7 @@ from icon_path import icon_path
 from tooltip import Tooltip
 from be_scan_window import BEScanWindow
 from be_import_window import BEImportWindow
-from colors import background, activebackground
+import colors
 from filter_changer import FilterChanger
 try:
     import tkinter
@@ -38,19 +38,20 @@ class FiltersView():
         self._range_selection = range_selection
 
         # make the containing frame
-        self.frame = tkinter.Frame(master, bg=background)
+        self.frame = tkinter.Frame(master, bg=colors.BACKGROUND)
 
         # title
-        tkinter.Label(self.frame, text="Filters", bg=background).pack(
+        tkinter.Label(self.frame, text="Filters", bg=colors.BACKGROUND).pack(
                                                side=tkinter.TOP, pady=(0,4))
 
         # highlight and ignore frame
-        highlight_and_ignore_frame = tkinter.Frame(self.frame, bg=background)
+        highlight_and_ignore_frame = tkinter.Frame(self.frame,
+                                                        bg=colors.BACKGROUND)
         highlight_and_ignore_frame.pack(side=tkinter.TOP, anchor="w")
 
         # Highlight frame
         highlight_frame = tkinter.LabelFrame(highlight_and_ignore_frame,
-                           text="Highlight", bg=background, padx=4, pady=4)
+                      text="Highlight", bg=colors.BACKGROUND, padx=4, pady=4)
         highlight_frame.pack(side=tkinter.LEFT, anchor="n", padx=(0,4))
 
         # highlight buttons
@@ -63,7 +64,8 @@ class FiltersView():
                            text="Hashes in range",
                            compound="left", padx=4, pady=0,
                            command=self._fc.highlight_hashes_in_range,
-                           bg=background, activebackground=activebackground,
+                           bg=colors.BACKGROUND,
+                           activebackground=colors.ACTIVEBACKGROUND,
                            highlightthickness=0)
         self._highlight_hashes_in_range_button.pack(side=tkinter.TOP,
                                                                 anchor="w")
@@ -79,7 +81,8 @@ class FiltersView():
                    text="Sources with selected hashes in range",
                    compound="left", padx=4, pady=0,
                    command=self._fc.highlight_sources_with_hashes_in_range,
-                   bg=background, activebackground=activebackground,
+                   bg=colors.BACKGROUND,
+                   activebackground=colors.ACTIVEBACKGROUND,
                    highlightthickness=0)
         self._highlight_sources_with_hashes_in_range_button.pack(
                                                side=tkinter.TOP, anchor="w")
@@ -94,7 +97,8 @@ class FiltersView():
                    text="Clear highlighted hashes",
                    compound="left", padx=4, pady=0,
                    command=self._fc.clear_highlighted_hashes,
-                   bg=background, activebackground=activebackground,
+                   bg=colors.BACKGROUND,
+                   activebackground=colors.ACTIVEBACKGROUND,
                    highlightthickness=0)
         self._clear_highlighted_hashes_button.pack(side=tkinter.TOP, anchor="w")
         Tooltip(self._clear_highlighted_hashes_button,
@@ -108,7 +112,8 @@ class FiltersView():
                    text="Clear highlighted sources",
                    compound="left", padx=4, pady=0,
                    command=self._fc.clear_highlighted_sources,
-                   bg=background, activebackground=activebackground,
+                   bg=colors.BACKGROUND,
+                   activebackground=colors.ACTIVEBACKGROUND,
                    highlightthickness=0)
         self._clear_highlighted_sources_button.pack(side=tkinter.TOP,
                                                                 anchor="w")
@@ -117,15 +122,16 @@ class FiltersView():
 
         # Ignore frame
         ignore_frame = tkinter.LabelFrame(highlight_and_ignore_frame,
-                             text="Ignore", bg=background, padx=4, pady=4)
+                         text="Ignore", bg=colors.BACKGROUND, padx=4, pady=4)
         ignore_frame.pack(side=tkinter.LEFT, anchor="n")
 
         # ignore max same hashes text entry
-        ignore_max_hashes_frame = tkinter.Frame(ignore_frame, bg=background)
+        ignore_max_hashes_frame = tkinter.Frame(ignore_frame,
+                                                bg=colors.BACKGROUND)
         ignore_max_hashes_frame.pack(side=tkinter.TOP, anchor="w")
         tkinter.Label(ignore_max_hashes_frame,
                       text="Max Duplicate Hashes:", padx=0, pady=0,
-                      bg=background).pack( side=tkinter.LEFT, anchor="w")
+                      bg=colors.BACKGROUND).pack( side=tkinter.LEFT, anchor="w")
         self._ignore_max_hashes_entry = tkinter.Entry(ignore_max_hashes_frame,
                                                                width=6)
         self._ignore_max_hashes_entry.insert(0, "None")
@@ -141,7 +147,9 @@ class FiltersView():
         self._ignore_flagged_blocks_checkbutton = tkinter.Checkbutton(
                         ignore_frame, text="Flagged Blocks",
                         variable=self._ignore_flagged_blocks_trace_var,
-                        bd=0, bg=background, activebackground=activebackground,
+                        bd=0,
+                        bg=colors.BACKGROUND,
+                        activebackground=colors.ACTIVEBACKGROUND,
                         pady=4, highlightthickness=0)
         self._ignore_flagged_blocks_checkbutton.pack(side=tkinter.TOP,
                                                                  anchor="w")
@@ -161,7 +169,8 @@ class FiltersView():
                            text="Hashes in range",
                            compound="left", padx=4, pady=0,
                            command=self._fc.ignore_hashes_in_range,
-                           bg=background, activebackground=activebackground,
+                           bg=colors.BACKGROUND,
+                           activebackground=colors.ACTIVEBACKGROUND,
                            highlightthickness=0)
         self._ignore_hashes_in_range_button.pack(side=tkinter.TOP, anchor="w")
         Tooltip(self._ignore_hashes_in_range_button,
@@ -176,7 +185,8 @@ class FiltersView():
                    text="Sources with selected hashes in range",
                    compound="left", padx=4, pady=0,
                    command=self._fc.ignore_sources_with_hashes_in_range,
-                   bg=background, activebackground=activebackground,
+                   bg=colors.BACKGROUND,
+                   activebackground=colors.ACTIVEBACKGROUND,
                    highlightthickness=0)
         self._ignore_sources_with_hashes_in_range_button.pack(side=tkinter.TOP,
                                                               anchor="w")
@@ -191,7 +201,8 @@ class FiltersView():
                    text="Clear ignored hashes",
                    compound="left", padx=4, pady=0,
                    command=self._fc.clear_ignored_hashes,
-                   bg=background, activebackground=activebackground,
+                   bg=colors.BACKGROUND,
+                   activebackground=colors.ACTIVEBACKGROUND,
                    highlightthickness=0)
         self._clear_ignored_hashes_button.pack(side=tkinter.TOP, anchor="w")
         Tooltip(self._clear_ignored_hashes_button, "Clear all ignored hashes")
@@ -204,7 +215,8 @@ class FiltersView():
                    text="Clear ignored sources",
                    compound="left", padx=4, pady=0,
                    command=self._fc.clear_ignored_sources,
-                   bg=background, activebackground=activebackground,
+                   bg=colors.BACKGROUND,
+                   activebackground=colors.ACTIVEBACKGROUND,
                    highlightthickness=0)
         self._clear_ignored_sources_button.pack(side=tkinter.TOP, anchor="w")
         Tooltip(self._clear_ignored_sources_button, "Clear all ignored sources")

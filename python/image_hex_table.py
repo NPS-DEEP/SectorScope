@@ -1,6 +1,7 @@
 import be_image_reader
 from scrolled_text import ScrolledText
 from show_error import ShowError
+import colors
 try:
     import tkinter
 except ImportError:
@@ -40,10 +41,14 @@ class ImageHexTable():
         # tags available for the hex text lines
         # states are: unmatched=gray, matched=blue, ignored=red,
         # highlighted=green, outside=white
-        self._hex_text.tag_config("even_unmatched", background="#eeeeee")
-        self._hex_text.tag_config("odd_unmatched", background="#dddddd")
-        self._hex_text.tag_config("even_matched", background="#eeeeff")
-        self._hex_text.tag_config("odd_matched", background="#ddddff")
+        self._hex_text.tag_config("even_unmatched",
+                                             background=colors.EVEN_UNMATCHED)
+        self._hex_text.tag_config("odd_unmatched",
+                                             background=colors.ODD_UNMATCHED)
+        self._hex_text.tag_config("even_matched",
+                                             background=colors.EVEN_MATCHED)
+        self._hex_text.tag_config("odd_matched",
+                                             background=colors.ODD_MATCHED)
         self._hex_text.tag_config("outside_block", background="white")
 
         # register to receive range selection change events
@@ -77,10 +82,7 @@ class ImageHexTable():
 
         if self._range_selection.is_selected:
             self._set_lines()
-#            self._hex_text.config(state=tkinter.NORMAL)
-#        else:
-#            self._hex_text.config(state=tkinter.DISABLED)
-            
+
     def _set_lines(self):
         offset = self._range_selection.block_hash_offset
         buf = self._range_selection.buf

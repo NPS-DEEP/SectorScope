@@ -1,6 +1,6 @@
 from fit_range_selection import FitRangeSelection
 from image_hex_window import ImageHexWindow
-from colors import background, activebackground
+import colors
 from forensic_path import offset_string
 from icon_path import icon_path
 from tooltip import Tooltip
@@ -36,25 +36,28 @@ class HistogramView():
         fit_range_selection = FitRangeSelection()
 
         # make the containing frame
-        self.frame = tkinter.Frame(master, bg=background)
+        self.frame = tkinter.Frame(master, bg=colors.BACKGROUND)
 
         # add the title
         tkinter.Label(self.frame, text="Image Match Histogram",
-                                 bg=background).pack(side=tkinter.TOP, pady=2)
+                          bg=colors.BACKGROUND).pack(side=tkinter.TOP, pady=2)
 
         # add button and legend frame
-        button_and_legend_frame = tkinter.Frame(self.frame, bg=background)
+        button_and_legend_frame = tkinter.Frame(self.frame,
+                                                         bg=colors.BACKGROUND)
         button_and_legend_frame.pack(side=tkinter.TOP, fill=tkinter.X)
 
         # button frame
-        button_frame = tkinter.Frame(button_and_legend_frame, bg=background)
+        button_frame = tkinter.Frame(button_and_legend_frame,
+                                                         bg=colors.BACKGROUND)
         button_frame.pack(side=tkinter.LEFT)
 
         # button to zoom to fit image
         self._fit_image_icon = tkinter.PhotoImage(file=icon_path("fit_image"))
         fit_image_button = tkinter.Button(button_frame,
                            image=self._fit_image_icon,
-                           bg=background, activebackground=activebackground,
+                           bg=colors.BACKGROUND,
+                           activebackground=colors.ACTIVEBACKGROUND,
                            highlightthickness=0)
         fit_image_button.pack(side=tkinter.LEFT)
         Tooltip(fit_image_button, "Zoom to fit image")
@@ -64,7 +67,8 @@ class HistogramView():
         self._fit_range_button = tkinter.Button(button_frame,
                               image=self._fit_range_icon,
                               command=fit_range_selection.fire_change,
-                              bg=background, activebackground=activebackground,
+                              bg=colors.BACKGROUND,
+                              activebackground=colors.ACTIVEBACKGROUND,
                               highlightthickness=0)
         self._fit_range_button.pack(side=tkinter.LEFT, padx=4)
         Tooltip(self._fit_range_button, "Zoom to range")
@@ -75,7 +79,8 @@ class HistogramView():
         show_hex_view_button = tkinter.Button(button_frame,
                               image=self._show_hex_view_icon,
                               command=self._image_hex_window.show,
-                              bg=background, activebackground=activebackground,
+                              bg=colors.BACKGROUND,
+                              activebackground=colors.ACTIVEBACKGROUND,
                               highlightthickness=0)
         show_hex_view_button.pack(side=tkinter.LEFT)
         Tooltip(show_hex_view_button, "Show hex view of selection")
@@ -86,7 +91,8 @@ class HistogramView():
         view_annotations_button = tkinter.Button(button_frame,
                            image=self._view_annotations_icon,
                            command=self._handle_view_annotations,
-                           bg=background, activebackground=activebackground,
+                           bg=colors.BACKGROUND,
+                           activebackground=colors.ACTIVEBACKGROUND,
                            highlightthickness=0)
 
         view_annotations_button.pack(side=tkinter.LEFT, padx=4)
@@ -94,26 +100,27 @@ class HistogramView():
                                          "(CURRENTLY NOT AVAILABLE)")
 
         # color legend
-        legend_frame = tkinter.Frame(button_and_legend_frame, bg=background)
+        legend_frame = tkinter.Frame(button_and_legend_frame,
+                                                        bg=colors.BACKGROUND)
         legend_frame.pack(side=tkinter.LEFT, padx=(40,0))
 
-        # all matches: blue
-        tkinter.Label(legend_frame, text="   ", background="#000066").pack(
-                                                           side=tkinter.LEFT)
+        # all matches
+        tkinter.Label(legend_frame, text="   ",
+                      background=colors.ALL_DARKER).pack(side=tkinter.LEFT)
         tkinter.Label(legend_frame, text="All matches",
-                  background=background).pack(side=tkinter.LEFT, padx=(2,30))
+           background=colors.BACKGROUND).pack(side=tkinter.LEFT, padx=(2,30))
 
-        # highlighted matches: green
-        tkinter.Label(legend_frame, text="   ", background="#aaffaa").pack(
-                                                           side=tkinter.LEFT)
+        # highlighted matches
+        tkinter.Label(legend_frame, text="   ",
+                background=colors.HIGHLIGHTED_DARKER).pack(side=tkinter.LEFT)
         tkinter.Label(legend_frame, text="Highlighted matches",
-                  background=background).pack(side=tkinter.LEFT, padx=(2,30))
+           background=colors.BACKGROUND).pack(side=tkinter.LEFT, padx=(2,30))
 
-        # ignored matches: red
-        tkinter.Label(legend_frame,text="   ", background="#ffcccc").pack(
-                                                           side=tkinter.LEFT)
+        # ignored matches
+        tkinter.Label(legend_frame,text="   ",
+                    background=colors.IGNORED_DARKER).pack(side=tkinter.LEFT)
         tkinter.Label(legend_frame,text="Ignored matches",
-                  background=background).pack(side=tkinter.LEFT, padx=(2,0))
+           background=colors.BACKGROUND).pack(side=tkinter.LEFT, padx=(2,0))
 
         # add the histogram bar
         self._histogram_bar = HistogramBar(self.frame, identified_data,

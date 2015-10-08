@@ -4,6 +4,7 @@ from scrolled_text import ScrolledText
 from icon_path import icon_path
 from tooltip import Tooltip
 from selection_tools import sources_in_range
+import colors
 try:
     import tkinter
 except ImportError:
@@ -53,27 +54,6 @@ class SourcesTable():
           range_selection(RangeSelection): The selected range.
           width, height(int): size in characters of table.
         """
-
-        # RGB colors
-        self.TITLE = "gray90"
-
-        self.EVEN_NORMAL = "#fcfcff"
-        self.ODD_NORMAL = "#f4f4ff"
-        self.HOVERED_NORMAL = "#4444ff"
-
-        self.EVEN_IGNORED = "#ffdddd"
-        self.ODD_IGNORED = "#ffcccc"
-        self.HOVERED_IGNORED = "#990000"
-
-        self.EVEN_HIGHLIGHTED = "#ccffcc"
-        self.ODD_HIGHLIGHTED = "#aaffaa"
-        self.HOVERED_HIGHLIGHTED = "#006633"
-
-        self.EVEN_IGNORED_AND_HIGHLIGHTED = "#aaaaaa"
-        self.ODD_IGNORED_AND_HIGHLIGHTED = "#999999"
-        self.HOVERED_IGNORED_AND_HIGHLIGHTED = "#555555"
-        self.IN_RANGE_BACKGROUND = "#3322ff"
-        self.IN_RANGE_FOREGROUND = "white"
 
         # variables
         self._identified_data = identified_data
@@ -153,7 +133,7 @@ class SourcesTable():
         self._source_text.tag_delete(self._source_text.tag_names())
 
         # create the title tag
-        self._source_text.tag_config("title", background=self.TITLE)
+        self._source_text.tag_config("title", background=colors.TITLE)
 
         # put in the first line containing the column titles
         self._source_text.insert(tkinter.END,
@@ -238,8 +218,8 @@ class SourcesTable():
         if source_id in self._selected_source_ids:
             # use blue range selection colors for the ID portion
             self._source_text.tag_config(id_tag_name,
-                                        background=self.IN_RANGE_BACKGROUND,
-                                        foreground=self.IN_RANGE_FOREGROUND)
+                                        background=colors.IN_RANGE_BACKGROUND,
+                                        foreground=colors.IN_RANGE_FOREGROUND)
 
         else:
             # use data colors for the id color
@@ -255,46 +235,46 @@ class SourcesTable():
             # use IGNORED_AND_HIGHLIGHTED color scheme
             if line == self._cursor_line:
                 foreground = "white"
-                background = self.HOVERED_IGNORED_AND_HIGHLIGHTED
+                background = colors.HOVERED_IGNORED_AND_HIGHLIGHTED
             else:
                 foreground = "black"
                 if line % 2 == 0:
-                    background = self.EVEN_IGNORED_AND_HIGHLIGHTED
+                    background = colors.EVEN_IGNORED_AND_HIGHLIGHTED
                 else:
-                    background = self.ODD_IGNORED_AND_HIGHLIGHTED
+                    background = colors.ODD_IGNORED_AND_HIGHLIGHTED
         elif source_id in self._filters.ignored_sources:
             # use IGNORED color scheme
             if line == self._cursor_line:
                 foreground = "white"
-                background = self.HOVERED_IGNORED
+                background = colors.HOVERED_IGNORED
             else:
                 foreground = "black"
                 if line % 2 == 0:
-                    background = self.EVEN_IGNORED
+                    background = colors.EVEN_IGNORED
                 else:
-                    background = self.ODD_IGNORED
+                    background = colors.ODD_IGNORED
         elif source_id in self._filters.highlighted_sources:
             # use HIGHLIGHTED color scheme
             if line == self._cursor_line:
                 foreground = "white"
-                background = self.HOVERED_HIGHLIGHTED
+                background = colors.HOVERED_HIGHLIGHTED
             else:
                 foreground = "black"
                 if line % 2 == 0:
-                    background = self.EVEN_HIGHLIGHTED
+                    background = colors.EVEN_HIGHLIGHTED
                 else:
-                    background = self.ODD_HIGHLIGHTED
+                    background = colors.ODD_HIGHLIGHTED
         else:
             # use NORMAL color scheme
             if line == self._cursor_line:
                 foreground = "white"
-                background = self.HOVERED_NORMAL
+                background = colors.HOVERED_NORMAL
             else:
                 foreground = "black"
                 if line % 2 == 0:
-                    background = self.EVEN_NORMAL
+                    background = colors.EVEN_NORMAL
                 else:
-                    background = self.ODD_NORMAL
+                    background = colors.ODD_NORMAL
 
         # return color
         return (foreground, background)
