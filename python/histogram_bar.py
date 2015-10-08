@@ -207,8 +207,9 @@ class HistogramBar():
         # calculate _hash_counts based on identified data
         # _hash_counts is dict<hash, (count, is_ignored, is_highlighted)>
         self._hash_counts = dict()
-        for block_hash, sources in self._identified_data.hashes.items():
-            count = len(sources)
+        for block_hash, (source_id_set, has_label) in \
+                                         self._identified_data.hashes.items():
+            count = len(source_id_set)
             is_ignored = False
             is_highlighted = False
 
@@ -224,17 +225,17 @@ class HistogramBar():
             if block_hash in highlighted_hashes:
                 is_highlighted = True
 
-            # a source is flagged or a source itself is highlighted
-            for source in sources:
-                if ignore_flagged_blocks and "label" in source:
-                    # source has a label flag
-                    is_ignored = True
-                if source["source_id"] in ignored_sources:
-                    # source is to be ignored 
-                    is_ignored = True
-                if source["source_id"] in highlighted_sources:
-                    # source is to be highlighted
-                    is_highlighted = True
+            # flagged blocks are ignored
+            if ignore_flagged_blocks and has_label:
+                is_ignored = True
+
+            # a source associated with this hash is ignored
+            if len(ignored_sources.intersection(source_id_set)):
+                is_ignored = True
+
+            # a source associated with this hash is highlighted
+            if len(highlighted_sources.intersection(source_id_set)):
+                is_highlighted = True
 
             # set the count tuple for the hash
             self._hash_counts[block_hash] = (count, is_ignored, is_highlighted)
@@ -472,7 +473,11 @@ class HistogramBar():
     # sector alignment
     def _sector_align(self, offset):
         # round down to sector boundary
-        return int(offset - offset % self._sector_size)
+        try:
+            return int(offset - offset % self._sector_size)
+        except ZeroDivisionError:
+            # not initialized
+            return 0
 
     # convert mouse coordinate to aligned offset
     def _x_to_aligned_offset(self, x):

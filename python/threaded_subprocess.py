@@ -69,6 +69,6 @@ class ReaderThread(threading.Thread):
     def run(self):
         # read pipe until pipe closes
         for line in self._pipe:
-            self._queue.put("%s: %s" %(self._name,
-                                       line.decode(sys.stdout.encoding)))
+            self._queue.put("%s: %s" %(self._name, line.decode(
+                            encoding=sys.stdout.encoding, errors='replace')))
 

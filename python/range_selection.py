@@ -83,7 +83,7 @@ class RangeSelection():
             self.stop_offset = offset1
 
         # find first block hash offset
-        (self.block_hash_offset, self.block_hash_is_in)  = self._first_path(
+        (self.block_hash_offset, self.block_hash_is_in) = self._first_path(
                                         master, identified_data,
                                         self.start_offset, self.stop_offset)
 

@@ -89,7 +89,7 @@ class IdentifiedData():
         self._maybe_make_identified_blocks_expanded_file(be_dir, hashdb_dir)
 
         # read identified_blocks_expanded.txt
-        (forensic_paths, hashes, source_details) = \
+        (forensic_paths, hashes, source_details, sources_offsets) = \
                                self._read_identified_blocks_expanded(be_dir)
 
         # everything worked so accept the data
@@ -102,12 +102,29 @@ class IdentifiedData():
         self.forensic_paths = forensic_paths
         self.hashes = hashes
         self.source_details = source_details
+        self.sources_offsets = sources_offsets
 
-        # generate calculated data
-        self.sources_offsets = self._identify_sources_offsets()
+        # print diagnostic statistics
+        self.print_stats()
 
         # fire data changed event
         self._identified_data_changed.set(True)
+
+    def print_stats(self):
+        print("identified_data statistics\n"
+              "be_dir: '%s'\nImage size: %d\nImage filename: '%s'\n"
+              "hashdb directory: '%s'\nSector size: %d\nBlock size: %d\n"
+              "Number of forensic paths: %d\nNumber of hashes: %d\n"
+              "Number of sources: %d" % (
+                        self.be_dir,
+                        self.image_size,
+                        self.image_filename,
+                        self.hashdb_dir,
+                        self.sector_size,
+                        self.block_size,
+                        len(self.forensic_paths),
+                        len(self.hashes),
+                        len(self.source_details)))
 
     def _read_be_report_file(self, be_dir):
         """Read image_size, image_filename, hashdb_dir from report.xml."""
@@ -216,6 +233,7 @@ class IdentifiedData():
         forensic_paths=dict()
         hashes = dict()
         source_details=dict()
+        sources_offsets = defaultdict(set)
         with open(expanded_file, 'r') as f:
             i = 0
             for line in f:
@@ -230,21 +248,33 @@ class IdentifiedData():
                     # store hash at forensic path
                     forensic_paths[forensic_path] = block_hash
 
-                    # store sources for hash the first time a hash is seen
+                    # store entropy label and source data for new hash
                     if block_hash not in hashes:
+                        # get json sources
                         extracted_json_data = json.loads(json_data)
-                        extracted_sources = extracted_json_data[1]["sources"]
-                        hashes[block_hash] = extracted_sources
+                        json_sources = extracted_json_data[1]["sources"]
 
-                        # store source details the first time a source is seen
-                        # Note: source details are provided the first time a
-                        #       source is shown, so process every source
-                        #       to be sure to catch complete source
-                        #       information when provided.
-                        for hash_source in extracted_sources:
-                            if "filename" in hash_source:
-                                source_details[hash_source[ \
-                                                   "source_id"]]=hash_source
+                        # get has_label, now from source[0]
+                        has_label = "label" in json_sources[0]
+
+                        # get set of sources and store new json sources
+                        sources = set()
+                        for json_source in json_sources:
+                            source_id = json_source["source_id"]
+
+                            # add source ID to sources set
+                            sources.add(source_id)
+
+                            # also store source details if first time seen
+                            if "filename" in json_source:
+                                source_details[source_id] = json_source
+
+                            # also add source offset to sources_offsets
+                            sources_offsets[source_id].add(
+                                                  json_source["file_offset"])
+
+                        # store hash and attributes as tuple(set, bool)
+                        hashes[block_hash] = (sources, has_label)
 
                 except ValueError as e:
                     raise ValueError("Error reading file '%s' "
@@ -253,21 +283,5 @@ class IdentifiedData():
                              "using the hash database at '%s'." % (
                                      expanded_file, i, line, e, be_dir))
 
-        return (forensic_paths, hashes, source_details)
-
-    def _identify_sources_offsets(self):
-        """Get the set of offsets for each source.  The length of a set
-        indicates source fullness for that source."""
-        # sources_offsets = dict<source ID, set<source offset int>>
-        sources_offsets = defaultdict(set)
-
-        # identify source offsets of every source of every matching hash
-        for _, sources in self.hashes.items():
-            for source in sources:
-
-                # set the offset for the source
-                sources_offsets[source["source_id"]].add(source["file_offset"])
-
-        return sources_offsets
-
+        return (forensic_paths, hashes, source_details, sources_offsets)
 

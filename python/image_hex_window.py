@@ -55,27 +55,22 @@ class ImageHexWindow():
                 if block_hash in self._filters.highlighted_hashes:
                     text += "hash highlighted, "
 
-                # ignore and highlight status for sectors matching hash
-                # get sources associated with this hash
-                sources = self._identified_data.hashes[block_hash]
-
-                # get status for each source associated with this hash
-                source_ignored = False
-                source_highlighted = False
-                for source in sources:
-                    source_id = source["source_id"]
-                    if source_id in self._filters.ignored_sources:
-                        source_ignored = True
-                    if source_id in self._filters.highlighted_sources:
-                        source_highlighted = True
-                if source_ignored:
+                # set ignore and highlight status for sectors matching this hash
+                (source_id_set, _) = self._identified_data.hashes[block_hash]
+                if len(self._filters.ignored_sources.intersection(
+                                                             source_id_set)):
                     text += "source ignored, "
-                if source_highlighted:
+                if len(self._filters.highlighted_sources.intersection(
+                                                             source_id_set)):
                     text += "source highlighted, "
+
+                # also indicate matched identified_data
                 text += "hash matched"
             else:
+                # indicate not matched identified_data
                 text += "hash not matched"
         else:
+            # no hash is selected
             text = "No selection."
         self._annotation_label["text"] = text
 
