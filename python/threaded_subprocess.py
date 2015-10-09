@@ -69,6 +69,19 @@ class ReaderThread(threading.Thread):
     def run(self):
         # read pipe until pipe closes
         for line in self._pipe:
-            self._queue.put("%s: %s" %(self._name, line.decode(
-                            encoding=sys.stdout.encoding, errors='replace')))
+            self._queue.put("%s: %s" %(self._name, self._tcl_hack(line.decode(
+                            encoding=sys.stdout.encoding, errors='replace'))))
+
+    def _tcl_hack(self, s):
+        # Tkinter widgets can't handle large unicode, so use escape.
+        # Ref. http://stackoverflow.com/questions/23530080/
+        # how-to-print-non-bmp-unicode-characters-in-tkinter-e-g
+        l=list(s);
+        i=0;
+        while i<len(l):
+            o=ord(l[i]);
+            if o>65535:
+                l[i]="{"+str(o)+"ū}";
+            i+=1;
+        return "".join(l);
 
