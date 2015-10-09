@@ -210,7 +210,7 @@ class IdentifiedData():
                                                   "identified_blocks.txt")
 
             # make the hashdb command
-            cmd = ["hashdb", "expand_identified_blocks", hashdb_dir,
+            cmd = ["hashdb", "expand_identified_blocks", "-m", "0", hashdb_dir,
                    identified_blocks_file]
 
             # run hashdb to make the identified blocks expanded file
@@ -276,7 +276,7 @@ class IdentifiedData():
                         # store hash and attributes as tuple(set, bool)
                         hashes[block_hash] = (sources, has_label)
 
-                except ValueError as e:
+                except Exception as e:
                     raise ValueError("Error reading file '%s' "
                              "line %d:'%s':%s\nPlease check that "
                              "identified_blocks_expanded.txt was made "
