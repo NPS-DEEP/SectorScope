@@ -102,7 +102,7 @@ class HistogramView():
         # color legend
         legend_frame = tkinter.Frame(button_and_legend_frame,
                                                         bg=colors.BACKGROUND)
-        legend_frame.pack(side=tkinter.LEFT, padx=(40,0))
+        legend_frame.pack(side=tkinter.LEFT, padx=(100,0))
 
         # all matches
         tkinter.Label(legend_frame, text="   ",
@@ -116,11 +116,11 @@ class HistogramView():
         tkinter.Label(legend_frame, text="Highlighted matches",
            background=colors.BACKGROUND).pack(side=tkinter.LEFT, padx=(2,30))
 
-        # ignored matches
-        tkinter.Label(legend_frame,text="   ",
-                    background=colors.IGNORED_DARKER).pack(side=tkinter.LEFT)
-        tkinter.Label(legend_frame,text="Ignored matches",
-           background=colors.BACKGROUND).pack(side=tkinter.LEFT, padx=(2,0))
+#        # ignored matches
+#        tkinter.Label(legend_frame,text="   ",
+#                    background=colors.IGNORED_DARKER).pack(side=tkinter.LEFT)
+#        tkinter.Label(legend_frame,text="Ignored matches",
+#           background=colors.BACKGROUND).pack(side=tkinter.LEFT, padx=(2,0))
 
         # add the histogram bar
         self._histogram_bar = HistogramBar(self.frame, identified_data,
