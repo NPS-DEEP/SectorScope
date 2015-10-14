@@ -36,14 +36,14 @@ class RangeSelectionView():
         tkinter.Label(self.frame, text="Range Selection",
                      bg=colors.BACKGROUND).pack(side=tkinter.TOP, pady=(0,4))
 
-        # range from
-        self._from_label = tkinter.Label(self.frame, anchor="w", width=38,
+        # range
+        self._range_label = tkinter.Label(self.frame, anchor="w", width=75,
                                                         bg=colors.BACKGROUND)
-        self._from_label.pack(side=tkinter.TOP, anchor="w")
+        self._range_label.pack(side=tkinter.TOP, anchor="w")
 
-        # range to
-        self._to_label = tkinter.Label(self.frame, bg=colors.BACKGROUND)
-        self._to_label.pack(side=tkinter.TOP, anchor="w")
+        # span
+        self._span_label = tkinter.Label(self.frame, bg=colors.BACKGROUND)
+        self._span_label.pack(side=tkinter.TOP, anchor="w")
 
         # MD5 offset label
         self._md5_offset_label = tkinter.Label(self.frame, bg=colors.BACKGROUND)
@@ -65,13 +65,15 @@ class RangeSelectionView():
         if self._range_selection.is_selected:
             # set labels and buttons based on range values
 
-            # from
-            self._from_label["text"]='From: %s' % offset_string(
-                                          self._range_selection.start_offset)
+            # range
+            self._range_label["text"]='Range: From: %s        To: %s' % (
+                            offset_string(self._range_selection.start_offset),
+                            offset_string(self._range_selection.stop_offset))
 
-            # to
-            self._to_label["text"]='To: %s' % offset_string(
-                                          self._range_selection.stop_offset)
+            # span
+            self._span_label["text"]='Span: %s' % offset_string(
+                                          self._range_selection.stop_offset -
+                                          self._range_selection.start_offset)
 
             # MD5 offset
             self._md5_offset_label["text"]='MD5 offset: %s' % offset_string(
@@ -82,8 +84,8 @@ class RangeSelectionView():
 
         else:
             # set labels and buttons to unselected state
-            self._from_label["text"]='From: Range not selected'
-            self._to_label["text"]='To: Range not selected'
+            self._range_label["text"]='Range: Range not selected'
+            self._span_label["text"]='Span: Range not selected'
             self._md5_offset_label["text"]='MD5 offset: Range not selected'
             self._md5_label["text"]='MD5: Range not selected'
 
