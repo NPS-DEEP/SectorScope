@@ -47,7 +47,7 @@ class RangeSelectionView():
 
         # MD5 offset label
         self._md5_offset_label = tkinter.Label(self.frame, bg=colors.BACKGROUND)
-        self._md5_offset_label .pack(side=tkinter.TOP, anchor="w")
+        self._md5_offset_label.pack(side=tkinter.TOP, anchor="w")
 
         # MD5 label
         self._md5_label = tkinter.Label(self.frame, anchor="w", width=40,

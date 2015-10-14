@@ -80,8 +80,22 @@ class HistogramBar():
                                                 self.HISTOGRAM_BAR_HEIGHT))
 
         # make the containing frame
-        self.frame = tkinter.Frame(master, bg="blue")
+        self.frame = tkinter.Frame(master, bg=colors.BACKGROUND)
         self.frame.pack()
+
+        # frame for bar statistics
+        bar_statistics_frame = tkinter.Frame(self.frame, bg=colors.BACKGROUND)
+        bar_statistics_frame.pack(side=tkinter.TOP, anchor="w")
+
+        # bucket width label
+        self._bucket_width_label = tkinter.Label(bar_statistics_frame,
+                                   anchor="w", width=40, bg=colors.BACKGROUND)
+        self._bucket_width_label.pack(side=tkinter.LEFT, pady=(4,0))
+
+        # bucket count label
+        self._bucket_count_label = tkinter.Label(bar_statistics_frame,
+                                   anchor="w", width=30, bg=colors.BACKGROUND)
+        self._bucket_count_label.pack(side=tkinter.LEFT)
 
         # add the frame for offset values
         offsets_frame = tkinter.Frame(self.frame, height=18+0,
@@ -291,6 +305,10 @@ class HistogramBar():
         self._draw_cursor_marker()
 
     def _draw_text(self):
+
+        # bucket width
+        self._bucket_width_label["text"] = "Bar width: %s" % \
+                                    offset_string(int(self._bytes_per_bucket))
  
         # put in the offset start and stop text
         self._start_offset_label["text"] = offset_string(self._start_offset)
@@ -298,13 +316,21 @@ class HistogramBar():
                           self._bytes_per_bucket * self.NUM_BUCKETS)
         self._stop_offset_label["text"] = offset_string(stop_offset)
 
-        # put in the cursor byte offset text
+        # put in text based on cursor location
         if self._is_valid_cursor:
+            # put in the cursor byte offset text
             self._image_offset_label["text"] = offset_string(
                                      self._sector_align(self._cursor_offset))
+
+            # bucket count at cursor
+            self._bucket_count_label["text"] = "Bar matches: %s" % \
+                                self._source_buckets[self._offset_to_bucket(
+                                                       self._cursor_offset)]
+
         else:
             # clear
             self._image_offset_label['text'] = ""
+            self._bucket_count_label['text'] = "Bar matches: Not selected"
 
     # clear everything
     def _draw_clear(self):
