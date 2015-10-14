@@ -207,27 +207,27 @@ class SourcesTable():
         # get the source ID
         source_id = self._line_to_id[line]
 
-        # get the data color
-        (foreground, background) = self._data_color(line, source_id)
+        # get the source color
+        (foreground, background) = self._source_color(line, source_id)
+
+        # set the id tag color
+        self._source_text.tag_config(id_tag_name, background=background,
+                                                  foreground=foreground)
 
         # set the data tag color
-        self._source_text.tag_config(data_tag_name, background=background,
-                                                      foreground=foreground)
-
-        # get the ID color
-        if source_id in self._selected_source_ids:
-            # use blue range selection colors for the ID portion
-            self._source_text.tag_config(id_tag_name,
+        if source_id in self._selected_source_ids and line != self._cursor_line:
+            # use range selection color for the data portion
+            self._source_text.tag_config(data_tag_name,
                                         background=colors.IN_RANGE_BACKGROUND,
                                         foreground=colors.IN_RANGE_FOREGROUND)
 
         else:
-            # use data colors for the id color
-            self._source_text.tag_config(id_tag_name,
+            # use id colors for the data color
+            self._source_text.tag_config(data_tag_name,
                                  background=background, foreground=foreground)
 
 
-    def _data_color(self, line, source_id):
+    def _source_color(self, line, source_id):
         # return foreground, background tuple depending on filtering
         # and alternating line coloration
         if source_id in self._filters.ignored_sources and \
