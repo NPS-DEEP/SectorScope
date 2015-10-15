@@ -719,8 +719,20 @@ class HistogramBar():
             range_center_bucket = self._offset_to_bucket(range_center_offset)
 
             # calculate the new start offset
-            new_start_offset = self._sector_offset(range_center_offset -
-                                 new_bytes_per_bucket * range_center_bucket)
+            new_start_offset = range_center_offset - \
+                                 new_bytes_per_bucket * range_center_bucket
+
+            # set to left edge if too far left
+            if start_offset < new_start_offset:
+                new_start_offset = start_offset
+
+            # set to right edge if too far right
+            new_stop_offset = new_start_offset + \
+                                      new_bytes_per_bucket * self.NUM_BUCKETS
+
+            if stop_offset > new_stop_offset:
+                new_start_offset = new_start_offset - \
+                              (new_stop_offset - stop_offset)
 
         # set the new values
         self._start_offset = new_start_offset
