@@ -46,7 +46,6 @@ class HistogramBar():
     _bytes_per_bucket = 0   # may be fractional
 
     # cursor offset
-    _is_valid_cursor = False
     _cursor_offset = 0
 
     # mouse b1 left-click states
@@ -262,11 +261,11 @@ class HistogramBar():
         """Buckets show hashes per bucket and sources per bucket.
         """
         # initialize empty buckets for each data type to plot
-        self._hash_buckets = [0] * (self.NUM_BUCKETS)
+#        self._hash_buckets = [0] * (self.NUM_BUCKETS)
         self._source_buckets = [0] * (self.NUM_BUCKETS)
-        self._ignored_hash_buckets = [0] * (self.NUM_BUCKETS)
+#        self._ignored_hash_buckets = [0] * (self.NUM_BUCKETS)
         self._ignored_source_buckets = [0] * (self.NUM_BUCKETS)
-        self._highlighted_hash_buckets = [0] * (self.NUM_BUCKETS)
+#        self._highlighted_hash_buckets = [0] * (self.NUM_BUCKETS)
         self._highlighted_source_buckets = [0] * (self.NUM_BUCKETS)
 
         # calculate the histogram
@@ -283,17 +282,17 @@ class HistogramBar():
             count, is_ignored, is_highlighted = self._hash_counts[block_hash]
 
             # hash and source buckets
-            self._hash_buckets[bucket] += 1
+#            self._hash_buckets[bucket] += 1
             self._source_buckets[bucket] += count
 
             # ignored hash and source buckets
             if is_ignored:
-                self._ignored_hash_buckets[bucket] += 1
+#                self._ignored_hash_buckets[bucket] += 1
                 self._ignored_source_buckets[bucket] += count
 
             # highlighted hash and source buckets
             if is_highlighted:
-                self._highlighted_hash_buckets[bucket] += 1
+#                self._highlighted_hash_buckets[bucket] += 1
                 self._highlighted_source_buckets[bucket] += count
 
     # redraw everything
@@ -316,20 +315,23 @@ class HistogramBar():
                           self._bytes_per_bucket * self.NUM_BUCKETS)
         self._stop_offset_label["text"] = offset_string(stop_offset)
 
-        # put in text based on cursor location
-        if self._is_valid_cursor:
-            # put in the cursor byte offset text
+        # cursor image offset
+        if self._cursor_on_graph(self._cursor_offset) or self._b1_pressed:
+            # cursor byte offset text
             self._image_offset_label["text"] = offset_string(
                                      self._sector_align(self._cursor_offset))
+        else:
+            # clear
+            self._image_offset_label['text'] = ""
 
+        # cursor bucket count
+        if self._cursor_on_bucket(self._cursor_offset):
             # bucket count at cursor
             self._bucket_count_label["text"] = "Bar matches: %s" % \
                                 self._source_buckets[self._offset_to_bucket(
                                                        self._cursor_offset)]
-
         else:
             # clear
-            self._image_offset_label['text'] = ""
             self._bucket_count_label['text'] = "Bar matches: Not selected"
 
     # clear everything
@@ -369,11 +371,14 @@ class HistogramBar():
             return
 
         # valid bucket boundaries map inside the image
-        leftmost_bucket = max(int(-(self._start_offset +
-                                    self._bytes_per_bucket)) /
-                                self._bytes_per_bucket, 0)
-        rightmost_bucket = min(round((self._image_size - self._start_offset) /
-                                self._bytes_per_bucket), self.NUM_BUCKETS)
+        leftmost_bucket = -(self._start_offset + self._bytes_per_bucket - 1
+                           ) / self._bytes_per_bucket
+
+        rightmost_bucket = (self._image_size - (self._start_offset +
+                            self._bytes_per_bucket - 1)) / self._bytes_per_bucket
+
+#        rightmost_bucket = round((self._image_size - self._start_offset) /
+#                                self._bytes_per_bucket), self.NUM_BUCKETS
 
         # draw the buckets
         for bucket in range(self.NUM_BUCKETS):
@@ -444,21 +449,21 @@ class HistogramBar():
         self._draw_bar(colors.ALL_LIGHTER, self._source_buckets[i] -
                                         self._ignored_source_buckets[i], i)
 
-        # 2 all hashes with ignored hashes removed: dark blue bar
-        self._draw_bar(colors.ALL_DARKER, self._hash_buckets[i] -
-                                        self._ignored_hash_buckets[i], i)
+#        # 2 all hashes with ignored hashes removed: dark blue bar
+#        self._draw_bar(colors.ALL_DARKER, self._hash_buckets[i] -
+#                                        self._ignored_hash_buckets[i], i)
 
         # 3 all sources: light blue tick
         self._draw_tick(colors.ALL_LIGHTER, self._source_buckets[i], i)
 
-        # 4 all hashes: dark blue tick
-        self._draw_tick(colors.ALL_DARKER, self._hash_buckets[i], i)
+#        # 4 all hashes: dark blue tick
+#        self._draw_tick(colors.ALL_DARKER, self._hash_buckets[i], i)
 
         # middle bar: highlighted matches: light, dark green
         self._draw_bar(colors.HIGHLIGHTED_LIGHTER,
                                     self._highlighted_source_buckets[i], i)
-        self._draw_bar(colors.HIGHLIGHTED_DARKER,
-                                    self._highlighted_hash_buckets[i], i)
+#        self._draw_bar(colors.HIGHLIGHTED_DARKER,
+#                                    self._highlighted_hash_buckets[i], i)
 
 #        # bottom bar: ignored matches: light, dark red
 #        self._draw_bar(colors.IGNORED_LIGHTER,
@@ -477,12 +482,10 @@ class HistogramBar():
 
     # draw the cursor marker
     def _draw_cursor_marker(self):
-        # cursor marker when valid and not selecting a range
-        if self._is_valid_cursor:
+        if self._cursor_on_graph(self._cursor_offset):
             x = self._offset_to_bucket(self._cursor_offset) * self.BUCKET_WIDTH
-            if x >= 0 and x < self.HISTOGRAM_BAR_WIDTH:
-                self._photo_image.put("red",
-                                      to=(x, 0, x+1, self.HISTOGRAM_BAR_HEIGHT))
+            self._photo_image.put("red", to=(x, 0, x+1,
+                                                  self.HISTOGRAM_BAR_HEIGHT))
 
     # sector alignment
     def _sector_align(self, offset):
@@ -495,24 +498,26 @@ class HistogramBar():
 
     # convert mouse coordinate to bucket
     def _mouse_to_bucket(self, e):
-        return int(e.x / self.BUCKET_WIDTH)
+        """Returns bucket number even if outside valid range."""
+        # Note that e.x-1 is used because x is with respect to label,
+        # not PhotoImage, and label has a 1-pixel border.
+        return int((e.x - 1) / self.BUCKET_WIDTH)
 
     # convert bucket to offset
     def _bucket_to_offset(self, bucket):
-        offset = self._start_offset + self._bytes_per_bucket * bucket
-
-        # put bounds on offset
-        if offset < 0:
-            offset = 0
-        if offset > self._image_size:
-            offset = self._image_size
-
-        return offset
+        return self._start_offset + self._bytes_per_bucket * bucket
 
     # convert byte offset to bucket
     def _offset_to_bucket(self, image_offset):
-        return int(round((image_offset - self._start_offset) /
-                                                    self._bytes_per_bucket))
+        # skip empty initial-state data
+        if self._bytes_per_bucket == 0:
+            return -1
+
+        # skew forward half a byte to avoid rounding error
+        bucket = (image_offset - self._start_offset + 0.5) / \
+                                                       self._bytes_per_bucket
+        print("offset to bucket", bucket, int(round(bucket)))
+        return int(bucket)
 
     # see if the given offset is within the media image range
     def _in_image_range(self, offset):
@@ -522,7 +527,8 @@ class HistogramBar():
         self._handle_motion_and_b1_motion(e)
 
     def _handle_leave(self, e):
-        self._is_valid_cursor = False
+#zz        self._cursor_on_bucket = False
+#zz        self._cursor_on_graph = False
 
         # note: could also set b1_pressed false because pop-up window blocks
         # b1 release, but doing so prevents drag outside bar, which is worse.
@@ -559,8 +565,7 @@ class HistogramBar():
 
     # pan move
     def _handle_b3_move(self, e):
-        self._pan(self._b3_down_start_offset, int((self._b3_down_x - e.x) /
-                                                         self.BUCKET_WIDTH))
+        self._pan(self._b3_down_start_offset, e)
         self._b3_dragged = True
 
     # pan stop or right click
@@ -612,7 +617,18 @@ class HistogramBar():
 
     def _set_cursor(self, e):
         self._cursor_offset = self._bucket_to_offset(self._mouse_to_bucket(e))
-        self._is_valid_cursor = self._in_image_range(self._cursor_offset)
+
+    def _cursor_on_graph(self, offset):
+        bucket = self._offset_to_bucket(offset)
+        return (bucket >= 0 and bucket <= self.NUM_BUCKETS and
+                bucket >= self._offset_to_bucket(0) and
+                bucket <= self._offset_to_bucket(self._image_size + self._bytes_per_bucket - 1))
+
+    def _cursor_on_bucket(self, offset):
+        bucket = self._offset_to_bucket(offset)
+        return (bucket >= 0 and bucket < self.NUM_BUCKETS and
+                bucket >= self._offset_to_bucket(0) and
+                bucket < self._offset_to_bucket(self._image_size + self._bytes_per_bucket - 1))
 
     def _zoom(self, ratio):
         """Recalculate start offset and bytes per bucket."""
@@ -636,15 +652,18 @@ class HistogramBar():
            self._bytes_per_bucket = new_bytes_per_bucket
 
     def _outside_graph(self, start_offset, bytes_per_bucket):
-        # media image is outside range of graph
+        # the provided range lies completely outside the graph
         end_offset = start_offset + bytes_per_bucket * self.NUM_BUCKETS
         return start_offset > self._image_size or end_offset < 0
 
-    def _pan(self, start_offset_anchor, dx):
+    def _pan(self, start_offset_anchor, e):
         """Pan dx buckets based on the start_offset_anchor."""
+        dx = int((self._b3_down_x - e.x) / self.BUCKET_WIDTH)
+
         # pan
         new_start_offset = self._sector_align(start_offset_anchor +
                                                 self._bytes_per_bucket * dx)
+        print("pan", (start_offset_anchor + self._bytes_per_bucket * dx), new_start_offset)
 
         if not self._outside_graph(new_start_offset, self._bytes_per_bucket):
             # accept the pan
