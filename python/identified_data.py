@@ -37,8 +37,8 @@ class IdentifiedData():
         and 512 is currently always the expected value.
       forensic_paths (dict<forensic path str, hash hexcode str>):
         Dictionary maps forensic paths to their hash value.
-      hashes (dict<hash hexcode str, sources list, see JSON>):
-        Dictionary maps hashes to sources.
+      hashes (dict<hash hexcode str, tuple<source ID set, bool has_label>>)
+        Dictionary maps hashes to source IDs.
       source_details (dict<source ID int, dict<source metadata attributes>>):
         Dictionary where keys are source IDs and values are a dictionary
         of attributes associated with the given source as obtained from
@@ -254,13 +254,13 @@ class IdentifiedData():
                         # get has_label, now from source[0]
                         has_label = "label" in json_sources[0]
 
-                        # get set of sources and store new json sources
-                        sources = set()
+                        # get set of sources and store source IDs
+                        source_ids = set()
                         for json_source in json_sources:
                             source_id = json_source["source_id"]
 
-                            # add source ID to sources set
-                            sources.add(source_id)
+                            # add source ID to source_ids set
+                            source_ids.add(source_id)
 
                             # also store source details if first time seen
                             if "filename" in json_source:
@@ -271,7 +271,7 @@ class IdentifiedData():
                                                   json_source["file_offset"])
 
                         # store hash and attributes as tuple(set, bool)
-                        hashes[block_hash] = (sources, has_label)
+                        hashes[block_hash] = (source_ids, has_label)
 
                 except Exception as e:
                     raise ValueError("Error reading file '%s' "
