@@ -79,12 +79,12 @@ class SourcesTable():
 
         # text widget tab settng
         self._source_text.config(tabs=(
-                     '1.0c', tkinter.RIGHT,       # ID
-                     '1.8c', tkinter.NUMERIC,     # %match
-                     '4.0c', tkinter.RIGHT,       # #match
-                     '6.1c', tkinter.RIGHT,       # filesize
-                     '6.6c',                      # repository name
-                     '10.6c'))                    # filename
+                     '1.1c', tkinter.RIGHT,       # ID
+                     '1.9c', tkinter.NUMERIC,     # %match
+                     '4.1c', tkinter.RIGHT,       # #match
+                     '6.2c', tkinter.RIGHT,       # filesize
+                     '6.7c',                      # repository name
+                     '10.7c'))                    # filename
 
         # text widget cursor setting
         self._source_text.config(cursor="arrow")
