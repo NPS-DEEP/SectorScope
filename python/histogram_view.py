@@ -106,19 +106,19 @@ class HistogramView():
 
         # all matches
         tkinter.Label(legend_frame, text="   ",
-                      background=colors.ALL_DARKER).pack(side=tkinter.LEFT)
+                      background=colors.ALL_LIGHTER).pack(side=tkinter.LEFT)
         tkinter.Label(legend_frame, text="All matches",
            background=colors.BACKGROUND).pack(side=tkinter.LEFT, padx=(2,30))
 
         # highlighted matches
         tkinter.Label(legend_frame, text="   ",
-                background=colors.HIGHLIGHTED_DARKER).pack(side=tkinter.LEFT)
+                background=colors.HIGHLIGHTED_LIGHTER).pack(side=tkinter.LEFT)
         tkinter.Label(legend_frame, text="Highlighted matches",
            background=colors.BACKGROUND).pack(side=tkinter.LEFT, padx=(2,30))
 
 #        # ignored matches
 #        tkinter.Label(legend_frame,text="   ",
-#                    background=colors.IGNORED_DARKER).pack(side=tkinter.LEFT)
+#                    background=colors.IGNORED_LIGHTER).pack(side=tkinter.LEFT)
 #        tkinter.Label(legend_frame,text="Ignored matches",
 #           background=colors.BACKGROUND).pack(side=tkinter.LEFT, padx=(2,0))
 
