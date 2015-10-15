@@ -104,9 +104,6 @@ class IdentifiedData():
         self.source_details = source_details
         self.sources_offsets = sources_offsets
 
-        # print diagnostic statistics
-        self.print_stats()
-
         # fire data changed event
         self._identified_data_changed.set(True)
 
