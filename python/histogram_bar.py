@@ -4,7 +4,7 @@ from sys import maxsize
 from forensic_path import offset_string
 from icon_path import icon_path
 from tooltip import Tooltip
-from math import log
+from math import log, ceil
 from show_error import ShowError
 try:
     import tkinter
@@ -45,7 +45,8 @@ class HistogramBar():
     _start_offset = 0      # sector-aligned
     _bytes_per_bucket = 0   # may be fractional
 
-    # cursor offset
+    # cursor state
+    _is_valid_cursor = False
     _cursor_offset = 0
 
     # mouse b1 left-click states
@@ -316,23 +317,24 @@ class HistogramBar():
         self._stop_offset_label["text"] = offset_string(stop_offset)
 
         # cursor image offset
-        if self._cursor_on_graph(self._cursor_offset) or self._b1_pressed:
+        if self._is_valid_cursor or self._b1_pressed:
             # cursor byte offset text
             self._image_offset_label["text"] = offset_string(
-                                     self._sector_align(self._cursor_offset))
+                                     self._sector_offset(self._cursor_offset))
         else:
             # clear
             self._image_offset_label['text'] = ""
 
         # cursor bucket count
-        if self._cursor_on_bucket(self._cursor_offset):
+        if self._is_valid_cursor and self._offset_on_bucket(
+                                                        self._cursor_offset):
             # bucket count at cursor
             self._bucket_count_label["text"] = "Bar matches: %s" % \
                                 self._source_buckets[self._offset_to_bucket(
                                                        self._cursor_offset)]
         else:
             # clear
-            self._bucket_count_label['text'] = "Bar matches: Not selected"
+            self._bucket_count_label['text'] = "Bar matches: Bar not selected"
 
     # clear everything
     def _draw_clear(self):
@@ -371,20 +373,15 @@ class HistogramBar():
             return
 
         # valid bucket boundaries map inside the image
-        leftmost_bucket = -(self._start_offset + self._bytes_per_bucket - 1
-                           ) / self._bytes_per_bucket
-
-        rightmost_bucket = (self._image_size - (self._start_offset +
-                            self._bytes_per_bucket - 1)) / self._bytes_per_bucket
-
-#        rightmost_bucket = round((self._image_size - self._start_offset) /
-#                                self._bytes_per_bucket), self.NUM_BUCKETS
+        leftmost_bucket = self._offset_to_bucket(0)
+        rightmost_bucket = self._offset_to_bucket(
+                                       self._identified_data.image_size - 1)
 
         # draw the buckets
         for bucket in range(self.NUM_BUCKETS):
 
             # bucket view depends on whether byte offset is in range
-            if bucket >= leftmost_bucket and bucket < rightmost_bucket:
+            if bucket >= leftmost_bucket and bucket <= rightmost_bucket:
                 self._draw_bucket(bucket)
             else:
                 self._draw_gray_bucket(bucket)
@@ -482,16 +479,27 @@ class HistogramBar():
 
     # draw the cursor marker
     def _draw_cursor_marker(self):
-        if self._cursor_on_graph(self._cursor_offset):
+        if self._is_valid_cursor:
             x = self._offset_to_bucket(self._cursor_offset) * self.BUCKET_WIDTH
             self._photo_image.put("red", to=(x, 0, x+1,
                                                   self.HISTOGRAM_BAR_HEIGHT))
 
-    # sector alignment
-    def _sector_align(self, offset):
-        # round down to sector boundary
+    # align to first sector boundary at or highter than offset
+    # sector alignment to 
+    def _sector_offset(self, offset):
+        # round at or up to sector boundary
         try:
-            return int(offset - offset % self._sector_size)
+            if offset % self._sector_size == 0:
+                # exactly at a sector boundary
+                return offset
+
+            # fix decimal limitation
+            offset = round(offset, 5)
+
+            # not at sector boundary so round up
+            offset = int(offset)
+            return offset + self._sector_size - offset % self._sector_size
+
         except ZeroDivisionError:
             # not initialized
             return 0
@@ -503,21 +511,32 @@ class HistogramBar():
         # not PhotoImage, and label has a 1-pixel border.
         return int((e.x - 1) / self.BUCKET_WIDTH)
 
-    # convert bucket to offset
+    # convert left edge of bucket to offset
     def _bucket_to_offset(self, bucket):
-        return self._start_offset + self._bytes_per_bucket * bucket
+        offset = self._start_offset + self._bytes_per_bucket * bucket
 
-    # convert byte offset to bucket
+        # fix decimal limitation
+        offset = round(offset, 5)
+
+        return offset
+
+    # convert offset to left edge of bucket
     def _offset_to_bucket(self, image_offset):
+        offset = image_offset - self._start_offset
+        bucket_offset = image_offset - self._start_offset
+
         # skip empty initial-state data
         if self._bytes_per_bucket == 0:
             return -1
 
-        # skew forward half a byte to avoid rounding error
-        bucket = (image_offset - self._start_offset + 0.5) / \
-                                                       self._bytes_per_bucket
-        print("offset to bucket", bucket, int(round(bucket)))
+        # calculate bucket
+        bucket = (image_offset - self._start_offset) / self._bytes_per_bucket
+
+        # fix decimal limitation
+        bucket = round(bucket, 5)
+
         return int(bucket)
+
 
     # see if the given offset is within the media image range
     def _in_image_range(self, offset):
@@ -527,8 +546,7 @@ class HistogramBar():
         self._handle_motion_and_b1_motion(e)
 
     def _handle_leave(self, e):
-#zz        self._cursor_on_bucket = False
-#zz        self._cursor_on_graph = False
+        self._is_valid_cursor = False
 
         # note: could also set b1_pressed false because pop-up window blocks
         # b1 release, but doing so prevents drag outside bar, which is worse.
@@ -537,10 +555,12 @@ class HistogramBar():
         self._draw()
 
     def _handle_b1_press(self, e):
-        self._b1_pressed = True
-        self._b1_pressed_offset = self._bucket_to_offset(
+        self._set_cursor(e)
+        if self._is_valid_cursor:
+            self._b1_pressed = True
+            self._b1_pressed_offset = self._bucket_to_offset(
                                                     self._mouse_to_bucket(e))
-        self._handle_motion_and_b1_motion(e)
+            self._handle_motion_and_b1_motion(e)
 
     def _handle_motion_and_b1_motion(self, e):
         # set mouse cursor
@@ -550,8 +570,8 @@ class HistogramBar():
         # select range if b1 down
         if self._b1_pressed:
             self._range_selection.set(self.frame, self._identified_data,
-                           self._sector_align(self._b1_pressed_offset),
-                           self._sector_align(self._bucket_to_offset(
+                           self._sector_offset(self._b1_pressed_offset),
+                           self._sector_offset(self._bucket_to_offset(
                                               self._mouse_to_bucket(e))))
 
     def _handle_b1_release(self, e):
@@ -617,18 +637,21 @@ class HistogramBar():
 
     def _set_cursor(self, e):
         self._cursor_offset = self._bucket_to_offset(self._mouse_to_bucket(e))
+        self._is_valid_cursor = self._offset_on_graph(self._cursor_offset)
 
-    def _cursor_on_graph(self, offset):
+    def _offset_on_graph(self, offset):
+        # allow one bucket past last bucket
         bucket = self._offset_to_bucket(offset)
         return (bucket >= 0 and bucket <= self.NUM_BUCKETS and
                 bucket >= self._offset_to_bucket(0) and
-                bucket <= self._offset_to_bucket(self._image_size + self._bytes_per_bucket - 1))
+                bucket <= self._offset_to_bucket(self._image_size - 1) + 1)
 
-    def _cursor_on_bucket(self, offset):
+    def _offset_on_bucket(self, offset):
+        # offset maps to a bucket
         bucket = self._offset_to_bucket(offset)
         return (bucket >= 0 and bucket < self.NUM_BUCKETS and
                 bucket >= self._offset_to_bucket(0) and
-                bucket < self._offset_to_bucket(self._image_size + self._bytes_per_bucket - 1))
+                bucket <= self._offset_to_bucket(self._image_size - 1))
 
     def _zoom(self, ratio):
         """Recalculate start offset and bytes per bucket."""
@@ -644,7 +667,7 @@ class HistogramBar():
             new_bytes_per_bucket = self._sector_size
 
         # calculate the new start offset
-        new_start_offset = self._sector_align(self._cursor_offset -
+        new_start_offset = self._sector_offset(self._cursor_offset -
                                  new_bytes_per_bucket * zoom_origin_bucket)
 
         if not self._outside_graph(new_start_offset, new_bytes_per_bucket):
@@ -661,9 +684,8 @@ class HistogramBar():
         dx = int((self._b3_down_x - e.x) / self.BUCKET_WIDTH)
 
         # pan
-        new_start_offset = self._sector_align(start_offset_anchor +
+        new_start_offset = self._sector_offset(start_offset_anchor +
                                                 self._bytes_per_bucket * dx)
-        print("pan", (start_offset_anchor + self._bytes_per_bucket * dx), new_start_offset)
 
         if not self._outside_graph(new_start_offset, self._bytes_per_bucket):
             # accept the pan
@@ -697,20 +719,8 @@ class HistogramBar():
             range_center_bucket = self._offset_to_bucket(range_center_offset)
 
             # calculate the new start offset
-            new_start_offset = self._sector_align(range_center_offset -
+            new_start_offset = self._sector_offset(range_center_offset -
                                  new_bytes_per_bucket * range_center_bucket)
-
-            # align right to start_offset if too far left
-            if self._sector_align(start_offset) < new_start_offset:
-                new_start_offset = self._sector_align(start_offset)
-
-            # align left to stop_offset if too far right
-            new_stop_offset = self._sector_align(new_start_offset +
-                                     new_bytes_per_bucket * self.NUM_BUCKETS)
-            if stop_offset > new_stop_offset:
-                shift = self._sector_align(new_stop_offset + (
-                                     new_bytes_per_bucket - 1) - stop_offset)
-                new_start_offset -= shift
 
         # set the new values
         self._start_offset = new_start_offset
