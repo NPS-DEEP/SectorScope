@@ -41,9 +41,10 @@ class RangeSelectionView():
                                                         bg=colors.BACKGROUND)
         self._range_label.pack(side=tkinter.TOP, anchor="w")
 
-        # span
-        self._span_label = tkinter.Label(self.frame, bg=colors.BACKGROUND)
-        self._span_label.pack(side=tkinter.TOP, anchor="w")
+        # range width
+        self._range_width_label = tkinter.Label(self.frame,
+                                                        bg=colors.BACKGROUND)
+        self._range_width_label.pack(side=tkinter.TOP, anchor="w")
 
         # MD5 offset label
         self._md5_offset_label = tkinter.Label(self.frame, bg=colors.BACKGROUND)
@@ -70,8 +71,8 @@ class RangeSelectionView():
                             offset_string(self._range_selection.start_offset),
                             offset_string(self._range_selection.stop_offset))
 
-            # span
-            self._span_label["text"]='Span: %s' % offset_string(
+            # range width
+            self._range_width_label["text"]='Range width: %s' % offset_string(
                                           self._range_selection.stop_offset -
                                           self._range_selection.start_offset)
 
@@ -85,7 +86,7 @@ class RangeSelectionView():
         else:
             # set labels and buttons to unselected state
             self._range_label["text"]='Range: Range not selected'
-            self._span_label["text"]='Span: Range not selected'
+            self._range_width_label["text"]='Range width: Range not selected'
             self._md5_offset_label["text"]='MD5 offset: Range not selected'
             self._md5_label["text"]='MD5: Range not selected'
 
