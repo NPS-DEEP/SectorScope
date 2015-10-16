@@ -32,9 +32,6 @@ class IdentifiedData():
       image_filename (str): Full path of the media image filename.
       hashdb_dir (str): Full path to the hash database directory.
       block_size (int): Block size used by the hashdb database.
-      sector_size (int): Sector size used by the hashdb database,
-        hardcoded to 512 since it is not available in identified_blocks.txt
-        and 512 is currently always the expected value.
       forensic_paths (dict<forensic path int, hash hexcode str>):
         Dictionary maps forensic paths to their hash value.
       hashes (dict<hash hexcode str, tuple<source ID set, bool has_label>>)
@@ -58,7 +55,6 @@ class IdentifiedData():
         self.image_size = 0
         self.image_filename = ""
         self.hashdb_dir = ""
-        self.sector_size = 0
         self.block_size = 0
         self.forensic_paths = dict()
         self.hashes = dict()
@@ -83,7 +79,7 @@ class IdentifiedData():
                                                                       be_dir)
 
         # get attributes from hashdb settings.xml
-        (sector_size, block_size) = self._read_settings_file(hashdb_dir)
+        block_size = self._read_settings_file(hashdb_dir)
 
         # make identified_blocks_expanded.txt file if it does not exist
         self._maybe_make_identified_blocks_expanded_file(be_dir, hashdb_dir)
@@ -97,7 +93,6 @@ class IdentifiedData():
         self.image_size = image_size
         self.image_filename = image_filename
         self.hashdb_dir = hashdb_dir
-        self.sector_size = sector_size
         self.block_size = block_size
         self.forensic_paths = forensic_paths
         self.hashes = hashes
@@ -117,7 +112,6 @@ class IdentifiedData():
                         self.image_size,
                         self.image_filename,
                         self.hashdb_dir,
-                        self.sector_size,
                         self.block_size,
                         len(self.forensic_paths),
                         len(self.hashes),
@@ -175,7 +169,7 @@ class IdentifiedData():
         return (image_size, image_filename, hashdb_dir)
 
     def _read_settings_file(self, hashdb_dir):
-        """Read sector_size, block_size from settings.xml."""
+        """Read block_size from settings.xml."""
 
         # path to settings file
         hashdb_settings_file = os.path.join(hashdb_dir, "settings.xml")
@@ -184,15 +178,11 @@ class IdentifiedData():
             raise ValueError("hashdb database '%s' is not valid." % hashdb_dir)
         xmldoc = xml.dom.minidom.parse(open(hashdb_settings_file, 'r'))
 
-        # sector size from byte_alignment
-        sector_size = int((xmldoc.getElementsByTagName(
-                                "byte_alignment")[0].firstChild.wholeText))
-
         # block size from hash_block_size
         block_size = int((xmldoc.getElementsByTagName(
                                 "hash_block_size")[0].firstChild.wholeText))
 
-        return (sector_size, block_size)
+        return block_size
 
     def _maybe_make_identified_blocks_expanded_file(self, be_dir, hashdb_dir):
         """Create identified_blocks_expanded.txt if it does not exist yet.

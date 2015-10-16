@@ -27,9 +27,9 @@ class HistogramBar():
       The start and end offsets may be any value, even fractional.
       Bucket boundaries may be any value, even fractional.
       The cursor falls on bucket boundaries.
-      Annotation can say that a bucket starts on a sector boundary because
-        block hash features align to sector boundaries.
-      Selection and range selection values round down to sector boundary
+      Annotation can say that a bucket starts on a block boundary because
+        block hash features align to block boundaries.
+      Selection and range selection values round down to block boundary
     """
     # number of buckets across the bar
     NUM_BUCKETS = 220
@@ -42,7 +42,7 @@ class HistogramBar():
     HISTOGRAM_BAR_HEIGHT = 120
 
     # bar start offset and scale
-    _start_offset = 0      # sector-aligned
+    _start_offset = 0      # block-aligned
     _bytes_per_bucket = 0   # may be fractional
 
     # cursor state
@@ -185,16 +185,16 @@ class HistogramBar():
 
         # data constants
         self._image_size = self._identified_data.image_size
-        self._sector_size = self._identified_data.sector_size
+        self._block_size = self._identified_data.block_size
 
         # start fully zoomed out
         self._start_offset = 0
         self._bytes_per_bucket = self._image_size / self.NUM_BUCKETS
 
-        # bytes per bucket may be fractional but not less than sector size
-        # sector per bucket
-        if self._bytes_per_bucket < self._sector_size:
-            self._bytes_per_bucket = self._sector_size
+        # bytes per bucket may be fractional but not less than block size
+        # block per bucket
+        if self._bytes_per_bucket < self._block_size:
+            self._bytes_per_bucket = self._block_size
 
         # calculate this view
         self._calculate_hash_counts()
@@ -321,7 +321,7 @@ class HistogramBar():
         if self._is_valid_cursor or self._b1_pressed:
             # cursor byte offset text
             self._image_offset_label["text"] = offset_string(
-                                     self._sector_offset(self._cursor_offset))
+                                     self._block_offset(self._cursor_offset))
         else:
             # clear
             self._image_offset_label['text'] = ""
@@ -382,9 +382,9 @@ class HistogramBar():
         for bucket in range(self.NUM_BUCKETS):
 
             # calculate number of blocks in this bucket
-            density = (self._sector_offset(self._bucket_to_offset(bucket + 1) -
-                       self._sector_offset(self._bucket_to_offset(bucket))) /
-                       self._sector_size)
+            density = (self._block_offset(self._bucket_to_offset(bucket + 1) -
+                       self._block_offset(self._bucket_to_offset(bucket))) /
+                       self._block_size)
             if density != int(density):
                 raise RuntimeError("program error")
 
@@ -497,21 +497,21 @@ class HistogramBar():
             self._photo_image.put("red", to=(x, 0, x+1,
                                                   self.HISTOGRAM_BAR_HEIGHT))
 
-    # align to first sector boundary at or highter than offset
-    # sector alignment to 
-    def _sector_offset(self, offset):
-        # round at or up to sector boundary
+    # align to first block boundary at or highter than offset
+    # block alignment to 
+    def _block_offset(self, offset):
+        # round at or up to block boundary
         try:
-            if offset % self._sector_size == 0:
-                # exactly at a sector boundary
+            if offset % self._block_size == 0:
+                # exactly at a block boundary
                 return offset
 
             # fix decimal limitation
             offset = round(offset, 5)
 
-            # not at sector boundary so round up
+            # not at block boundary so round up
             offset = int(offset)
-            return offset + self._sector_size - offset % self._sector_size
+            return offset + self._block_size - offset % self._block_size
 
         except ZeroDivisionError:
             # not initialized
@@ -583,8 +583,8 @@ class HistogramBar():
         # select range if b1 down
         if self._b1_pressed:
             self._range_selection.set(self.frame, self._identified_data,
-                           self._sector_offset(self._b1_pressed_offset),
-                           self._sector_offset(self._bucket_to_offset(
+                           self._block_offset(self._b1_pressed_offset),
+                           self._block_offset(self._bucket_to_offset(
                                               self._mouse_to_bucket(e))))
 
     def _handle_b1_release(self, e):
@@ -675,12 +675,12 @@ class HistogramBar():
         # calculate the new bytes per bucket
         new_bytes_per_bucket = self._bytes_per_bucket * (ratio)
 
-        # do not let bytes per bucket get less than sector size
-        if new_bytes_per_bucket < self._sector_size:
-            new_bytes_per_bucket = self._sector_size
+        # do not let bytes per bucket get less than block size
+        if new_bytes_per_bucket < self._block_size:
+            new_bytes_per_bucket = self._block_size
 
         # calculate the new start offset
-        new_start_offset = self._sector_offset(self._cursor_offset -
+        new_start_offset = self._block_offset(self._cursor_offset -
                                  new_bytes_per_bucket * zoom_origin_bucket)
 
         if not self._outside_graph(new_start_offset, new_bytes_per_bucket):
@@ -697,7 +697,7 @@ class HistogramBar():
         dx = int((self._b3_down_x - e.x) / self.BUCKET_WIDTH)
 
         # pan
-        new_start_offset = self._sector_offset(start_offset_anchor +
+        new_start_offset = self._block_offset(start_offset_anchor +
                                                 self._bytes_per_bucket * dx)
 
         if not self._outside_graph(new_start_offset, self._bytes_per_bucket):
@@ -719,8 +719,8 @@ class HistogramBar():
         new_start_offset = start_offset
 
         # do not let bytes per pixel get too small
-        if new_bytes_per_bucket < self._sector_size:
-            new_bytes_per_bucket = self._sector_size
+        if new_bytes_per_bucket < self._block_size:
+            new_bytes_per_bucket = self._block_size
 
             # Unable to expand range to whole bar, so place range nicely
             # inside bar, see _zoom() for math.
@@ -764,9 +764,9 @@ class HistogramBar():
         self._bytes_per_bucket = self._image_size / self.NUM_BUCKETS
 
         # bytes per pixel may be fractional but not less than one
-        # sector per bucket
-        if self._bytes_per_bucket < self._sector_size:
-            self._bytes_per_bucket = self._sector_size
+        # block per bucket
+        if self._bytes_per_bucket < self._block_size:
+            self._bytes_per_bucket = self._block_size
 
         # recalculate bucket data
         self._calculate_bucket_data()

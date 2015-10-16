@@ -9,7 +9,7 @@ except ImportError:
 
 class RangeSelection():
     """Manage range selection, MD5, and image buffer.  Offsets should
-      already be sector aligned.
+      already be block aligned.
 
     Registered callbacks are called when range is set or cleared.
 

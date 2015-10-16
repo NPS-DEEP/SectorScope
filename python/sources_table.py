@@ -144,7 +144,7 @@ class SourcesTable():
 
         # local references to identified_data
         source_details = self._identified_data.source_details
-        sector_size = self._identified_data.sector_size
+        block_size = self._identified_data.block_size
         sources_offsets = self._identified_data.sources_offsets
 
         # put in source lines
@@ -158,7 +158,7 @@ class SourcesTable():
 
                 # calculate percent of this source file found
                 percent_found = len(sources_offsets[source_id]) / \
-                               (int(source["filesize"] / sector_size)) * 100
+                               (int(source["filesize"] / block_size)) * 100
 
                 source_text = '\t%.2f%%\t%d\t%d\t%s\t%s\n' \
                                     %(percent_found,
