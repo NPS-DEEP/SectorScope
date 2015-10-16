@@ -35,7 +35,7 @@ class IdentifiedData():
       sector_size (int): Sector size used by the hashdb database,
         hardcoded to 512 since it is not available in identified_blocks.txt
         and 512 is currently always the expected value.
-      forensic_paths (dict<forensic path str, hash hexcode str>):
+      forensic_paths (dict<forensic path int, hash hexcode str>):
         Dictionary maps forensic paths to their hash value.
       hashes (dict<hash hexcode str, tuple<source ID set, bool has_label>>)
         Dictionary maps hashes to source IDs.
@@ -243,7 +243,7 @@ class IdentifiedData():
                     (forensic_path, block_hash, json_data) = line.split("\t")
 
                     # store hash at forensic path
-                    forensic_paths[forensic_path] = block_hash
+                    forensic_paths[int(forensic_path)] = block_hash
 
                     # store entropy label and source data for new hash
                     if block_hash not in hashes:

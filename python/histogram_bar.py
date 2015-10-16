@@ -4,7 +4,7 @@ from sys import maxsize
 from forensic_path import offset_string
 from icon_path import icon_path
 from tooltip import Tooltip
-from math import log, ceil
+from math import log, floor
 from show_error import ShowError
 try:
     import tkinter
@@ -269,11 +269,13 @@ class HistogramBar():
         self._highlighted_source_buckets = [0] * (self.NUM_BUCKETS)
 
         # calculate the histogram
-        for forensic_path, block_hash in \
+        for offset, block_hash in \
                                self._identified_data.forensic_paths.items():
-            offset = int(forensic_path)
-            bucket = int((offset - self._start_offset) /
-                                                   self._bytes_per_bucket)
+            bucket = (offset - self._start_offset) / self._bytes_per_bucket
+
+            # fix decimal limitation and convert to int
+            bucket = floor(round(bucket, 5))
+
             if bucket < 0 or bucket >= self.NUM_BUCKETS:
                 # offset is out of range of buckets
                 continue
@@ -379,9 +381,16 @@ class HistogramBar():
         # draw the buckets
         for bucket in range(self.NUM_BUCKETS):
 
+            # calculate number of blocks in this bucket
+            density = (self._sector_offset(self._bucket_to_offset(bucket + 1) -
+                       self._sector_offset(self._bucket_to_offset(bucket))) /
+                       self._sector_size)
+            if density != int(density):
+                raise RuntimeError("program error")
+
             # bucket view depends on whether byte offset is in range
             if bucket >= leftmost_bucket and bucket <= rightmost_bucket:
-                self._draw_bucket(bucket)
+                self._draw_bucket(bucket, density)
             else:
                 self._draw_gray_bucket(bucket)
 
@@ -393,8 +402,13 @@ class HistogramBar():
           * An arbitrarily chosen count of 200,000 should fully fill the
             arbitrarily chosen 60-pixel high bar.
     """
-    def _bar_height(self, count):
-        h = int(log(count + 1, 1.1))
+    def _bar_height(self, count, density):
+#        h = int(log(count + 1, 1.1))
+        h = int(count / density * 100)
+
+        # make small value visible
+        if h == 0 and count > 0:
+            h = 1
 
         # clip to keep in range
         if h > int(self.HISTOGRAM_BAR_HEIGHT):
@@ -403,7 +417,7 @@ class HistogramBar():
         return h
 
     # draw one bar for one bucket
-    def _draw_bar(self, color, count, i):
+    def _draw_bar(self, color, count, density, i):
 
         # do not plot bars when count==0
         if not count:
@@ -411,7 +425,7 @@ class HistogramBar():
 
         # get coordinates
         x=(i * self.BUCKET_WIDTH)
-        y = self._bar_height(count)
+        y = self._bar_height(count, density)
 
         # plot rectangle
         self._photo_image.put(color, to=(
@@ -421,7 +435,7 @@ class HistogramBar():
              self.HISTOGRAM_BAR_HEIGHT - y))
 
     # draw one tick mark for one bucket, see draw_bar
-    def _draw_tick(self, color, count, i):
+    def _draw_tick(self, color, count, density, i):
 
         # do not plot bars when count==0
         if not count:
@@ -429,7 +443,7 @@ class HistogramBar():
 
         # get coordinates
         x=(i * self.BUCKET_WIDTH)
-        y = self._bar_height(count)
+        y = self._bar_height(count, density)
 
         # plot rectangle
         self._photo_image.put(color, to=(
@@ -439,33 +453,33 @@ class HistogramBar():
              self.HISTOGRAM_BAR_HEIGHT - y))
 
     # draw all bars for one bucket
-    def _draw_bucket(self, i):
+    def _draw_bucket(self, i, density):
 
         # 1 all sources with ignored sources removed: light blue bar
         self._draw_bar(colors.ALL_LIGHTER, self._source_buckets[i] -
-                                        self._ignored_source_buckets[i], i)
+                                self._ignored_source_buckets[i], density, i)
 
 #        # 2 all hashes with ignored hashes removed: dark blue bar
 #        self._draw_bar(colors.ALL_DARKER, self._hash_buckets[i] -
-#                                        self._ignored_hash_buckets[i], i)
+#                                self._ignored_hash_buckets[i], density, i)
 
         # 3 all sources: light blue tick
-        self._draw_tick(colors.ALL_LIGHTER, self._source_buckets[i], i)
+        self._draw_tick(colors.ALL_LIGHTER, self._source_buckets[i], density, i)
 
 #        # 4 all hashes: dark blue tick
-#        self._draw_tick(colors.ALL_DARKER, self._hash_buckets[i], i)
+#        self._draw_tick(colors.ALL_DARKER, self._hash_buckets[i], density, i)
 
         # middle bar: highlighted matches: light, dark green
         self._draw_bar(colors.HIGHLIGHTED_LIGHTER,
-                                    self._highlighted_source_buckets[i], i)
+                            self._highlighted_source_buckets[i], density, i)
 #        self._draw_bar(colors.HIGHLIGHTED_DARKER,
-#                                    self._highlighted_hash_buckets[i], i)
+#                            self._highlighted_hash_buckets[i], density, i)
 
 #        # bottom bar: ignored matches: light, dark red
 #        self._draw_bar(colors.IGNORED_LIGHTER,
-#                                    self._ignored_hash_buckets[i], i
+#                            self._ignored_hash_buckets[i], density, i
 #        self._draw_bar(colors.IGNORED_DARKER,
-#                                    self._ignored_source_buckets[i], i
+#                            self._ignored_source_buckets[i], density, i
 
     # draw one gray bucket for out-of-range data
     def _draw_gray_bucket(self, i):
