@@ -247,14 +247,16 @@ class IdentifiedData():
 
                     # store entropy label and source data for new hash
                     if block_hash not in hashes:
-                        # get json sources
+                        # get json data
                         extracted_json_data = json.loads(json_data)
+
+                        # json sources
                         json_sources = extracted_json_data[1]["sources"]
 
-                        # get has_label, now from source[0]
-                        has_label = "label" in json_sources[0]
+                        # count
+                        count = len(json_sources)
 
-                        # get set of sources and store source IDs
+                        # source_ids
                         source_ids = set()
                         for json_source in json_sources:
                             source_id = json_source["source_id"]
@@ -270,8 +272,11 @@ class IdentifiedData():
                             sources_offsets[source_id].add(
                                                   json_source["file_offset"])
 
-                        # store hash and attributes as tuple(set, bool)
-                        hashes[block_hash] = (source_ids, has_label)
+                        # has_label, currently obtained from source[0]
+                        has_label = "label" in json_sources[0]
+
+                        # store hash and attributes as tuple(int, set, bool)
+                        hashes[block_hash] = (count, source_ids, has_label)
 
                 except Exception as e:
                     raise ValueError("Error reading file '%s' "

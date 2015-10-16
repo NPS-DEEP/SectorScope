@@ -11,7 +11,7 @@ def sources_in_range(identified_data, start_byte, stop_byte):
         if offset >= start_byte and offset < stop_byte:
 
             # get source IDs associated with this hash
-            (source_id_set, _) = hashes[block_hash]
+            (_, source_id_set, _) = hashes[block_hash]
 
             # append source IDs from this hash
             if not source_id_set.issubset(source_ids):

@@ -225,9 +225,8 @@ class HistogramBar():
         # calculate _hash_counts based on identified data
         # _hash_counts is dict<hash, (count, is_ignored, is_highlighted)>
         self._hash_counts = dict()
-        for block_hash, (source_id_set, has_label) in \
+        for block_hash, (count, source_id_set, has_label) in \
                                          self._identified_data.hashes.items():
-            count = len(source_id_set)
             is_ignored = False
             is_highlighted = False
 
