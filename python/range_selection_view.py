@@ -2,7 +2,6 @@ import colors
 from forensic_path import offset_string
 from icon_path import icon_path
 from tooltip import Tooltip
-from histogram_bar import HistogramBar
 from image_hex_window import ImageHexWindow
 try:
     import tkinter

@@ -54,3 +54,9 @@ def icon_path(name):
     if name == "view_annotations":
         return _absolute_path("table-go.gif")
 
+    # histogram y view control
+    if name == "y_plus":
+        return _absolute_path("plus_blue.gif")
+    if name == "y_minus":
+        return _absolute_path("minus_blue.gif")
+

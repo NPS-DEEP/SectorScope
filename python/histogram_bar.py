@@ -4,10 +4,11 @@ from sys import maxsize
 from forensic_path import offset_string
 from icon_path import icon_path
 from tooltip import Tooltip
-from math import log, floor
+from math import log, floor, log10, pow, ceil
 from show_error import ShowError
 from histogram_dimensions import HistogramDimensions
 from histogram_data import HistogramData
+from bar_scale import BarScale
 try:
     import tkinter
 except ImportError:
@@ -26,6 +27,7 @@ class HistogramBar():
         hash and calculated count tuple for each hash.
       _histogram_dimensions(HistogramDimensions): The start_offset,
         bytes_per_bucket, and associated bar dimension methods.
+      _bar_scale(BarHeight): scaling for bar height.
 
     Notes about offset alignment:
       The start and end offsets may be any value, even fractional.
@@ -45,7 +47,7 @@ class HistogramBar():
     HISTOGRAM_BAR_WIDTH = NUM_BUCKETS * BUCKET_WIDTH
     HISTOGRAM_BAR_HEIGHT = 120
 
-    # bar dimensions including start offset and scale
+    # histogram dimensions including start offset and scale
     _histogram_dimensions = HistogramDimensions(NUM_BUCKETS)
 
     # histogram data and the methods that calculate this data
@@ -65,7 +67,7 @@ class HistogramBar():
     _b3_down_start_offset = None
 
     def __init__(self, master, identified_data, filters,
-                                       range_selection, fit_range_selection):
+                           range_selection, fit_range_selection, bar_scale):
         """Args:
           master(a UI container): Parent.
           identified_data(IdentifiedData): Identified data about the scan.
@@ -73,6 +75,9 @@ class HistogramBar():
           range_selection(RangeSelection): The selected range.
           fit_range_selection(FitRangeSelection): Receive signal to fit range.
         """
+
+        # bar scale
+        self._bar_scale = bar_scale
 
         # data variables
         self._identified_data = identified_data
@@ -173,6 +178,9 @@ class HistogramBar():
         fit_range_selection.set_callback(
                                     self._handle_fit_range_selection_change)
 
+        # register to receive bar scale height change events
+        bar_scale.set_callback(self._handle_bar_scale_change)
+
         # set to basic initial state
         self._handle_identified_data_change()
 
@@ -216,6 +224,10 @@ class HistogramBar():
     # this function is registered to and called by FitRangeSelection
     def _handle_fit_range_selection_change(self, *args):
         self._fit_range()
+
+    # this function is registered to and called by BarHeight
+    def _handle_bar_scale_change(self, *args):
+        self._draw()
 
     # redraw everything
     def _draw(self):
@@ -303,40 +315,27 @@ class HistogramBar():
         leftmost_bucket, rightmost_bucket = \
                              self._histogram_dimensions.valid_bucket_range()
 
+        scale = self._bar_scale.scale
+
         # draw the buckets
         for bucket in range(self.NUM_BUCKETS):
 
-            # calculate number of blocks in this bucket
-            density = ((self._histogram_dimensions.bucket_to_offset(
-                       bucket + 1) -
-                       self._histogram_dimensions.bucket_to_offset(bucket)) /
-                       self._identified_data.block_size)
-            if density != int(density):
-                print("ints", bucket,
-                              self._histogram_dimensions.bucket_to_offset(
-                                                                    bucket+1),
-                              self._histogram_dimensions.bucket_to_offset(
-                                                                      bucket),
-                              self._identified_data.block_size)
-                raise RuntimeError("program error")
-
             # bucket view depends on whether byte offset is in range
             if bucket >= leftmost_bucket and bucket <= rightmost_bucket:
-                self._draw_bucket(bucket, density)
+                self._draw_bucket(bucket, scale)
             else:
                 self._draw_gray_bucket(bucket)
 
     """Calculate clipped bar height from count.
       Rationale for formula "int(log(count + 1, 1.23) * 2)" follows:
-          * The scale should be as light as possible but still not clip.
+          * The scale should be as minimal as possible but still not clip.
           * A count of 1 should be 3 pixels tall so that the smallest unit is
             readily visible.
           * An arbitrarily chosen count of 200,000 should fully fill the
             arbitrarily chosen 60-pixel high bar.
     """
-    def _bar_height(self, count, density):
-#        h = int(log(count + 1, 1.1))
-        h = int(count / density * 100)
+    def _bar_height(self, count, scale):
+        h = int(count / scale)
 
         # make small value visible
         if h == 0 and count > 0:
@@ -349,7 +348,7 @@ class HistogramBar():
         return h
 
     # draw one bar for one bucket
-    def _draw_bar(self, color, count, density, i):
+    def _draw_bar(self, color, count, scale, i):
 
         # do not plot bars when count==0
         if not count:
@@ -357,7 +356,7 @@ class HistogramBar():
 
         # get coordinates
         x=(i * self.BUCKET_WIDTH)
-        y = self._bar_height(count, density)
+        y = self._bar_height(count, scale)
 
         # plot rectangle
         self._photo_image.put(color, to=(
@@ -367,7 +366,7 @@ class HistogramBar():
              self.HISTOGRAM_BAR_HEIGHT - y))
 
     # draw one tick mark for one bucket, see draw_bar
-    def _draw_tick(self, color, count, density, i):
+    def _draw_tick(self, color, count, scale, i):
 
         # do not plot bars when count==0
         if not count:
@@ -375,7 +374,7 @@ class HistogramBar():
 
         # get coordinates
         x=(i * self.BUCKET_WIDTH)
-        y = self._bar_height(count, density)
+        y = self._bar_height(count, scale)
 
         # plot rectangle
         self._photo_image.put(color, to=(
@@ -385,21 +384,21 @@ class HistogramBar():
              self.HISTOGRAM_BAR_HEIGHT - y))
 
     # draw all bars for one bucket
-    def _draw_bucket(self, i, density):
+    def _draw_bucket(self, i, scale):
 
         # all sources with ignored sources removed: light blue bar
         self._draw_bar(colors.ALL_LIGHTER,
                     self._histogram_data.source_buckets[i] -
-                    self._histogram_data.ignored_source_buckets[i], density, i)
+                    self._histogram_data.ignored_source_buckets[i], scale, i)
 
         # all sources: light blue tick
         self._draw_tick(colors.ALL_LIGHTER,
-                            self._histogram_data.source_buckets[i], density, i)
+                            self._histogram_data.source_buckets[i], scale, i)
 
         # highlighted matches: light green bar
         self._draw_bar(colors.HIGHLIGHTED_LIGHTER,
                             self._histogram_data.highlighted_source_buckets[i],
-                                                                    density, i)
+                                                                    scale, i)
 
     # draw one gray bucket for out-of-range data
     def _draw_gray_bucket(self, i):
@@ -558,7 +557,7 @@ class HistogramBar():
 
     def fit_image(self):
         """Fit view to show whole media image."""
-        self._histogram_dimensions.fit_image(self._image_size,
+        self._histogram_dimensions.fit_image(self._identified_data.image_size,
                                              self._identified_data.block_size)
 
         # recalculate bucket data

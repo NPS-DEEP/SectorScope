@@ -106,7 +106,7 @@ class HistogramDimensions():
 
         # calculate bucket
         bucket = (image_offset - self.start_offset) // self.bytes_per_bucket
-        print("offset_to_bucket", image_offset, self.start_offset, self.bytes_per_bucket, bucket, (image_offset - self.start_offset) / self.bytes_per_bucket)
+#        print("offset_to_bucket", image_offset, self.start_offset, self.bytes_per_bucket, bucket, (image_offset - self.start_offset) / self.bytes_per_bucket)
 
         return bucket
 
@@ -128,16 +128,9 @@ class HistogramDimensions():
 
     def valid_bucket_range(self):
         leftmost_bucket = self.offset_to_bucket(0)
-        print("draw_buckets.offset",
-                                 self._round_up_to_block(self._image_size -1))
         rightmost_bucket = self.offset_to_bucket(
                                  self._round_up_to_block(self._image_size -1))
         return leftmost_bucket, rightmost_bucket
-
-    # zz useful?
-    # see if the given offset is within the media image range
-    def _in_image_range(self, offset):
-        return offset >= 0 and offset < self._image_size
 
     def zoom(self, cursor_offset, ratio):
         """Recalculate start offset and bytes per bucket."""
@@ -146,7 +139,14 @@ class HistogramDimensions():
         zoom_origin_bucket = self.offset_to_bucket(cursor_offset)
 
         # calculate the new bytes per bucket
-        new_bytes_per_bucket = self._round_down_to_block(
+        if ratio < 1:
+            # round down to ensure zooming in
+            new_bytes_per_bucket = self._round_down_to_block(
+                                             self.bytes_per_bucket * (ratio))
+
+        else:
+            # round up to ensure zooming out
+            new_bytes_per_bucket = self._round_up_to_block(
                                              self.bytes_per_bucket * (ratio))
 
         # do not let bytes per bucket reach zero

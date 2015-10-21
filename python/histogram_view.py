@@ -5,6 +5,7 @@ from forensic_path import offset_string
 from icon_path import icon_path
 from tooltip import Tooltip
 from histogram_bar import HistogramBar
+from bar_scale_view import BarScaleView
 try:
     import tkinter
 except ImportError:
@@ -17,7 +18,8 @@ class HistogramView():
       frame(Frame): the containing frame for this view.
     """
 
-    def __init__(self, master, identified_data, filters, range_selection):
+    def __init__(self, master, identified_data, filters, range_selection,
+                 bar_scale):
         """Args:
           master(a UI container): Parent.
           identified_data(IdentifiedData): Identified data about the scan.
@@ -99,10 +101,14 @@ class HistogramView():
         Tooltip(view_annotations_button, "Manage image annotations\n"
                                          "(CURRENTLY NOT AVAILABLE)")
 
+        # histogram bar scale height controls
+        self._bar_scale_view = BarScaleView(button_frame, bar_scale)
+        self._bar_scale_view.frame.pack(side=tkinter.LEFT, padx=4)
+
         # color legend
         legend_frame = tkinter.Frame(button_and_legend_frame,
                                                         bg=colors.BACKGROUND)
-        legend_frame.pack(side=tkinter.LEFT, padx=(100,0))
+        legend_frame.pack(side=tkinter.LEFT, padx=(50,0))
 
         # all matches
         tkinter.Label(legend_frame, text="   ",
@@ -125,7 +131,8 @@ class HistogramView():
         # add the histogram bar
         self._histogram_bar = HistogramBar(self.frame, identified_data,
                                     filters,
-                                    range_selection, fit_range_selection)
+                                    range_selection, fit_range_selection,
+                                    bar_scale)
         self._histogram_bar.frame.pack(side=tkinter.TOP)
 
         # set command for fit_image_button

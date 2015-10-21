@@ -3,12 +3,12 @@ from math import floor
 class HistogramData():
     """Contains calculated data and methods for calculating that data.
     Attributes:
-      _hash_counts(map<hash, (count, is_ignored, is_highlighted)>): Data
-        in this hash counts map is used to calculate bucket data plotted
-        in the frequency histogram.
       source_buckets(List): List of num_buckets sorce count values.
       ignored_source_buckets(List): List of num_buckets sorce count values.
       highlighted_source_buckets(List): List of num_buckets sorce count values.
+      _hash_counts(map<hash, (count, is_ignored, is_highlighted)>): Data
+        in this hash counts map is used to calculate bucket data plotted
+        in the frequency histogram.
       _num_buckets(int): Number of buckets in the histogram.
     """
 
@@ -80,10 +80,7 @@ class HistogramData():
 
         # calculate the histogram
         for offset, block_hash in forensic_paths.items():
-            bucket = (offset - start_offset) / bytes_per_bucket
-
-            # fix decimal limitation and convert to int
-            bucket = floor(round(bucket, 5))
+            bucket = int((offset - start_offset) // bytes_per_bucket)
 
             if bucket < 0 or bucket >= self._num_buckets:
                 # offset is out of range of buckets

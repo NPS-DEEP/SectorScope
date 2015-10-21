@@ -20,6 +20,7 @@ from range_selection import RangeSelection
 from range_selection_view import RangeSelectionView
 from project_summary_view import ProjectSummaryView
 from histogram_view import HistogramView
+from bar_scale import BarScale
 from sources_view import SourcesView
 from forensic_path import offset_string
 from open_manager import OpenManager
@@ -52,7 +53,6 @@ def build_gui(root_window, identified_data, filters, range_selection,
                             left_frame, identified_data)
     project_summary_view.frame.pack(side=tkinter.TOP, anchor="w")
 
-
     # filters
     filters_view = FiltersView(left_frame, identified_data, filters,
                                                              range_selection)
@@ -65,7 +65,7 @@ def build_gui(root_window, identified_data, filters, range_selection,
 
     # the histogram view
     histogram_view = HistogramView(left_frame, identified_data, filters,
-                                                             range_selection)
+                                                  range_selection, bar_scale)
     histogram_view.frame.pack(side=tkinter.TOP, anchor="w")
 
     # the whole right side for the sources view
@@ -98,9 +98,12 @@ if __name__=="__main__":
     # the byte range selection
     range_selection = RangeSelection()
 
+    # bar height scale control
+    bar_scale = BarScale()
+
     # the open manager
     open_manager = OpenManager(root_window, identified_data, filters,
-                                                            range_selection)
+                                                  range_selection, bar_scale)
 
     # build the GUI
     build_gui(root_window, identified_data, filters, range_selection,
