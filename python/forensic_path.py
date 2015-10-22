@@ -7,10 +7,7 @@ def offset_string(offset):
     Returns:
       formatted offset string
     """
-    if offset == -1:
-        return "Not selected"
-    else:
-        return "0x%08x" % offset
+    return "0x%08x" % offset
 
 # from http://stackoverflow.com/questions/1094841/
 # reusable-library-to-get-human-readable-version-of-file-size

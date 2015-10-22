@@ -191,6 +191,7 @@ class HistogramBar():
 
         # set to basic initial state
         self._handle_identified_data_change()
+        self._handle_range_selection_change()
 
     # this function is registered to and called by Filters
     def _handle_filter_change(self, *args):
@@ -229,7 +230,10 @@ class HistogramBar():
         if offset < 0:
             return 0
         if offset >= self._identified_data.image_size:
-            return self._identified_data.image_size - 1
+            if self._identified_data.image_size == 0:
+                return 0
+            else:
+                return self._identified_data.image_size - 1
         return offset
 
     # this function is registered to and called by RangeSelection
@@ -272,7 +276,10 @@ class HistogramBar():
     def _draw_text(self):
 
         # bucket width
-        self._bucket_width_label["text"] = "Bar width: %s" % \
+        if self._histogram_dimensions.bytes_per_bucket == 0:
+            self._bucket_width_label["text"] = "Bar width: NA"
+        else:
+            self._bucket_width_label["text"] = "Bar width: %s" % \
                     offset_string(self._histogram_dimensions.bytes_per_bucket)
  
         # put in the offset start and stop text
