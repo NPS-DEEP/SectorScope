@@ -20,6 +20,7 @@ HIGHLIGHTED_DARKER = "#aaffaa" # highlighted matches: green
 HIGHLIGHTED_LIGHTER = "#ccffcc"
 IGNORED_DARKER = "#ffcccc"     # ignored matches: red
 IGNORED_LIGHTER = "#ffdddd"
+X_AXIS = "black"
 
 # image hex table colors
 EVEN_UNMATCHED = "#eeeeee"     # unmatched: gray

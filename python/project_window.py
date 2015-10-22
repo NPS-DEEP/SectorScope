@@ -1,4 +1,4 @@
-from forensic_path import size_string
+from forensic_path import size_string, offset_string
 from image_hex_table import ImageHexTable
 import colors
 try:
@@ -69,8 +69,9 @@ class ProjectWindow():
                                self._identified_data.be_dir
             self._image_text["text"] = 'Image: %s' % \
                                self._identified_data.image_filename
-            self._image_size_text["text"] = 'Image size: %s' % \
-                               size_string(self._identified_data.image_size)
+            self._image_size_text["text"] = 'Image size: %s  (%s)' % (
+                               size_string(self._identified_data.image_size),
+                               offset_string(self._identified_data.image_size))
             self._database_text["text"] = 'Database: %s' % \
                                self._identified_data.hashdb_dir
             self._sizes_text["text"] = 'Matches: Paths: %s        ' \

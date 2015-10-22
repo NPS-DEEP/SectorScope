@@ -20,7 +20,6 @@ from range_selection import RangeSelection
 from histogram_view import HistogramView
 from bar_scale import BarScale
 from sources_view import SourcesView
-from forensic_path import offset_string
 from open_manager import OpenManager
 from project_window import ProjectWindow
 import colors

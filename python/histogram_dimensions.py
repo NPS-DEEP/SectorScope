@@ -3,9 +3,6 @@ from math import floor
 class HistogramDimensions():
     """Manages the dimensions of the histogram bar.
 
-    See http://almende.github.io/chap-links-library/js/timeline/examples/example28_custom_controls.html
-    for an example of zoom and move behavior.
-
     Attributes:
       _num_buckets(int): Number of buckets in the histogram.
       _image_size(int): Size in bytes of the media image.
@@ -106,7 +103,6 @@ class HistogramDimensions():
 
         # calculate bucket
         bucket = (image_offset - self.start_offset) // self.bytes_per_bucket
-#        print("offset_to_bucket", image_offset, self.start_offset, self.bytes_per_bucket, bucket, (image_offset - self.start_offset) / self.bytes_per_bucket)
 
         return bucket
 
@@ -193,11 +189,6 @@ class HistogramDimensions():
             # round down
             size -= size % self._block_size
             return size
-
-# no
-#    def _set_cursor(self, e):
-#        self._cursor_offset = self._mouse_to_bucket(e)
-#        self._is_valid_cursor = self._offset_is_on_graph(self._cursor_offset)
 
     def _inside_graph(self, start_offset, bytes_per_bucket):
         # the provided range is at least partially within the graph

@@ -18,7 +18,7 @@ class HistogramBar():
     """Renders a hash histogram bar widget.
 
     See http://almende.github.io/chap-links-library/js/timeline/examples/example28_custom_controls.html
-    for an example of zoom and move behavior.
+    for an example of zoom and pan behavior.
 
     Attributes:
       frame(Frame): the containing frame for this plot.
@@ -42,6 +42,9 @@ class HistogramBar():
 
     # pixels per bucket
     BUCKET_WIDTH = 3
+
+    # bar Y scale
+    BUCKET_HEIGHT_MULTIPLIER = BUCKET_WIDTH
 
     # bar size in pixels
     HISTOGRAM_BAR_WIDTH = NUM_BUCKETS * BUCKET_WIDTH
@@ -221,16 +224,28 @@ class HistogramBar():
         # draw
         self._draw()
 
+    def _bound_offset(self, offset):
+        # return offset bound within range of image
+        if offset < 0:
+            return 0
+        if offset >= self._identified_data.image_size:
+            return self._identified_data.image_size - 1
+        return offset
+
     # this function is registered to and called by RangeSelection
     def _handle_range_selection_change(self, *args):
         # range selection text
         if self._range_selection.is_selected:
             self._range_selection_label["text"] = \
                            "Range: %s \u2014 %s  (%s)" % (
-                           offset_string(self._range_selection.start_offset),
-                           offset_string(self._range_selection.stop_offset),
-                           size_string(self._range_selection.stop_offset -
-                                       self._range_selection.start_offset))
+                           offset_string(self._bound_offset(
+                                         self._range_selection.start_offset)),
+                           offset_string(self._bound_offset(
+                                         self._range_selection.stop_offset-1)),
+                           size_string(self._bound_offset(
+                                       self._range_selection.stop_offset-1) -
+                                       self._bound_offset(
+                                       self._range_selection.start_offset)))
         else:
             self._range_selection_label["text"] = "Range: NA"
 
@@ -250,6 +265,7 @@ class HistogramBar():
         self._draw_text()
         self._draw_clear()
         self._draw_range_selection()
+        self._draw_x_axis()
         self._draw_buckets()
         self._draw_cursor_marker()
 
@@ -260,18 +276,19 @@ class HistogramBar():
                     offset_string(self._histogram_dimensions.bytes_per_bucket)
  
         # put in the offset start and stop text
-        self._start_offset_label["text"] = offset_string(
-                                      self._histogram_dimensions.start_offset)
+        self._start_offset_label["text"] = offset_string(self._bound_offset(
+                                     self._histogram_dimensions.start_offset))
         stop_offset = self._histogram_dimensions.start_offset + (
                                self._histogram_dimensions.bytes_per_bucket *
-                                                          self.NUM_BUCKETS)
-        self._stop_offset_label["text"] = offset_string(stop_offset)
+                                                          self.NUM_BUCKETS) - 1
+        self._stop_offset_label["text"] = offset_string(self._bound_offset(
+                                     stop_offset))
 
         # cursor image offset
         if self._is_valid_cursor or self._b1_pressed:
             # cursor byte offset text
-            self._image_offset_label["text"] = offset_string(
-                                                         self._cursor_offset)
+            self._image_offset_label["text"] = offset_string(self._bound_offset(
+                                                         self._cursor_offset))
         else:
             # clear
             self._image_offset_label['text'] = ""
@@ -295,6 +312,11 @@ class HistogramBar():
         # clear any previous content
         self._photo_image.put("white", to=(0,0,self.HISTOGRAM_BAR_WIDTH,
                                                self.HISTOGRAM_BAR_HEIGHT))
+
+    # draw black x axis across bottom
+    def _draw_x_axis(self):
+        self._photo_image.put(colors.X_AXIS, to=(0, self.HISTOGRAM_BAR_HEIGHT,
+                         self.HISTOGRAM_BAR_WIDTH, self.HISTOGRAM_BAR_HEIGHT-1))
 
     # draw the range selection
     def _draw_range_selection(self):
@@ -331,27 +353,19 @@ class HistogramBar():
         leftmost_bucket, rightmost_bucket = \
                              self._histogram_dimensions.valid_bucket_range()
 
-        scale = self._bar_scale.scale
-
         # draw the buckets
         for bucket in range(self.NUM_BUCKETS):
 
             # bucket view depends on whether byte offset is in range
             if bucket >= leftmost_bucket and bucket <= rightmost_bucket:
-                self._draw_bucket(bucket, scale)
+                self._draw_bucket(bucket)
             else:
                 self._draw_gray_bucket(bucket)
 
-    """Calculate clipped bar height from count.
-      Rationale for formula "int(log(count + 1, 1.23) * 2)" follows:
-          * The scale should be as minimal as possible but still not clip.
-          * A count of 1 should be 3 pixels tall so that the smallest unit is
-            readily visible.
-          * An arbitrarily chosen count of 200,000 should fully fill the
-            arbitrarily chosen 60-pixel high bar.
-    """
-    def _bar_height(self, count, scale):
-        h = int(count / scale)
+    """Calculate clipped bar height in pixels, using count, scale,
+      and bucket height multiplier."""
+    def _bar_height(self, count):
+        h = int(count * self.BUCKET_HEIGHT_MULTIPLIER // self._bar_scale.scale)
 
         # make small value visible
         if h == 0 and count > 0:
@@ -364,7 +378,7 @@ class HistogramBar():
         return h
 
     # draw one bar for one bucket
-    def _draw_bar(self, color, count, scale, i):
+    def _draw_bar(self, color, count, i):
 
         # do not plot bars when count==0
         if not count:
@@ -372,7 +386,7 @@ class HistogramBar():
 
         # get coordinates
         x=(i * self.BUCKET_WIDTH)
-        y = self._bar_height(count, scale)
+        y = self._bar_height(count)
 
         # plot rectangle
         self._photo_image.put(color, to=(
@@ -382,7 +396,7 @@ class HistogramBar():
              self.HISTOGRAM_BAR_HEIGHT - y))
 
     # draw one tick mark for one bucket, see draw_bar
-    def _draw_tick(self, color, count, scale, i):
+    def _draw_tick(self, color, count, i):
 
         # do not plot bars when count==0
         if not count:
@@ -390,7 +404,7 @@ class HistogramBar():
 
         # get coordinates
         x=(i * self.BUCKET_WIDTH)
-        y = self._bar_height(count, scale)
+        y = self._bar_height(count)
 
         # plot rectangle
         self._photo_image.put(color, to=(
@@ -400,21 +414,20 @@ class HistogramBar():
              self.HISTOGRAM_BAR_HEIGHT - y))
 
     # draw all bars for one bucket
-    def _draw_bucket(self, i, scale):
+    def _draw_bucket(self, i):
 
         # all sources with ignored sources removed: light blue bar
         self._draw_bar(colors.ALL_LIGHTER,
                     self._histogram_data.source_buckets[i] -
-                    self._histogram_data.ignored_source_buckets[i], scale, i)
+                    self._histogram_data.ignored_source_buckets[i], i)
 
         # all sources: light blue tick
         self._draw_tick(colors.ALL_LIGHTER,
-                            self._histogram_data.source_buckets[i], scale, i)
+                    self._histogram_data.source_buckets[i], i)
 
         # highlighted matches: light green bar
         self._draw_bar(colors.HIGHLIGHTED_LIGHTER,
-                            self._histogram_data.highlighted_source_buckets[i],
-                                                                    scale, i)
+                    self._histogram_data.highlighted_source_buckets[i], i)
 
     # draw one gray bucket for out-of-range data
     def _draw_gray_bucket(self, i):

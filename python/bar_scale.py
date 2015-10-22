@@ -17,7 +17,7 @@ class BarScale():
       Tk must be initialized for tkinter.Variable to work.
     """
 
-    MAX = 1000000
+    MAX = 10000
     scale = 1
 
     def __init__(self):

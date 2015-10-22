@@ -10,7 +10,6 @@ def offset_string(offset):
     if offset == -1:
         return "Not selected"
     else:
-#        return "0x%08x (%s)" % (offset, offset)
         return "0x%08x" % offset
 
 # from http://stackoverflow.com/questions/1094841/

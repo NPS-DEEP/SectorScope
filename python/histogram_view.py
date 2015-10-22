@@ -1,7 +1,6 @@
 from fit_range_selection import FitRangeSelection
 from image_hex_window import ImageHexWindow
 import colors
-from forensic_path import offset_string, size_string
 from icon_path import icon_path
 from tooltip import Tooltip
 from histogram_bar import HistogramBar
@@ -29,6 +28,7 @@ class HistogramView():
 
         # data variables
         self._range_selection = range_selection
+        self._bar_scale = bar_scale
 
         # the image hex window that the show hex view button can show
         self._image_hex_window = ImageHexWindow(master, identified_data,
@@ -47,13 +47,14 @@ class HistogramView():
 
         # button to zoom to fit image
         self._fit_image_icon = tkinter.PhotoImage(file=icon_path("fit_image"))
-        fit_image_button = tkinter.Button(controls_frame,
+        self._fit_image_button = tkinter.Button(controls_frame,
                            image=self._fit_image_icon,
+                           command=self._handle_fit_image,
                            bg=colors.BACKGROUND,
                            activebackground=colors.ACTIVEBACKGROUND,
                            highlightthickness=0)
-        fit_image_button.pack(side=tkinter.LEFT)
-        Tooltip(fit_image_button, "Zoom to fit image")
+        self._fit_image_button.pack(side=tkinter.LEFT)
+        Tooltip(self._fit_image_button, "Zoom to fit image")
 
         # button to zoom to fit range
         self._fit_range_icon = tkinter.PhotoImage(file=icon_path("fit_range"))
@@ -107,14 +108,15 @@ class HistogramView():
                                     bar_scale)
         self._histogram_bar.frame.pack(side=tkinter.TOP)
 
-        # set command for fit_image_button
-        fit_image_button.configure(command=self._histogram_bar.fit_image)
-
         # register to receive range selection change events
         range_selection.set_callback(self._handle_range_selection_change)
 
         # set to basic initial state
         self._handle_range_selection_change()
+
+    def _handle_fit_image(self):
+        self._histogram_bar.fit_image()
+        self._bar_scale.reset()
 
     def _handle_view_annotations(self):
         print("view annotations TBD")
