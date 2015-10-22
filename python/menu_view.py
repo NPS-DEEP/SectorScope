@@ -16,7 +16,7 @@ class MenuView():
       frame(Frame): the containing frame for this view.
     """
 
-    def __init__(self, master, open_manager):
+    def __init__(self, master, open_manager, project_window):
         """Args:
           master(a UI container): Parent.
           open_mangaer(OpenManager): Able to open a new dataset.
@@ -24,6 +24,7 @@ class MenuView():
 
         # open manager
         self._open_manager = open_manager
+        self._project_window = project_window
 
         # make the containing frame
         self.frame = tkinter.Frame(master)
@@ -41,6 +42,17 @@ class MenuView():
                        highlightthickness=0)
         open_button.pack(side=tkinter.LEFT)
         Tooltip(open_button, "Open scanned output")
+
+        # project properties button
+        self._project_icon = tkinter.PhotoImage(file=icon_path("view_project"))
+        project_button = tkinter.Button(button_frame,
+                       image=self._project_icon,
+                       command=self._handle_project_window,
+                       bg=colors.BACKGROUND,
+                       activebackground=colors.ACTIVEBACKGROUND,
+                       highlightthickness=0)
+        project_button.pack(side=tkinter.LEFT)
+        Tooltip(project_button, "Show opened project properties")
 
         # import button
         self._import_icon = tkinter.PhotoImage(file=icon_path("import"))
@@ -60,10 +72,13 @@ class MenuView():
                        activebackground=colors.ACTIVEBACKGROUND,
                        highlightthickness=0)
         scan_button.pack(side=tkinter.LEFT)
-        Tooltip(scan_button, "Scan a media iamge")
+        Tooltip(scan_button, "Scan a media image")
 
     def _handle_open(self):
         self._open_manager.open_be_dir("")
+
+    def _handle_project_window(self):
+        self._project_window.show()
 
     def _handle_scan(self):
         BEScanWindow(self.frame)

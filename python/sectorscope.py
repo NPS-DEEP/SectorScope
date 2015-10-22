@@ -17,18 +17,17 @@ from menu_view import MenuView
 from filters import Filters
 from filters_view import FiltersView
 from range_selection import RangeSelection
-from range_selection_view import RangeSelectionView
-from project_summary_view import ProjectSummaryView
 from histogram_view import HistogramView
 from bar_scale import BarScale
 from sources_view import SourcesView
 from forensic_path import offset_string
 from open_manager import OpenManager
+from project_window import ProjectWindow
 import colors
 
 # compose the GUI
 def build_gui(root_window, identified_data, filters, range_selection,
-                                                              open_manager):
+                                                open_manager, project_window):
     """The left frame holds the banner, histogram, and table of selected
     sources.  The right frame holds the table of all sources."""
 
@@ -37,40 +36,39 @@ def build_gui(root_window, identified_data, filters, range_selection,
     START_HEIGHT = 800
     root_window.title("SectorScope")
     root_window.minsize(width=400,height=300)
-    root_window.geometry("1000x700")
+    root_window.geometry("670x750")
     root_window.configure(bg=colors.BACKGROUND)
 
     # left frame for most of view, top down
     left_frame = tkinter.Frame(root_window, bg=colors.BACKGROUND)
-    left_frame.pack(side=tkinter.LEFT, anchor="n", padx=4, pady=(4,0))
+    left_frame.pack(side=tkinter.LEFT, anchor="n", padx=4)
+
+    # menu and filters
+    menu_and_filters_frame = tkinter.Frame(left_frame, bg=colors.BACKGROUND)
+    menu_and_filters_frame.pack(side=tkinter.TOP, anchor="w")
 
     # menu
-    menu_view = MenuView(left_frame, open_manager)
-    menu_view.frame.pack(side=tkinter.TOP, anchor="w")
-
-    # project summary
-    project_summary_view = ProjectSummaryView(
-                            left_frame, identified_data)
-    project_summary_view.frame.pack(side=tkinter.TOP, anchor="w")
+    menu_view = MenuView(menu_and_filters_frame, open_manager, project_window)
+    menu_view.frame.pack(side=tkinter.LEFT, anchor="n", padx=(0,80), pady=4)
 
     # filters
-    filters_view = FiltersView(left_frame, identified_data, filters,
-                                                             range_selection)
-    filters_view.frame.pack(side=tkinter.TOP, anchor="w", padx=4, pady=4)
-
-    # the range selection view
-    range_selection_view = RangeSelectionView(left_frame, identified_data,
-                                                    filters, range_selection)
-    range_selection_view.frame.pack(side=tkinter.TOP, anchor="w")
+    filters_view = FiltersView(menu_and_filters_frame, identified_data,
+                                                     filters, range_selection)
+    filters_view.frame.pack(side=tkinter.LEFT, anchor="n", padx=4, pady=4)
 
     # the histogram view
     histogram_view = HistogramView(left_frame, identified_data, filters,
-                                                  range_selection, bar_scale)
+                                                   range_selection, bar_scale)
     histogram_view.frame.pack(side=tkinter.TOP, anchor="w")
 
-    # the whole right side for the sources view
-    sources_view = SourcesView(root_window, identified_data, filters,
-                                                             range_selection)
+#    # the whole right side for the sources view
+#    sources_view = SourcesView(root_window, identified_data, filters,
+#                                                              range_selection)
+#    sources_view.frame.pack(side=tkinter.LEFT, anchor="n", padx=(4,0))
+
+    # the sources view
+    sources_view = SourcesView(left_frame, identified_data, filters,
+                                                              range_selection)
     sources_view.frame.pack(side=tkinter.LEFT, anchor="n", padx=(4,0))
 
 # main
@@ -105,9 +103,12 @@ if __name__=="__main__":
     open_manager = OpenManager(root_window, identified_data, filters,
                                                   range_selection, bar_scale)
 
+    # the project window, hidden until show()
+    project_window = ProjectWindow(root_window, identified_data)
+
     # build the GUI
     build_gui(root_window, identified_data, filters, range_selection,
-                                                               open_manager)
+                                                open_manager, project_window)
 
     # now open the be_dir
     open_manager.open_be_dir(args.be_dir)

@@ -9,6 +9,8 @@ def icon_path(name):
     # menu icons
     if name == "open":
         return _absolute_path("document-open-2.gif")
+    if name == "view_project":
+        return _absolute_path("application-view-list.gif")
     if name == "scan":
         return _absolute_path("database-gear.gif")
     if name == "import":
@@ -56,7 +58,9 @@ def icon_path(name):
 
     # histogram y view control
     if name == "y_plus":
-        return _absolute_path("plus_blue.gif")
+#        return _absolute_path("plus_blue.gif")
+        return _absolute_path("go-up-8.gif")
     if name == "y_minus":
-        return _absolute_path("minus_blue.gif")
+#        return _absolute_path("minus_blue.gif")
+        return _absolute_path("go-down-8.gif")
 

@@ -40,10 +40,6 @@ class FiltersView():
         # make the containing frame
         self.frame = tkinter.Frame(master, bg=colors.BACKGROUND)
 
-        # title
-        tkinter.Label(self.frame, text="Filters", bg=colors.BACKGROUND).pack(
-                                               side=tkinter.TOP, pady=(0,4))
-
         # highlight and ignore frame
         highlight_and_ignore_frame = tkinter.Frame(self.frame,
                                                         bg=colors.BACKGROUND)
@@ -61,16 +57,15 @@ class FiltersView():
                                  file=icon_path("highlight_hashes_in_range"))
         self._highlight_hashes_in_range_button = tkinter.Button(highlight_frame,
                            image=self._highlight_hashes_in_range_icon,
-                           text="Hashes in range",
+                           text="H",
                            compound="left", padx=4, pady=0,
                            command=self._fc.highlight_hashes_in_range,
                            bg=colors.BACKGROUND,
                            activebackground=colors.ACTIVEBACKGROUND,
                            highlightthickness=0)
-        self._highlight_hashes_in_range_button.pack(side=tkinter.TOP,
-                                                                anchor="w")
+        self._highlight_hashes_in_range_button.pack(side=tkinter.LEFT)
         Tooltip(self._highlight_hashes_in_range_button,
-                                         "Highlight hashes in range selection")
+                                      "Highlight hashes in selected range")
 
         # highlight sources with hashes in range
         self._highlight_sources_with_hashes_in_range_icon = tkinter.PhotoImage(
@@ -78,29 +73,29 @@ class FiltersView():
         self._highlight_sources_with_hashes_in_range_button = tkinter.Button(
                    highlight_frame,
                    image=self._highlight_sources_with_hashes_in_range_icon,
-                   text="Sources with selected hashes in range",
+                   text="S",
                    compound="left", padx=4, pady=0,
                    command=self._fc.highlight_sources_with_hashes_in_range,
                    bg=colors.BACKGROUND,
                    activebackground=colors.ACTIVEBACKGROUND,
                    highlightthickness=0)
         self._highlight_sources_with_hashes_in_range_button.pack(
-                                               side=tkinter.TOP, anchor="w")
+                                               side=tkinter.LEFT)
         Tooltip(self._highlight_sources_with_hashes_in_range_button,
-                            "Highlight sources with hashes in range selection")
+                          "Highlight sources with hashes in selected range")
 
         # clear highlighted hashes
         self._clear_highlighted_hashes_icon = tkinter.PhotoImage(
                                  file=icon_path("clear_highlighted_hashes"))
         self._clear_highlighted_hashes_button = tkinter.Button(highlight_frame,
                    image=self._clear_highlighted_hashes_icon,
-                   text="Clear highlighted hashes",
+                   text="H",
                    compound="left", padx=4, pady=0,
                    command=self._fc.clear_highlighted_hashes,
                    bg=colors.BACKGROUND,
                    activebackground=colors.ACTIVEBACKGROUND,
                    highlightthickness=0)
-        self._clear_highlighted_hashes_button.pack(side=tkinter.TOP, anchor="w")
+        self._clear_highlighted_hashes_button.pack(side=tkinter.LEFT)
         Tooltip(self._clear_highlighted_hashes_button,
                                            "Clear all highlighted hashes")
 
@@ -109,14 +104,13 @@ class FiltersView():
                                  file=icon_path("clear_highlighted_sources"))
         self._clear_highlighted_sources_button = tkinter.Button(highlight_frame,
                    image=self._clear_highlighted_sources_icon,
-                   text="Clear highlighted sources",
+                   text="S",
                    compound="left", padx=4, pady=0,
                    command=self._fc.clear_highlighted_sources,
                    bg=colors.BACKGROUND,
                    activebackground=colors.ACTIVEBACKGROUND,
                    highlightthickness=0)
-        self._clear_highlighted_sources_button.pack(side=tkinter.TOP,
-                                                                anchor="w")
+        self._clear_highlighted_sources_button.pack(side=tkinter.LEFT)
         Tooltip(self._clear_highlighted_sources_button,
                                            "Clear all highlighted sources")
 
@@ -166,15 +160,15 @@ class FiltersView():
                                  file=icon_path("ignore_hashes_in_range"))
         self._ignore_hashes_in_range_button = tkinter.Button(ignore_frame,
                            image=self._ignore_hashes_in_range_icon,
-                           text="Hashes in range",
+                           text="H",
                            compound="left", padx=4, pady=0,
                            command=self._fc.ignore_hashes_in_range,
                            bg=colors.BACKGROUND,
                            activebackground=colors.ACTIVEBACKGROUND,
                            highlightthickness=0)
-        self._ignore_hashes_in_range_button.pack(side=tkinter.TOP, anchor="w")
+        self._ignore_hashes_in_range_button.pack(side=tkinter.LEFT)
         Tooltip(self._ignore_hashes_in_range_button,
-                                         "Ignore hashes in range selection")
+                                         "Ignore hashes in selected range")
 
         # ignore sources with hashes in range
         self._ignore_sources_with_hashes_in_range_icon = tkinter.PhotoImage(
@@ -182,29 +176,28 @@ class FiltersView():
         self._ignore_sources_with_hashes_in_range_button = tkinter.Button(
                    ignore_frame,
                    image=self._ignore_sources_with_hashes_in_range_icon,
-                   text="Sources with selected hashes in range",
+                   text="S",
                    compound="left", padx=4, pady=0,
                    command=self._fc.ignore_sources_with_hashes_in_range,
                    bg=colors.BACKGROUND,
                    activebackground=colors.ACTIVEBACKGROUND,
                    highlightthickness=0)
-        self._ignore_sources_with_hashes_in_range_button.pack(side=tkinter.TOP,
-                                                              anchor="w")
+        self._ignore_sources_with_hashes_in_range_button.pack(side=tkinter.LEFT)
         Tooltip(self._ignore_sources_with_hashes_in_range_button,
-                             "Ignore sources with hashes in range selection")
+                             "Ignore sources with hashes in selected range")
 
         # clear ignored hashes
         self._clear_ignored_hashes_icon = tkinter.PhotoImage(
                                  file=icon_path("clear_ignored_hashes"))
         self._clear_ignored_hashes_button = tkinter.Button(ignore_frame,
                    image=self._clear_ignored_hashes_icon,
-                   text="Clear ignored hashes",
+                   text="H",
                    compound="left", padx=4, pady=0,
                    command=self._fc.clear_ignored_hashes,
                    bg=colors.BACKGROUND,
                    activebackground=colors.ACTIVEBACKGROUND,
                    highlightthickness=0)
-        self._clear_ignored_hashes_button.pack(side=tkinter.TOP, anchor="w")
+        self._clear_ignored_hashes_button.pack(side=tkinter.LEFT)
         Tooltip(self._clear_ignored_hashes_button, "Clear all ignored hashes")
 
         # clear ignored sources
@@ -212,13 +205,13 @@ class FiltersView():
                                  file=icon_path("clear_ignored_sources"))
         self._clear_ignored_sources_button = tkinter.Button(ignore_frame,
                    image=self._clear_ignored_sources_icon,
-                   text="Clear ignored sources",
+                   text="S",
                    compound="left", padx=4, pady=0,
                    command=self._fc.clear_ignored_sources,
                    bg=colors.BACKGROUND,
                    activebackground=colors.ACTIVEBACKGROUND,
                    highlightthickness=0)
-        self._clear_ignored_sources_button.pack(side=tkinter.TOP, anchor="w")
+        self._clear_ignored_sources_button.pack(side=tkinter.LEFT)
         Tooltip(self._clear_ignored_sources_button, "Clear all ignored sources")
 
         # register to receive highlight change events
@@ -299,7 +292,7 @@ class FiltersView():
 
             # only set if ignore_max_hashes changes
             if ignore_max_hashes != self._filters.ignore_max_hashes:
-                self._fiters.ignore_max_hashes = ignore_max_hashes
+                self._filters.ignore_max_hashes = ignore_max_hashes
                 self._filters.fire_change()
 
     def _handle_ignore_flagged_blocks_selection(self, *args):

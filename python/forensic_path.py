@@ -10,7 +10,17 @@ def offset_string(offset):
     if offset == -1:
         return "Not selected"
     else:
-        return "0x%08x (%s)" % (offset, offset)
+#        return "0x%08x (%s)" % (offset, offset)
+        return "0x%08x" % offset
+
+# from http://stackoverflow.com/questions/1094841/
+# reusable-library-to-get-human-readable-version-of-file-size
+def size_string(num, suffix='B'):
+    for unit in ['','Ki','Mi','Gi','Ti','Pi','Ei','Zi']:
+        if abs(num) < 1024.0:
+            return "%3.1f%s%s" % (num, unit, suffix)
+        num /= 1024.0
+    return "%.1f%s%s" % (num, 'Yi', suffix)
 
 #def offset_path(path, offset):
 #    """

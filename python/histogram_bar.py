@@ -1,7 +1,7 @@
 import colors
 from sys import platform
 from sys import maxsize
-from forensic_path import offset_string
+from forensic_path import offset_string, size_string
 from icon_path import icon_path
 from tooltip import Tooltip
 from math import log, floor, log10, pow, ceil
@@ -45,7 +45,7 @@ class HistogramBar():
 
     # bar size in pixels
     HISTOGRAM_BAR_WIDTH = NUM_BUCKETS * BUCKET_WIDTH
-    HISTOGRAM_BAR_HEIGHT = 120
+    HISTOGRAM_BAR_HEIGHT = 300
 
     # histogram dimensions including start offset and scale
     _histogram_dimensions = HistogramDimensions(NUM_BUCKETS)
@@ -100,13 +100,18 @@ class HistogramBar():
 
         # bucket width label
         self._bucket_width_label = tkinter.Label(bar_statistics_frame,
-                                   anchor="w", width=40, bg=colors.BACKGROUND)
+                                   anchor="w", width=20, bg=colors.BACKGROUND)
         self._bucket_width_label.pack(side=tkinter.LEFT, pady=(4,0))
 
         # bucket count label
         self._bucket_count_label = tkinter.Label(bar_statistics_frame,
-                                   anchor="w", width=30, bg=colors.BACKGROUND)
+                                   anchor="w", width=20, bg=colors.BACKGROUND)
         self._bucket_count_label.pack(side=tkinter.LEFT)
+
+        # range selection label
+        self._range_selection_label = tkinter.Label(bar_statistics_frame,
+                                   anchor="w", width=40, bg=colors.BACKGROUND)
+        self._range_selection_label .pack(side=tkinter.LEFT)
 
         # add the frame for offset values
         offsets_frame = tkinter.Frame(self.frame, height=18+0,
@@ -218,6 +223,17 @@ class HistogramBar():
 
     # this function is registered to and called by RangeSelection
     def _handle_range_selection_change(self, *args):
+        # range selection text
+        if self._range_selection.is_selected:
+            self._range_selection_label["text"] = \
+                           "Range: %s \u2014 %s  (%s)" % (
+                           offset_string(self._range_selection.start_offset),
+                           offset_string(self._range_selection.stop_offset),
+                           size_string(self._range_selection.stop_offset -
+                                       self._range_selection.start_offset))
+        else:
+            self._range_selection_label["text"] = "Range: NA"
+
         # draw
         self._draw()
 
@@ -271,7 +287,7 @@ class HistogramBar():
                                                          self._cursor_offset)]
         else:
             # clear
-            self._bucket_count_label['text'] = "Bar matches: Bar not selected"
+            self._bucket_count_label['text'] = "Bar matches: NA"
 
     # clear everything
     def _draw_clear(self):
