@@ -26,12 +26,17 @@ class RangeSelection():
       block_hash_offset(int): The offset to the block hash.
       buf_offset(int): The byte offset of the media image buffer
       buf(bytearray): The media image buffer.
+      source_ids_in_range(set): Set of source IDs in range.
+      hashes_in_range(set): Set of hashes in range.
 
     Requirement:
       Tk must be initialized for tkinter.Variable to work.
     """
 
     BUFSIZE = 16384 # 2^14
+
+    source_ids_in_range = set()
+    hashes_in_range = set()
 
     def __init__(self):
         # the signal variable
@@ -41,34 +46,31 @@ class RangeSelection():
 
     def _clear(self):
         self.is_selected = False
+
+        # range offsets
         self.start_offset = 0
         self.stop_offset = 0
+
+        # hash in range
         self.block_hash = ""
         self.block_hash_is_in = False
         self.block_hash_offset = 0
+
+        # buffer in range
         self.buf = bytearray()
 
-    # return lowest path in start_offset <= path < stop_offset else -1
-    def _first_path(self, master, identified_data, start_offset, stop_offset):
-        first_path = maxsize
-        for forensic_path, block_hash in \
-                               identified_data.forensic_paths.items():
-            offset = int(forensic_path)
-            if offset >= start_offset and offset < stop_offset and \
-                                                       offset < first_path:
-                first_path = offset
-
-        if first_path == maxsize:
-            return (start_offset, False)
-        else:
-            return (first_path, True)
+        # set of sources and hashes in range
+        self.source_ids_in_range.clear()
+        self.hashes_in_range.clear()
 
     def set(self, master, identified_data, offset1, offset2):
         """Set offsets.  Input can be out of order.  Equal offsets clears."""
 
-        # clear when equal
-        if offset1 == offset2:
-            self.clear()
+        # clear existing data
+        self.clear()
+
+        # done if no range
+        if offset1 == offset2 or offset1 == offset2 + 1:
             return
 
         # set is_selected
@@ -82,10 +84,47 @@ class RangeSelection():
             self.start_offset = offset2
             self.stop_offset = offset1
 
-        # find first block hash offset
-        (self.block_hash_offset, self.block_hash_is_in) = self._first_path(
-                                        master, identified_data,
-                                        self.start_offset, self.stop_offset)
+        # optimization
+        start_byte = self.start_offset
+        stop_byte = self.stop_offset
+
+        # the first path in the range
+        first_path = maxsize
+
+        # iterate through forensic paths and gather data about the range
+        hashes = identified_data.hashes
+        for forensic_path, block_hash in \
+                               identified_data.forensic_paths.items():
+            offset = int(forensic_path)
+
+            # skip if out of range
+            if offset < start_byte or offset >= stop_byte:
+                continue
+
+            # offset is first path if smaller
+            if offset < first_path:
+                first_path = offset
+
+            # get source ids in range
+            # get source IDs associated with this hash
+            (_, source_id_set, _) = hashes[block_hash]
+
+            # append source IDs from this hash
+            if not source_id_set.issubset(self.source_ids_in_range):
+                self.source_ids_in_range = self.source_ids_in_range.union(
+                                                               source_id_set)
+
+            # get hashes in range
+            self.hashes_in_range.add(block_hash)
+
+        # establish first path
+        if first_path == maxsize:
+            # no matched hash in range
+            self.block_hash_offset = start_byte
+            self.block_hash_is_in = False
+        else:
+            self.block_hash_offset = first_path
+            self.block_hash_is_in = True
 
         # read page of image bytes starting at offset else warn and clear
         try:

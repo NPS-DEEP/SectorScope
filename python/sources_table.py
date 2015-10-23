@@ -3,7 +3,6 @@ from collections import defaultdict
 from scrolled_text import ScrolledText
 from icon_path import icon_path
 from tooltip import Tooltip
-from selection_tools import sources_in_range
 from forensic_path import size_string
 import colors
 try:
@@ -63,7 +62,6 @@ class SourcesTable():
 
         # state
         self._line_to_id = {}
-        self._selected_source_ids = set()
 
         # cursor line or -1
         self._cursor_line = -1
@@ -117,6 +115,9 @@ class SourcesTable():
 
         # set initial state data
         self._set_data()
+
+        # set colors for the source lines
+        self._set_colors()
 
     def _set_data(self):
         """Set the view to show the sources in identified_dta.source_details"""
@@ -192,9 +193,6 @@ class SourcesTable():
         # set not editable
         self._source_text.config(state=tkinter.DISABLED)
 
-        # set colors for the source lines
-        self._set_colors()
-
     def _set_colors(self):
         # set the color for each source line
         for line in range(2, 2+len(self._identified_data.source_details)):
@@ -216,7 +214,8 @@ class SourcesTable():
                                                   foreground=foreground)
 
         # set the data tag color
-        if source_id in self._selected_source_ids and line != self._cursor_line:
+        if source_id in self._range_selection.source_ids_in_range \
+                                              and line != self._cursor_line:
             # use range selection color for the data portion
             self._source_text.tag_config(data_tag_name,
                                         background=colors.IN_RANGE_BACKGROUND,
@@ -352,20 +351,12 @@ class SourcesTable():
     def _handle_identified_data_change(self, *args):
         self._set_data()
 
+        # set colors for the source lines
+        self._set_colors()
+
     def _handle_filter_change(self, *args):
         self._set_colors()
 
     def _handle_range_selection_change(self, *args):
-        if self._range_selection.is_selected:
-            # get source IDs in range
-            self._selected_source_ids = sources_in_range(self._identified_data,
-                                          self._range_selection.start_offset,
-                                          self._range_selection.stop_offset)
-
-        else:
-            # unmark source IDs
-            self._selected_source_ids = set()
-
-        # set source ID colors
         self._set_colors()
 

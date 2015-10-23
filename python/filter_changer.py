@@ -2,7 +2,6 @@ from icon_path import icon_path
 from tooltip import Tooltip
 from be_scan_window import BEScanWindow
 from be_import_window import BEImportWindow
-import selection_tools
 try:
     import tkinter
 except ImportError:
@@ -38,9 +37,7 @@ class FilterChanger():
     # ignore hashes in range
     def ignore_hashes_in_range(self, *args):
         # get hashes in range
-        hashes = selection_tools.hashes_in_range(self._identified_data,
-                                        self._range_selection.start_offset,
-                                        self._range_selection.stop_offset)
+        hashes = self._range_selection.hashes_in_range
 
         # add to ignored hashes
         for block_hash in hashes:
@@ -53,9 +50,7 @@ class FilterChanger():
     def ignore_sources_with_hashes_in_range(self, *args):
 
         # get set of sources in range
-        source_ids = selection_tools.sources_in_range(self._identified_data,
-                                        self._range_selection.start_offset,
-                                        self._range_selection.stop_offset)
+        source_ids = self._range_selection.source_ids_in_range
 
         # add set to ignored sources
         ignored_sources = self._filters.ignored_sources
@@ -81,9 +76,7 @@ class FilterChanger():
     def highlight_hashes_in_range(self, *args):
 
         # get hashes in range
-        hashes = selection_tools.hashes_in_range(self._identified_data,
-                                        self._range_selection.start_offset,
-                                        self._range_selection.stop_offset)
+        hashes = self._range_selection.hashes_in_range
 
         # add to highlighted hashes
         for block_hash in hashes:
@@ -96,9 +89,7 @@ class FilterChanger():
     def highlight_sources_with_hashes_in_range(self, *args):
 
         # get set of sources in range
-        source_ids = selection_tools.sources_in_range(self._identified_data,
-                                        self._range_selection.start_offset,
-                                        self._range_selection.stop_offset)
+        source_ids = self._range_selection.source_ids_in_range
 
         # add set to ignored sources
         highlighted_sources = self._filters.highlighted_sources
