@@ -31,11 +31,11 @@ def build_gui(root_window, identified_data, filters, range_selection,
     sources.  The right frame holds the table of all sources."""
 
     # set root window attributes
-    START_WIDTH = 1000
+    START_WIDTH = 1020
     START_HEIGHT = 800
     root_window.title("SectorScope")
     root_window.minsize(width=400,height=300)
-    root_window.geometry("670x750")
+    root_window.geometry("%sx%s" % (START_WIDTH, START_HEIGHT))
     root_window.configure(bg=colors.BACKGROUND)
 
     # left frame for most of view, top down

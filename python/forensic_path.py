@@ -9,6 +9,13 @@ def offset_string(offset):
     """
     return "0x%08x" % offset
 
+def int_string(value):
+    if value < 1000:
+        return value
+    if value < 1000000:
+        return "%sK" % (value//1000)
+    return "%sM" % (value//1000000)
+
 # from http://stackoverflow.com/questions/1094841/
 # reusable-library-to-get-human-readable-version-of-file-size
 def size_string(num, suffix='B'):

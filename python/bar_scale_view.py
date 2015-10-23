@@ -1,6 +1,7 @@
 import colors
 from icon_path import icon_path
 from tooltip import Tooltip
+from forensic_path import int_string
 try:
     import tkinter
 except ImportError:
@@ -60,7 +61,8 @@ class BarScaleView():
         self._show()
 
     def _show(self):
-        self._scale_value_label["text"] = "1:%s" % self._bar_scale.scale
+        self._scale_value_label["text"] = "1:%s" % int_string(
+                                                     self._bar_scale.scale)
         # disable + button if not useful
         if self._bar_scale.scale == 1:
             self._plus_button.config(state=tkinter.DISABLED)

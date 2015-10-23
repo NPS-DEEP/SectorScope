@@ -1,7 +1,7 @@
 import colors
 from sys import platform
 from sys import maxsize
-from forensic_path import offset_string, size_string
+from forensic_path import offset_string, size_string, int_string
 from icon_path import icon_path
 from tooltip import Tooltip
 from math import log, floor, log10, pow, ceil
@@ -38,7 +38,7 @@ class HistogramBar():
       Selection and range selection values round down to block boundary
     """
     # number of buckets across the bar
-    NUM_BUCKETS = 220
+    NUM_BUCKETS = 320
 
     # pixels per bucket
     BUCKET_WIDTH = 3
@@ -49,6 +49,14 @@ class HistogramBar():
     # bar size in pixels
     HISTOGRAM_BAR_WIDTH = NUM_BUCKETS * BUCKET_WIDTH
     HISTOGRAM_BAR_HEIGHT = 300
+
+    # histogram offset in canvas
+    HISTOGRAM_X_OFFSET = 44
+    HISTOGRAM_Y_OFFSET = 16
+
+    # canvas size in pixels
+    CANVAS_WIDTH = HISTOGRAM_BAR_WIDTH + HISTOGRAM_X_OFFSET + 1
+    CANVAS_HEIGHT = HISTOGRAM_BAR_HEIGHT + HISTOGRAM_Y_OFFSET + 4
 
     # histogram dimensions including start offset and scale
     _histogram_dimensions = HistogramDimensions(NUM_BUCKETS)
@@ -99,12 +107,12 @@ class HistogramBar():
 
         # frame for bar statistics
         bar_statistics_frame = tkinter.Frame(self.frame, bg=colors.BACKGROUND)
-        bar_statistics_frame.pack(side=tkinter.TOP, anchor="w")
+        bar_statistics_frame.pack(side=tkinter.TOP, anchor="w", pady=4)
 
         # bucket width label
         self._bucket_width_label = tkinter.Label(bar_statistics_frame,
                                    anchor="w", width=20, bg=colors.BACKGROUND)
-        self._bucket_width_label.pack(side=tkinter.LEFT, pady=(4,0))
+        self._bucket_width_label.pack(side=tkinter.LEFT)
 
         # bucket count label
         self._bucket_count_label = tkinter.Label(bar_statistics_frame,
@@ -116,62 +124,82 @@ class HistogramBar():
                                    anchor="w", width=40, bg=colors.BACKGROUND)
         self._range_selection_label .pack(side=tkinter.LEFT)
 
-        # add the frame for offset values
-        offsets_frame = tkinter.Frame(self.frame, height=18+0,
-                                                         bg=colors.BACKGROUND)
-        offsets_frame.pack(side=tkinter.TOP, fill=tkinter.X)
-
-        # leftmost offset value
-        self._start_offset_label = tkinter.Label(offsets_frame,
-                                                         bg=colors.BACKGROUND)
-        self._start_offset_label.place(relx=0.0, anchor=tkinter.NW)
-
-        # cursor offset value
-        self._image_offset_label = tkinter.Label(offsets_frame,
-                                                         bg=colors.BACKGROUND)
-        self._image_offset_label.place(relx=0.5, anchor=tkinter.N)
-
-        # rightmost offset value
-        self._stop_offset_label = tkinter.Label(offsets_frame,
-                                                         bg=colors.BACKGROUND)
-        self._stop_offset_label.place(relx=1.0, anchor=tkinter.NE)
-
-        # add the label containing the histogram bar PhotoImage
-        l = tkinter.Label(self.frame, image=self._photo_image,
-                                                relief=tkinter.SUNKEN, bd=1)
-        l.pack(side=tkinter.TOP)
+        # add the canvas containing the histogram graph
+        self._c = tkinter.Canvas(self.frame, relief=tkinter.SUNKEN,
+                    width=self.CANVAS_WIDTH, height=self.CANVAS_HEIGHT, bd=0,
+                                  highlightthickness=0, bg=colors.BACKGROUND)
+        self._c.pack(side=tkinter.TOP)
 
         # bind mouse motion and b1 events
-        l.bind('<Motion>', self._handle_motion_and_b1_motion, add='+')
-        l.bind('<Button-1>', self._handle_b1_press, add='+')
-        l.bind('<ButtonRelease-1>', self._handle_b1_release, add='+')
-        l.bind('<Enter>', self._handle_enter, add='+')
-        l.bind('<Leave>', self._handle_leave, add='+')
+        self._c.bind('<Motion>', self._handle_motion_and_b1_motion, add='+')
+        self._c.bind('<Button-1>', self._handle_b1_press, add='+')
+        self._c.bind('<ButtonRelease-1>', self._handle_b1_release, add='+')
+        self._c.bind('<Enter>', self._handle_enter, add='+')
+        self._c.bind('<Leave>', self._handle_leave, add='+')
 
         # bind mouse wheel events
         # https://www.daniweb.com/software-development/python/code/217059/using-the-mouse-wheel-with-tkinter-python
         # with Windows OS
-        l.bind("<MouseWheel>", self._handle_mouse_wheel, add='+')
+        self._c.bind("<MouseWheel>", self._handle_mouse_wheel, add='+')
         # with Linux OS
-        l.bind("<Button-4>", self._handle_mouse_wheel, add='+')
-        l.bind("<Button-5>", self._handle_mouse_wheel, add='+')
-
-#        Tooltip(l, "Click to select offset\n"
-#                   "Right-click drag to select region\n"
-#                   "Left-click drag to pan\n"
-#                   "Scroll to zoom")
+        self._c.bind("<Button-4>", self._handle_mouse_wheel, add='+')
+        self._c.bind("<Button-5>", self._handle_mouse_wheel, add='+')
 
         # bind mouse b3 right-click events
         if platform == 'darwin':
             # mac right-click is Button-2
-            l.bind('<Button-2>', self._handle_b3_press, add='+')
-            l.bind('<B2-Motion>', self._handle_b3_move, add='+')
-            l.bind('<ButtonRelease-2>', self._handle_b3_release, add='+')
+            self._c.bind('<Button-2>', self._handle_b3_press, add='+')
+            self._c.bind('<B2-Motion>', self._handle_b3_move, add='+')
+            self._c.bind('<ButtonRelease-2>', self._handle_b3_release, add='+')
         else:
             # Linux, Win right-click is Button-3
-            l.bind('<Button-3>', self._handle_b3_press, add='+')
-            l.bind('<B3-Motion>', self._handle_b3_move, add='+')
-            l.bind('<ButtonRelease-3>', self._handle_b3_release, add='+')
+            self._c.bind('<Button-3>', self._handle_b3_press, add='+')
+            self._c.bind('<B3-Motion>', self._handle_b3_move, add='+')
+            self._c.bind('<ButtonRelease-3>', self._handle_b3_release, add='+')
+
+        # add a box to house the histogram
+        self._c.create_rectangle(self.HISTOGRAM_X_OFFSET-1,
+                                               self.HISTOGRAM_Y_OFFSET-1,
+                   self.HISTOGRAM_X_OFFSET+0 + self.HISTOGRAM_BAR_WIDTH,
+                   self.HISTOGRAM_Y_OFFSET+0 + self.HISTOGRAM_BAR_HEIGHT,
+                   outline=colors.BOUNDING_BOX)
+
+        # add the histogram photo_image to the canvas
+        self._c.create_image(self.HISTOGRAM_X_OFFSET, self.HISTOGRAM_Y_OFFSET,
+                                anchor=tkinter.NW, image=self._photo_image)
+
+        # start offset
+        self._start_offset_id = self._c.create_text(self.HISTOGRAM_X_OFFSET,
+                                 0, anchor=tkinter.NW)
+
+        # cursor offset
+        self._cursor_offset_id = self._c.create_text(self.HISTOGRAM_X_OFFSET +
+                         self.HISTOGRAM_BAR_WIDTH // 2, 0, anchor=tkinter.N)
+
+        # stop offset
+        self._stop_offset_id = self._c.create_text(self.HISTOGRAM_X_OFFSET +
+                             self.HISTOGRAM_BAR_WIDTH, 0, anchor=tkinter.NE)
+
+        # y axis gradient mark 1
+        x = self.HISTOGRAM_X_OFFSET
+        y = self.HISTOGRAM_Y_OFFSET + self.HISTOGRAM_BAR_HEIGHT - \
+                                           1 *self.BUCKET_HEIGHT_MULTIPLIER
+        self._c.create_line(x-8,y,x,y, fill=colors.BOUNDING_BOX)
+        self._marker1_id = self._c.create_text(x-9, y, anchor=tkinter.E)
+
+        # y axis gradient mark 2
+        x = self.HISTOGRAM_X_OFFSET
+        y = self.HISTOGRAM_Y_OFFSET + self.HISTOGRAM_BAR_HEIGHT - \
+                                           10 *self.BUCKET_HEIGHT_MULTIPLIER
+        self._c.create_line(x-8,y,x,y, fill=colors.BOUNDING_BOX)
+        self._marker2_id = self._c.create_text(x-9, y, anchor=tkinter.E)
+
+        # y axis gradient mark 3
+        x = self.HISTOGRAM_X_OFFSET
+        y = self.HISTOGRAM_Y_OFFSET + self.HISTOGRAM_BAR_HEIGHT - \
+                                           100 *self.BUCKET_HEIGHT_MULTIPLIER
+        self._c.create_line(x-8,y,x,y, fill=colors.BOUNDING_BOX)
+        self._marker3_id = self._c.create_text(x-9, y, anchor=tkinter.E)
 
         # register to receive identified_data change events
         identified_data.set_callback(self._handle_identified_data_change)
@@ -262,6 +290,14 @@ class HistogramBar():
 
     # this function is registered to and called by BarHeight
     def _handle_bar_scale_change(self, *args):
+        # set scale in y axis markers
+        self._c.itemconfigure(self._marker1_id, text=int_string(
+                                                      self._bar_scale.scale))
+        self._c.itemconfigure(self._marker2_id, text=int_string(
+                                                    self._bar_scale.scale*10))
+        self._c.itemconfigure(self._marker3_id, text=int_string(
+                                                    self._bar_scale.scale*100))
+
         self._draw()
 
     # redraw everything
@@ -283,22 +319,23 @@ class HistogramBar():
                     offset_string(self._histogram_dimensions.bytes_per_bucket)
  
         # put in the offset start and stop text
-        self._start_offset_label["text"] = offset_string(self._bound_offset(
-                                     self._histogram_dimensions.start_offset))
+        self._c.itemconfigure(self._start_offset_id, text=offset_string(
+                  self._bound_offset(self._histogram_dimensions.start_offset)))
         stop_offset = self._histogram_dimensions.start_offset + (
                                self._histogram_dimensions.bytes_per_bucket *
                                                           self.NUM_BUCKETS) - 1
-        self._stop_offset_label["text"] = offset_string(self._bound_offset(
-                                     stop_offset))
+        self._c.itemconfigure(self._stop_offset_id, text=offset_string(
+                  self._bound_offset(stop_offset)))
 
-        # cursor image offset
+        # cursor offset
         if self._is_valid_cursor or self._b1_pressed:
             # cursor byte offset text
-            self._image_offset_label["text"] = offset_string(self._bound_offset(
-                                                         self._cursor_offset))
+            self._c.itemconfigure(self._cursor_offset_id, text=offset_string(
+                                     self._bound_offset(self._cursor_offset)))
+
         else:
             # clear
-            self._image_offset_label['text'] = ""
+            self._c.itemconfigure(self._cursor_offset_id, text="")
 
         # cursor bucket count
         if self._is_valid_cursor and \
@@ -456,9 +493,7 @@ class HistogramBar():
     # convert mouse coordinate to bucket
     def _mouse_to_bucket(self, e):
         """Returns bucket number even if outside valid range."""
-        # Note that e.x-1 is used because x is with respect to label,
-        # not PhotoImage, and label has a 1-pixel border.
-        return int((e.x - 1) / self.BUCKET_WIDTH)
+        return int((e.x - self.HISTOGRAM_X_OFFSET) / self.BUCKET_WIDTH)
 
     def _handle_enter(self, e):
         self._handle_motion_and_b1_motion(e)
