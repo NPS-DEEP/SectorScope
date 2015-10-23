@@ -4,6 +4,7 @@ from scrolled_text import ScrolledText
 from icon_path import icon_path
 from tooltip import Tooltip
 from selection_tools import sources_in_range
+from forensic_path import size_string
 import colors
 try:
     import tkinter
@@ -160,10 +161,10 @@ class SourcesTable():
                 percent_found = len(sources_offsets[source_id]) / \
                                (int(source["filesize"] / block_size)) * 100
 
-                source_text = '\t%.2f%%\t%d\t%d\t%s\t%s\n' \
+                source_text = '\t%.2f%%\t%d\t%s\t%s\t%s\n' \
                                     %(percent_found,
                                       len(sources_offsets[source_id]),
-                                      source["filesize"],
+                                      size_string(source["filesize"]),
                                       source["repository_name"],
                                       source["filename"])
 

@@ -138,7 +138,7 @@ class FiltersView():
 
         # ignore flagged blocks checkbutton
         self._ignore_flagged_blocks_checkbutton = tkinter.Checkbutton(
-                        ignore_frame, text="Flagged Blocks",
+                        ignore_frame, text="Auto-filter",
                         variable=self._ignore_flagged_blocks_trace_var,
                         bd=0,
                         bg=colors.BACKGROUND,
@@ -146,6 +146,8 @@ class FiltersView():
                         pady=4, highlightthickness=0)
         self._ignore_flagged_blocks_checkbutton.pack(side=tkinter.TOP,
                                                                  anchor="w")
+        Tooltip(self._ignore_flagged_blocks_checkbutton,
+                                         "Ignore flagged blocks")
 
         # bind actions for ignore_flagged_blocks checkbutton
         self._ignore_flagged_blocks_trace_var.set(filters.ignore_flagged_blocks)
