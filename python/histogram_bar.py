@@ -116,7 +116,7 @@ class HistogramBar():
 
         # bucket count label
         self._bucket_count_label = tkinter.Label(bar_statistics_frame,
-                                   anchor="w", width=20, bg=colors.BACKGROUND)
+                                   anchor="w", width=35, bg=colors.BACKGROUND)
         self._bucket_count_label.pack(side=tkinter.LEFT)
 
         # range selection label
@@ -342,10 +342,17 @@ class HistogramBar():
                               self._histogram_dimensions.offset_is_on_bucket(
                                                         self._cursor_offset):
             # bucket count at cursor
-            self._bucket_count_label["text"] = "Bar matches: %s" % \
-                             self._histogram_data.source_buckets[ \
+            self._bucket_count_label["text"] = \
+                          "Bar matches: %s, h=%s, i=%s" % (
+                             self._histogram_data.source_buckets[
                              self._histogram_dimensions.offset_to_bucket(
-                                                         self._cursor_offset)]
+                                                        self._cursor_offset)],
+                             self._histogram_data.highlighted_source_buckets[
+                             self._histogram_dimensions.offset_to_bucket(
+                                                        self._cursor_offset)],
+                             self._histogram_data.ignored_source_buckets[
+                             self._histogram_dimensions.offset_to_bucket(
+                                                        self._cursor_offset)])
         else:
             # clear
             self._bucket_count_label['text'] = "Bar matches: NA"
