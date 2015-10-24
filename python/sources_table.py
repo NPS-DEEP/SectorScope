@@ -124,8 +124,9 @@ class SourcesTable():
 
         # initialize the line and ID lookup dictionaries
         self._line_to_id.clear()
+        self._cursor_line = -1
 
-        # set editable
+        # set table to editable
         self._source_text.config(state=tkinter.NORMAL)
 
         # clear any existing text
@@ -149,9 +150,18 @@ class SourcesTable():
         block_size = self._identified_data.block_size
         sources_offsets = self._identified_data.sources_offsets
 
-        # put in source lines
-        line = 2
-        for source_id, source in source_details.items():
+        # get the set of source IDs to show
+        if self._range_selection.is_selected == True:
+            # just show sources in the range
+            source_ids = self._range_selection.source_ids_in_range
+        else:
+            # show all sources referenced in identified_data
+            source_ids = self._identified_data.source_details.keys()
+
+        # create a list of source information to make the sorted list from
+        source_information_list = list() # tuple(sourceID, percent, text)
+        for source_id in source_ids:
+            source = source_details[source_id]
 
             # compose the source text
             # handle missing fields, which can happen if an image was
@@ -162,7 +172,7 @@ class SourcesTable():
                 percent_found = len(sources_offsets[source_id]) / \
                                (int(source["filesize"] / block_size)) * 100
 
-                source_text = '\t%.2f%%\t%d\t%s\t%s\t%s\n' \
+                text = '\t%.2f%%\t%d\t%s\t%s\t%s\n' \
                                     %(percent_found,
                                       len(sources_offsets[source_id]),
                                       size_string(source["filesize"]),
@@ -170,10 +180,20 @@ class SourcesTable():
                                       source["filename"])
 
             else:
-                source_text = '\t?\t%d\t?\t%s\t%s\n' \
+                text = '\t?\t%d\t?\t%s\t%s\n' \
                                     %(len(sources_offsets[source_id]),
                                       source["repository_name"],
                                       source["filename"])
+
+            # append source information tuple
+            source_information_list.append((source_id, percent_found, text))
+
+        # sort the source information list by percent found
+        source_information_list.sort(key=lambda s: s[1], reverse=True)
+
+        # put in source lines into the table
+        line = 2
+        for source_id, percent, text in source_information_list:
 
             # compose the tag names
             id_tag_name = "id_line_%s" % line
@@ -182,7 +202,7 @@ class SourcesTable():
             # add the source ID and data text
             self._source_text.insert(tkinter.END, "\t%s" % source_id,
                                                                  id_tag_name)
-            self._source_text.insert(tkinter.END, source_text, data_tag_name)
+            self._source_text.insert(tkinter.END, text, data_tag_name)
 
             # record the line to ID lookup
             self._line_to_id[line] = source_id
@@ -190,12 +210,12 @@ class SourcesTable():
             # next line
             line += 1
  
-        # set not editable
+        # set table to not editable
         self._source_text.config(state=tkinter.DISABLED)
 
     def _set_colors(self):
         # set the color for each source line
-        for line in range(2, 2+len(self._identified_data.source_details)):
+        for line in range(2, 2+len(self._line_to_id)):
             self._set_line_color(line)
 
     def _set_line_color(self, line):
@@ -350,13 +370,12 @@ class SourcesTable():
 
     def _handle_identified_data_change(self, *args):
         self._set_data()
-
-        # set colors for the source lines
         self._set_colors()
 
     def _handle_filter_change(self, *args):
         self._set_colors()
 
     def _handle_range_selection_change(self, *args):
+        self._set_data()
         self._set_colors()
 
