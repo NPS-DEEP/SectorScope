@@ -296,6 +296,10 @@ class FiltersView():
                 self._filters.ignore_max_hashes = ignore_max_hashes
                 self._filters.fire_change()
 
+                # drop focus so it visually looks accepted
+                # by giving focus to something that doesn't need or show it
+                self.frame.focus()
+
     def _handle_ignore_flagged_blocks_selection(self, *args):
         self._filters.ignore_flagged_blocks = \
                                self._ignore_flagged_blocks_trace_var.get()
