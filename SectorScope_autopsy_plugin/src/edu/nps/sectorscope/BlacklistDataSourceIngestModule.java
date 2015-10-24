@@ -182,7 +182,11 @@ public class BlacklistDataSourceIngestModule implements DataSourceIngestModule {
         commandLine.add("-S");
         commandLine.add("hashdb_mode=scan");
         commandLine.add("-S");
+        commandLine.add("hashdb_block_size=512");
+        commandLine.add("-S");
         commandLine.add("hashdb_scan_path_or_socket="+hashdbDir);
+        commandLine.add("-S");
+        commandLine.add("hashdb_scan_sector_size=512");
         commandLine.add("-o");
         commandLine.add(bulk_extractorOutputDir);
         commandLine.add(mediaImagePath);
