@@ -144,7 +144,8 @@ public class BlacklistDataSourceIngestModule implements DataSourceIngestModule {
             // show source summary from identified_blocks_expanded
             if (result == ProcessResult.OK) {
                 progressBar.progress(2);
-                result = showSourceSummaryString(dataSource);
+//                result = showSourceSummaryString(dataSource);
+                result = showSourceSummaryStringEasy(dataSource);
             }
 
             // add report visualization launcher
@@ -223,6 +224,8 @@ public class BlacklistDataSourceIngestModule implements DataSourceIngestModule {
         List<String> commandLine = new ArrayList<>();
         commandLine.add("hashdb.exe");
         commandLine.add("expand_identified_blocks");
+        commandLine.add("-m");
+        commandLine.add("0");
         commandLine.add(hashdbDir);
         commandLine.add(identifiedBlocksPath);
 
@@ -284,6 +287,16 @@ public class BlacklistDataSourceIngestModule implements DataSourceIngestModule {
                               sourceSummaryString);
         IngestServices.getInstance().postMessage(message);
  
+        return ProcessResult.OK;
+    }
+
+    private ProcessResult showSourceSummaryStringEasy(Content dataSource) {
+        // send summary to message inbox
+        IngestMessage message = IngestMessage.createMessage(IngestMessage.MessageType.INFO,
+                              BlacklistIngestModuleFactory.getModuleName(),
+                              "Blacklist block hash content found.");
+        IngestServices.getInstance().postMessage(message);
+
         return ProcessResult.OK;
     }
 
