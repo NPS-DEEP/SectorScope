@@ -42,6 +42,7 @@ class FilterChanger():
         # add to ignored hashes
         for block_hash in hashes:
             self._filters.ignored_hashes.add(block_hash)
+            self._filters.highlighted_hashes.discard(block_hash)
 
         # fire filter change
         self._filters.fire_change()
@@ -53,9 +54,9 @@ class FilterChanger():
         source_ids = self._range_selection.source_ids_in_range
 
         # add set to ignored sources
-        ignored_sources = self._filters.ignored_sources
         for source_id in source_ids:
-            ignored_sources.add(source_id)
+            self._filters.ignored_sources.add(source_id)
+            self._filters.highlighted_sources.discard(source_id)
 
         # fire filter change
         self._filters.fire_change()
@@ -81,6 +82,7 @@ class FilterChanger():
         # add to highlighted hashes
         for block_hash in hashes:
             self._filters.highlighted_hashes.add(block_hash)
+            self._filters.ignored_hashes.discard(block_hash)
 
         # fire filter change
         self._filters.fire_change()
@@ -92,9 +94,9 @@ class FilterChanger():
         source_ids = self._range_selection.source_ids_in_range
 
         # add set to ignored sources
-        highlighted_sources = self._filters.highlighted_sources
         for source_id in source_ids:
-            highlighted_sources.add(source_id)
+            self._filters.highlighted_sources.add(source_id)
+            self._filters.ignored_sources.discard(source_id)
 
         # fire filter change
         self._filters.fire_change()

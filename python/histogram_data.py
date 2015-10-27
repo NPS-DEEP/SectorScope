@@ -36,7 +36,7 @@ class HistogramData():
         self._hash_counts.clear()
 
         # calculate _hash_counts based on identified data
-        for block_hash, (count, source_id_set, has_label) in hashes.items():
+        for block_hash, (count, source_id_set, _, has_label) in hashes.items():
             is_ignored = False
             is_highlighted = False
 

@@ -34,14 +34,12 @@ class IdentifiedData():
       block_size (int): Block size used by the hashdb database.
       forensic_paths (dict<forensic path int, hash hexcode str>):
         Dictionary maps forensic paths to their hash value.
-      hashes (dict<hash hexcode str, tuple<source ID set, bool has_label>>)
-        Dictionary maps hashes to source IDs.
+      hashes (dict<hash hexcode str, tuple<source ID set, list id offset pair,
+        bool has_label>>).  Dictionary maps hashes to hash information.
       source_details (dict<source ID int, dict<source metadata attributes>>):
         Dictionary where keys are source IDs and values are a dictionary
         of attributes associated with the given source as obtained from
         the identified_blocks_expanded.txt file.
-      sources_offsets (dict<source ID int, set<source offset int>>):
-        Source offsets of every source of every matching hash.
     """
 
     def __init__(self):
@@ -59,7 +57,6 @@ class IdentifiedData():
         self.forensic_paths = dict()
         self.hashes = dict()
         self.source_details = dict()
-        self.sources_offsets = defaultdict(set)
 
     def set_callback(self, f):
         """Register function f to be called on data change."""
@@ -85,7 +82,7 @@ class IdentifiedData():
         self._maybe_make_identified_blocks_expanded_file(be_dir, hashdb_dir)
 
         # read identified_blocks_expanded.txt
-        (forensic_paths, hashes, source_details, sources_offsets) = \
+        (forensic_paths, hashes, source_details) = \
                                self._read_identified_blocks_expanded(be_dir)
 
         # everything worked so accept the data
@@ -97,7 +94,6 @@ class IdentifiedData():
         self.forensic_paths = forensic_paths
         self.hashes = hashes
         self.source_details = source_details
-        self.sources_offsets = sources_offsets
 
         # fire data changed event
         self._identified_data_changed.set(True)
@@ -220,7 +216,6 @@ class IdentifiedData():
         forensic_paths=dict()
         hashes = dict()
         source_details=dict()
-        sources_offsets = defaultdict(set)
         with open(expanded_file, 'r') as f:
             i = 0
             for line in f:
@@ -246,27 +241,29 @@ class IdentifiedData():
                         # count
                         count = len(json_sources)
 
-                        # source_ids
+                        # source_ids and ID, offset pairs
                         source_ids = set()
+                        id_offset_pairs = list()
                         for json_source in json_sources:
                             source_id = json_source["source_id"]
 
                             # add source ID to source_ids set
                             source_ids.add(source_id)
 
+                            # add pair to pairs list
+                            file_offset = json_source["file_offset"]
+                            id_offset_pairs.append((source_id, file_offset))
+
                             # also store source details if first time seen
                             if "filename" in json_source:
                                 source_details[source_id] = json_source
 
-                            # also add source offset to sources_offsets
-                            sources_offsets[source_id].add(
-                                                  json_source["file_offset"])
-
                         # has_label, currently obtained from source[0]
                         has_label = "label" in json_sources[0]
 
-                        # store hash and attributes as tuple(int, set, bool)
-                        hashes[block_hash] = (count, source_ids, has_label)
+                        # store hash and attributes as (int, set, list, bool)
+                        hashes[block_hash] = (count, source_ids,
+                                                  id_offset_pairs, has_label)
 
                 except Exception as e:
                     raise ValueError("Error reading file '%s' "
@@ -275,5 +272,5 @@ class IdentifiedData():
                              "using the hash database at '%s'." % (
                                      expanded_file, i, line, e, be_dir))
 
-        return (forensic_paths, hashes, source_details, sources_offsets)
+        return (forensic_paths, hashes, source_details)
 

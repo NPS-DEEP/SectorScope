@@ -107,7 +107,7 @@ class RangeSelection():
 
             # get source ids in range
             # get source IDs associated with this hash
-            (_, source_id_set, _) = hashes[block_hash]
+            (_, source_id_set, _, _) = hashes[block_hash]
 
             # append source IDs from this hash
             if not source_id_set.issubset(self.source_ids_in_range):

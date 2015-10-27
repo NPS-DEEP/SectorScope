@@ -23,8 +23,6 @@ class HistogramBar():
     Attributes:
       frame(Frame): the containing frame for this plot.
       _photo_image(PhotoImage): The image on which the plot is rendered.
-      _hash_counts(dict of <hash, (count, is_ignored, is_highlighted)>):
-        hash and calculated count tuple for each hash.
       _histogram_dimensions(HistogramDimensions): The start_offset,
         bytes_per_bucket, and associated bar dimension methods.
       _bar_scale(BarHeight): scaling for bar height.
@@ -492,8 +490,13 @@ class HistogramBar():
     # draw the cursor marker
     def _draw_cursor_marker(self):
         if self._is_valid_cursor:
+#            print("hb.a", self._histogram_dimensions.offset_to_bucket(
+#                                     self._cursor_offset) * self.BUCKET_WIDTH)
             x = self._histogram_dimensions.offset_to_bucket(
                                      self._cursor_offset) * self.BUCKET_WIDTH
+            # zz
+            if x < 0:
+                x = 0
             self._photo_image.put("red", to=(x, 0, x+1,
                                                   self.HISTOGRAM_BAR_HEIGHT))
 

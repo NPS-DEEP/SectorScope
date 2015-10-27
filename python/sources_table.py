@@ -4,6 +4,7 @@ from scrolled_text import ScrolledText
 from icon_path import icon_path
 from tooltip import Tooltip
 from forensic_path import size_string
+from sources_data import SourcesData
 import colors
 try:
     import tkinter
@@ -55,6 +56,9 @@ class SourcesTable():
           width, height(int): size in characters of table.
         """
 
+        # tool
+        self._sources_data = SourcesData()
+
         # variables
         self._identified_data = identified_data
         self._filters = filters
@@ -81,9 +85,10 @@ class SourcesTable():
                      '1.1c', tkinter.RIGHT,       # ID
                      '1.9c', tkinter.NUMERIC,     # %match
                      '4.1c', tkinter.RIGHT,       # #match
-                     '6.2c', tkinter.RIGHT,       # filesize
-                     '6.7c',                      # repository name
-                     '10.7c'))                    # filename
+                     '5.7c', tkinter.RIGHT,       # #match highlighted
+                     '8.2c', tkinter.RIGHT,       # filesize
+                     '8.7c',                      # repository name
+                     '12.7c'))                    # filename
 
         # text widget cursor setting
         self._source_text.config(cursor="arrow")
@@ -141,15 +146,20 @@ class SourcesTable():
         # put in the first line containing the column titles
         self._source_text.insert(tkinter.END,
                                  "\tID\t"
-                                 "%Match\t#Match\tSize\t"
+                                 "%Match\t#Match\t#M(h)\tSize\t"
                                  "Repository Name\tFilename\n",
                                  "title")
 
         # local references to identified_data
         source_details = self._identified_data.source_details
         block_size = self._identified_data.block_size
-        sources_offsets = self._identified_data.sources_offsets
 
+        self._sources_data.calculate_sources_offsets(self._identified_data,
+                                                               self._filters)
+        sources_offsets = self._sources_data.sources_offsets
+        highlighted_sources_offsets = \
+                               self._sources_data.highlighted_sources_offsets
+   
         # get the set of source IDs to show
         if self._range_selection.is_selected == True:
             # just show sources in the range
@@ -170,20 +180,24 @@ class SourcesTable():
 
                 # calculate percent of this source file found
                 percent_found = len(sources_offsets[source_id]) / \
-                               (int(source["filesize"] / block_size)) * 100
+                               (int((source["filesize"] + block_size -1)
+                               / block_size)) * 100
+#                print ("len source: ", len(sources_offsets[source_id]), source["filesize"], int(source["filesize"]), block_size)
 
-                text = '\t%.2f%%\t%d\t%s\t%s\t%s\n' \
-                                    %(percent_found,
-                                      len(sources_offsets[source_id]),
-                                      size_string(source["filesize"]),
-                                      source["repository_name"],
-                                      source["filename"])
+                text = '\t%.1f%%\t%d\t%d\t%s\t%s\t%s\n' \
+                                %(percent_found,
+                                  len(sources_offsets[source_id]),
+                                  len(highlighted_sources_offsets[source_id]),
+                                  size_string(source["filesize"]),
+                                  source["repository_name"],
+                                  source["filename"])
 
             else:
-                text = '\t?\t%d\t?\t%s\t%s\n' \
-                                    %(len(sources_offsets[source_id]),
-                                      source["repository_name"],
-                                      source["filename"])
+                text = '\t?\t%d\t%d\t?\t%s\t%s\n' \
+                                %(len(sources_offsets[source_id]),
+                                  len(highlighted_sources_offsets[source_id]),
+                                  source["repository_name"],
+                                  source["filename"])
 
             # append source information tuple
             source_information_list.append((source_id, percent_found, text))
@@ -373,6 +387,7 @@ class SourcesTable():
         self._set_colors()
 
     def _handle_filter_change(self, *args):
+        self._set_data()
         self._set_colors()
 
     def _handle_range_selection_change(self, *args):

@@ -60,7 +60,8 @@ class ImageHexWindow():
                     text += "hash highlighted, "
 
                 # set ignore and highlight status for blocks matching this hash
-                (_, source_id_set, _) = self._identified_data.hashes[block_hash]
+                (_, source_id_set, _, _) = \
+                                     self._identified_data.hashes[block_hash]
                 if len(self._filters.ignored_sources.intersection(
                                                              source_id_set)):
                     text += "source ignored, "
