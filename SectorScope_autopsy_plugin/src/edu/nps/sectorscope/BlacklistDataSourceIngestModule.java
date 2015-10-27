@@ -304,7 +304,7 @@ public class BlacklistDataSourceIngestModule implements DataSourceIngestModule {
     private ProcessResult addReportVisualizationLauncher() {
 
         String blockViewerPath = jobDir + File.separator + "sectorscope_launcher.bat";
-        String blockViewerCommand = "sectorscope.py \"" + bulk_extractorOutputDir + "\"";
+        String blockViewerCommand = "sectorscope.py -i \"" + bulk_extractorOutputDir + "\"";
         try {
             File file = new File(blockViewerPath);
             if (!file.exists()) {
