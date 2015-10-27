@@ -90,6 +90,7 @@ class ProjectWindow():
 
     def show(self):
         self._root_window.deiconify()
+        self._root_window.lift()
 
     def _hide(self):
         self._root_window.withdraw()
