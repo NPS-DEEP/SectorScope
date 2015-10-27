@@ -26,8 +26,8 @@ BOUNDING_BOX = "#888888"
 # image hex table colors
 EVEN_UNMATCHED = "#eeeeee"     # unmatched: gray
 ODD_UNMATCHED = "#dddddd"
-EVEN_MATCHED = "#eeeeff"       # matched: blue
-ODD_MATCHED = "#ddddff"
+EVEN_MATCHED = "#ddddff"       # matched: blue
+ODD_MATCHED = "#ccccff"
 
 # sources table colors
 TITLE = "gray90"
