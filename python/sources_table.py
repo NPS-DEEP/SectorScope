@@ -3,7 +3,6 @@ from collections import defaultdict
 from scrolled_text import ScrolledText
 from icon_path import icon_path
 from tooltip import Tooltip
-from forensic_path import size_string
 from sources_data import SourcesData
 import colors
 try:
@@ -119,13 +118,13 @@ class SourcesTable():
         range_selection.set_callback(self._handle_range_selection_change)
 
         # set initial state data
-        self._set_data()
+        self._set_table()
 
         # set colors for the source lines
         self._set_colors()
 
-    def _set_data(self):
-        """Set the view to show the sources in identified_dta.source_details"""
+    def _set_table(self):
+        """Set the view to show the table of sources."""
 
         # initialize the line and ID lookup dictionaries
         self._line_to_id.clear()
@@ -150,16 +149,9 @@ class SourcesTable():
                                  "Repository Name\tFilename\n",
                                  "title")
 
-        # local references to identified_data
-        source_details = self._identified_data.source_details
-        block_size = self._identified_data.block_size
+        # get local reference to source information list
+        sources_list = self._sources_data.sources_list
 
-        self._sources_data.calculate_sources_offsets(self._identified_data,
-                                                               self._filters)
-        sources_offsets = self._sources_data.sources_offsets
-        highlighted_sources_offsets = \
-                               self._sources_data.highlighted_sources_offsets
-   
         # get the set of source IDs to show
         if self._range_selection.is_selected == True:
             # just show sources in the range
@@ -168,46 +160,19 @@ class SourcesTable():
             # show all sources referenced in identified_data
             source_ids = self._identified_data.source_details.keys()
 
-        # create a list of source information to make the sorted list from
-        source_information_list = list() # tuple(sourceID, percent, text)
-        for source_id in source_ids:
-            source = source_details[source_id]
+        # prepare the displayed list from the total list
+        displayed_sources_list = list()
+        for source_id, percent_found, text in sources_list:
+            # use the requested source IDs and ignore zero percent sources
+            if source_id in source_ids and percent_found > 0:
+                displayed_sources_list.append((source_id, percent_found, text))
 
-            # compose the source text
-            # handle missing fields, which can happen if an image was
-            # imported, instead of a directory of files
-            if "filesize" in source:
-
-                # calculate percent of this source file found
-                percent_found = len(sources_offsets[source_id]) / \
-                               (int((source["filesize"] + block_size -1)
-                               / block_size)) * 100
-#                print ("len source: ", len(sources_offsets[source_id]), source["filesize"], int(source["filesize"]), block_size)
-
-                text = '\t%.1f%%\t%d\t%d\t%s\t%s\t%s\n' \
-                                %(percent_found,
-                                  len(sources_offsets[source_id]),
-                                  len(highlighted_sources_offsets[source_id]),
-                                  size_string(source["filesize"]),
-                                  source["repository_name"],
-                                  source["filename"])
-
-            else:
-                text = '\t?\t%d\t%d\t?\t%s\t%s\n' \
-                                %(len(sources_offsets[source_id]),
-                                  len(highlighted_sources_offsets[source_id]),
-                                  source["repository_name"],
-                                  source["filename"])
-
-            # append source information tuple
-            source_information_list.append((source_id, percent_found, text))
-
-        # sort the source information list by percent found
-        source_information_list.sort(key=lambda s: s[1], reverse=True)
+        # sort the displayed source information list by percent found
+        displayed_sources_list.sort(key=lambda s: s[1], reverse=True)
 
         # put in source lines into the table
         line = 2
-        for source_id, percent, text in source_information_list:
+        for source_id, percent, text in displayed_sources_list:
 
             # compose the tag names
             id_tag_name = "id_line_%s" % line
@@ -383,14 +348,18 @@ class SourcesTable():
             self._set_line_color(old_cursor_line)
 
     def _handle_identified_data_change(self, *args):
-        self._set_data()
+        self._sources_data.calculate_sources_list(self._identified_data,
+                                                               self._filters)
+        self._set_table()
         self._set_colors()
 
     def _handle_filter_change(self, *args):
-        self._set_data()
+        self._sources_data.calculate_sources_list(self._identified_data,
+                                                               self._filters)
+        self._set_table()
         self._set_colors()
 
     def _handle_range_selection_change(self, *args):
-        self._set_data()
+        self._set_table()
         self._set_colors()
 
