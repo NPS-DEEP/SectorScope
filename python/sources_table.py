@@ -217,7 +217,7 @@ class SourcesTable():
                                               and line != self._cursor_line:
             # use range selection color for the data portion
             self._source_text.tag_config(data_tag_name,
-                                        background=colors.IN_RANGE_BACKGROUND,
+                                        background=background,
                                         foreground=colors.IN_RANGE_FOREGROUND)
 
         else:
