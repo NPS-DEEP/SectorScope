@@ -1,3 +1,14 @@
+# Note: example LaTex environment: FC22 with packages:
+# texlive-latex, texlive-latex-bin, 
+# texlive-collection-fontsrecommended
+# texlive-todonotes
+# texlive-placeins
+# texlive-babel-english
+# texlive-amscls
+# texlive-catoptions
+# texlive-appendix
+# texlive-fancyhdr
+
 DEPENDENCIES = sectorscope_um.tex title.tex
 
 sectorscope_um.pdf: $(DEPENDENCIES)
