@@ -17,6 +17,8 @@ def icon_path(name):
         return _absolute_path("database-add.gif")
     if name == "select_all":
         return _absolute_path("plus_blue.gif")
+    if name == "preferences":
+        return _absolute_path("preferences-system-3.gif")
 
     # ignore filters
     if name == "ignore_hashes_in_range":

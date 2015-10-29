@@ -15,7 +15,7 @@ class MenuView():
       frame(Frame): the containing frame for this view.
     """
 
-    def __init__(self, master, open_manager, project_window):
+    def __init__(self, master, open_manager, project_window, preferences):
         """Args:
           master(a UI container): Parent.
           open_mangaer(OpenManager): Able to open a new dataset.
@@ -24,6 +24,7 @@ class MenuView():
         # open manager
         self._open_manager = open_manager
         self._project_window = project_window
+        self._preferences = preferences
 
         # make the containing frame
         self.frame = tkinter.Frame(master)
@@ -50,7 +51,7 @@ class MenuView():
                        bg=colors.BACKGROUND,
                        activebackground=colors.ACTIVEBACKGROUND,
                        highlightthickness=0)
-        project_button.pack(side=tkinter.LEFT)
+        project_button.pack(side=tkinter.LEFT, padx=(0,8))
         Tooltip(project_button, "Show opened project properties")
 
         # import button
@@ -60,7 +61,7 @@ class MenuView():
                        bg=colors.BACKGROUND,
                        activebackground=colors.ACTIVEBACKGROUND,
                        highlightthickness=0)
-        import_button.pack(side=tkinter.LEFT, padx=(8,4))
+        import_button.pack(side=tkinter.LEFT)
         Tooltip(import_button, "Import files into a\nnew hashdb database")
 
         # scan button
@@ -70,8 +71,21 @@ class MenuView():
                        bg=colors.BACKGROUND,
                        activebackground=colors.ACTIVEBACKGROUND,
                        highlightthickness=0)
-        scan_button.pack(side=tkinter.LEFT)
+        scan_button.pack(side=tkinter.LEFT, padx=(0,8))
         Tooltip(scan_button, "Scan a media image")
+
+        # preferences button
+        self._preferences_icon = tkinter.PhotoImage(file=icon_path(
+                                                              "preferences"))
+        preferences_button = tkinter.Button(button_frame,
+                       image=self._preferences_icon,
+                       command=self._handle_preferences,
+                       bg=colors.BACKGROUND,
+                       activebackground=colors.ACTIVEBACKGROUND,
+                       highlightthickness=0)
+        preferences_button.pack(side=tkinter.LEFT)
+        Tooltip(preferences_button, "Toggle format preference "
+                                    "between hex, decimal, and sector")
 
     def _handle_open(self):
         self._open_manager.open_be_dir("")
@@ -81,6 +95,9 @@ class MenuView():
 
     def _handle_scan(self):
         BEScanWindow(self.frame)
+
+    def _handle_preferences(self):
+        self._preferences.set_next()
 
     def _handle_import(self):
         BEImportWindow(self.frame)

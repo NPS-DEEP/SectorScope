@@ -19,6 +19,7 @@ from filters_view import FiltersView
 from range_selection import RangeSelection
 from histogram_view import HistogramView
 from bar_scale import BarScale
+from preferences import Preferences
 from sources_view import SourcesView
 from open_manager import OpenManager
 from project_window import ProjectWindow
@@ -47,7 +48,8 @@ def build_gui(root_window, identified_data, filters, range_selection,
     menu_and_filters_frame.pack(side=tkinter.TOP, anchor="w")
 
     # menu
-    menu_view = MenuView(menu_and_filters_frame, open_manager, project_window)
+    menu_view = MenuView(menu_and_filters_frame, open_manager, project_window,
+                                                                preferences)
     menu_view.frame.pack(side=tkinter.LEFT, anchor="n", padx=(0,80), pady=4)
 
     # filters
@@ -57,7 +59,7 @@ def build_gui(root_window, identified_data, filters, range_selection,
 
     # the histogram view
     histogram_view = HistogramView(left_frame, identified_data, filters,
-                                                   range_selection, bar_scale)
+                                    range_selection, bar_scale, preferences)
     histogram_view.frame.pack(side=tkinter.TOP, anchor="w")
 
 #    # the whole right side for the sources view
@@ -98,12 +100,15 @@ if __name__=="__main__":
     # bar height scale control
     bar_scale = BarScale()
 
+    # preferences
+    preferences = Preferences()
+
     # the open manager
     open_manager = OpenManager(root_window, identified_data, filters,
-                                                  range_selection, bar_scale)
+                                      range_selection, bar_scale, preferences)
 
     # the project window, hidden until show()
-    project_window = ProjectWindow(root_window, identified_data)
+    project_window = ProjectWindow(root_window, identified_data, preferences)
 
     # build the GUI
     build_gui(root_window, identified_data, filters, range_selection,

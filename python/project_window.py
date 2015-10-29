@@ -9,13 +9,14 @@ except ImportError:
 class ProjectWindow():
     """Provides a window to show opened project attributes.
     """
-    def __init__(self, master, identified_data):
+    def __init__(self, master, identified_data, preferences):
         """Args:
           master(a UI container): Parent.
           identified_data(IdentifiedData): Identified data about the scan.
         """
         # variables
         self._identified_data = identified_data
+        self._preferences = preferences
 
         # make toplevel window
         self._root_window = tkinter.Toplevel(master)
@@ -55,6 +56,9 @@ class ProjectWindow():
         # register to receive identified_data change events
         identified_data.set_callback(self._handle_identified_data_change)
 
+        # register to receive preferences change events
+        preferences.set_callback(self._handle_identified_data_change)
+
         # set initial state
         self._handle_identified_data_change()
 
@@ -71,7 +75,9 @@ class ProjectWindow():
                                self._identified_data.image_filename
             self._image_size_text["text"] = 'Image size: %s  (%s)' % (
                                size_string(self._identified_data.image_size),
-                               offset_string(self._identified_data.image_size))
+                               offset_string(self._identified_data.image_size,
+                                      self._preferences.offset_format,
+                                      self._identified_data.sector_size))
             self._database_text["text"] = 'Database: %s' % \
                                self._identified_data.hashdb_dir
             self._sizes_text["text"] = 'Matches: Paths: %s        ' \

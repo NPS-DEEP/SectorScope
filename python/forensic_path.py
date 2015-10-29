@@ -1,13 +1,29 @@
 """helper functions for managing with bulk_extractor Forensic Paths.
 """
-def offset_string(offset):
+def offset_string(offset, offset_format, sector_size):
     """
     Args:
       offset (int): the offset to be formatted
     Returns:
       formatted offset string
     """
-    return "0x%08x" % offset
+    if offset_format == "hex":
+        return "0x%08x" % offset
+    elif offset_format == "decimal":
+        return "%s" % offset
+    elif offset_format == "sector":
+        # return 0 if not initialized
+        if sector_size == 0:
+            return 0
+
+        # program error if not sector size or one less than sector size
+        if offset / sector_size != offset // sector_size and \
+                     (offset+1) / sector_size != (offset+1) // sector_size:
+
+            raise RuntimeError("program error")
+        return "%d s" % (offset // sector_size)
+    else:
+        raise RuntimeError("program error")
 
 def int_string(value):
     if value < 1000:

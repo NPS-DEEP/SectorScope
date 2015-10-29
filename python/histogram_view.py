@@ -18,12 +18,14 @@ class HistogramView():
     """
 
     def __init__(self, master, identified_data, filters, range_selection,
-                 bar_scale):
+                 bar_scale, preferences):
         """Args:
           master(a UI container): Parent.
           identified_data(IdentifiedData): Identified data about the scan.
           filters(Filters): Filters that impact the view.
           range_selection(RangeSelection): The selected range.
+          bar_scale(BarScale): The vertical scale.
+          preferences(Preferences): Includes the offset format preference.
         """
 
         # data variables
@@ -105,7 +107,7 @@ class HistogramView():
         self._histogram_bar = HistogramBar(self.frame, identified_data,
                                     filters,
                                     range_selection, fit_range_selection,
-                                    bar_scale)
+                                    bar_scale, preferences)
         self._histogram_bar.frame.pack(side=tkinter.TOP)
 
         # register to receive range selection change events

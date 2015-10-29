@@ -31,6 +31,8 @@ class IdentifiedData():
       image_size (int): Size in bytes of the media image.
       image_filename (str): Full path of the media image filename.
       hashdb_dir (str): Full path to the hash database directory.
+      sector_size (int): Sector size used by the hashdb database, used for
+        displaying media offset values in terms of sectors.
       block_size (int): Block size used by the hashdb database.
       forensic_paths (dict<forensic path int, hash hexcode str>):
         Dictionary maps forensic paths to their hash value.
@@ -53,6 +55,7 @@ class IdentifiedData():
         self.image_size = 0
         self.image_filename = ""
         self.hashdb_dir = ""
+        self.sector_size = -1
         self.block_size = -1
         self.forensic_paths = dict()
         self.hashes = dict()
@@ -76,7 +79,7 @@ class IdentifiedData():
                                                                       be_dir)
 
         # get attributes from hashdb settings.xml
-        block_size = self._read_settings_file(hashdb_dir)
+        (sector_size, block_size) = self._read_settings_file(hashdb_dir)
 
         # make identified_blocks_expanded.txt file if it does not exist
         self._maybe_make_identified_blocks_expanded_file(be_dir, hashdb_dir)
@@ -90,6 +93,7 @@ class IdentifiedData():
         self.image_size = image_size
         self.image_filename = image_filename
         self.hashdb_dir = hashdb_dir
+        self.sector_size = sector_size
         self.block_size = block_size
         self.forensic_paths = forensic_paths
         self.hashes = hashes
@@ -108,6 +112,7 @@ class IdentifiedData():
                         self.image_size,
                         self.image_filename,
                         self.hashdb_dir,
+                        self.sector_size,
                         self.block_size,
                         len(self.forensic_paths),
                         len(self.hashes),
@@ -174,11 +179,15 @@ class IdentifiedData():
             raise ValueError("hashdb database '%s' is not valid." % hashdb_dir)
         xmldoc = xml.dom.minidom.parse(open(hashdb_settings_file, 'r'))
 
+        # sector size from byte alignment
+        sector_size = int((xmldoc.getElementsByTagName(
+                                "byte_alignment")[0].firstChild.wholeText))
+
         # block size from hash_block_size
         block_size = int((xmldoc.getElementsByTagName(
                                 "hash_block_size")[0].firstChild.wholeText))
 
-        return block_size
+        return (sector_size, block_size)
 
     def _maybe_make_identified_blocks_expanded_file(self, be_dir, hashdb_dir):
         """Create identified_blocks_expanded.txt if it does not exist yet.

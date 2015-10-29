@@ -76,7 +76,7 @@ class HistogramBar():
     _b3_down_start_offset = None
 
     def __init__(self, master, identified_data, filters,
-                           range_selection, fit_range_selection, bar_scale):
+                range_selection, fit_range_selection, bar_scale, preferences):
         """Args:
           master(a UI container): Parent.
           identified_data(IdentifiedData): Identified data about the scan.
@@ -92,6 +92,7 @@ class HistogramBar():
         self._identified_data = identified_data
         self._filters = filters
         self._range_selection = range_selection
+        self._preferences = preferences
 
         # the photo_image
         self._photo_image = tkinter.PhotoImage(width=self.HISTOGRAM_BAR_WIDTH,
@@ -215,9 +216,13 @@ class HistogramBar():
         # register to receive bar scale height change events
         bar_scale.set_callback(self._handle_bar_scale_change)
 
+        # register to receive preferences change events
+        preferences.set_callback(self._handle_range_selection_change)
+
         # set to basic initial state
         self._handle_identified_data_change()
         self._handle_range_selection_change()
+        self._handle_bar_scale_change()
 
     # this function is registered to and called by Filters
     def _handle_filter_change(self, *args):
@@ -268,12 +273,19 @@ class HistogramBar():
         if self._range_selection.is_selected:
             self._range_selection_label["text"] = \
                            "Range: %s \u2014 %s  (%s)" % (
+                           # start_offset
                            offset_string(self._bound_offset(
-                                         self._range_selection.start_offset)),
+                                         self._range_selection.start_offset),
+                                         self._preferences.offset_format,
+                                         self._identified_data.sector_size),
+                           # stop_offset
                            offset_string(self._bound_offset(
-                                         self._range_selection.stop_offset-1)),
+                                         self._range_selection.stop_offset-1),
+                                         self._preferences.offset_format,
+                                         self._identified_data.sector_size),
+                           # range
                            size_string(self._bound_offset(
-                                       self._range_selection.stop_offset-1) -
+                                       self._range_selection.stop_offset) -
                                        self._bound_offset(
                                        self._range_selection.start_offset)))
         else:
@@ -298,6 +310,10 @@ class HistogramBar():
 
         self._draw()
 
+    # this function is registered to and called by Preferences
+    def _handle_preferences_change(self, *args):
+        self._draw()
+
     # redraw everything
     def _draw(self):
         self._draw_text()
@@ -314,22 +330,30 @@ class HistogramBar():
             self._bucket_width_label["text"] = "Bar width: NA"
         else:
             self._bucket_width_label["text"] = "Bar width: %s" % \
-                    offset_string(self._histogram_dimensions.bytes_per_bucket)
+                    offset_string(self._histogram_dimensions.bytes_per_bucket,
+                                  self._preferences.offset_format,
+                                  self._identified_data.sector_size)
  
         # put in the offset start and stop text
         self._c.itemconfigure(self._start_offset_id, text=offset_string(
-                  self._bound_offset(self._histogram_dimensions.start_offset)))
+                  self._bound_offset(self._histogram_dimensions.start_offset),
+                                  self._preferences.offset_format,
+                                  self._identified_data.sector_size))
         stop_offset = self._histogram_dimensions.start_offset + (
                                self._histogram_dimensions.bytes_per_bucket *
                                                           self.NUM_BUCKETS) - 1
         self._c.itemconfigure(self._stop_offset_id, text=offset_string(
-                  self._bound_offset(stop_offset)))
+                  self._bound_offset(stop_offset),
+                                  self._preferences.offset_format,
+                                  self._identified_data.sector_size))
 
         # cursor offset
         if self._is_valid_cursor or self._b1_pressed:
             # cursor byte offset text
             self._c.itemconfigure(self._cursor_offset_id, text=offset_string(
-                                     self._bound_offset(self._cursor_offset)))
+                                     self._bound_offset(self._cursor_offset),
+                                  self._preferences.offset_format,
+                                  self._identified_data.sector_size))
 
         else:
             # clear
