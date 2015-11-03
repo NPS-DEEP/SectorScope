@@ -17,13 +17,12 @@ class OpenManager():
     """
 
     def __init__(self, master, identified_data, filters, range_selection,
-                 bar_scale, preferences):
+                 preferences):
         """Args:
           master(a UI container): Parent.
           identified_data(IdentifiedData): Identified data about the scan.
           filters(Filters): Filters that impact the view.
           range_selection(RangeSelection): The selected range.
-          bar_scale(BarScale): The bar height scale.
           preferences(Preferences): Preference, namely the offset format.
         """
 
@@ -32,7 +31,6 @@ class OpenManager():
         self._identified_data = identified_data
         self._filters = filters
         self._range_selection = range_selection
-        self._bar_scale = bar_scale
         self._preferences = preferences
 
         # state
@@ -64,9 +62,6 @@ class OpenManager():
 
         # clear any byte range selection
         self._range_selection.clear()
-
-        # reset the bar scale
-        self._bar_scale.reset()
 
         # reset preferences
         self._preferences.reset()

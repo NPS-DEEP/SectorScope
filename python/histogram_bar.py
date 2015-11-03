@@ -8,7 +8,6 @@ from math import log, floor, log10, pow, ceil
 from show_error import ShowError
 from histogram_dimensions import HistogramDimensions
 from histogram_data import HistogramData
-from bar_scale import BarScale
 try:
     import tkinter
 except ImportError:
@@ -25,7 +24,6 @@ class HistogramBar():
       _photo_image(PhotoImage): The image on which the plot is rendered.
       _histogram_dimensions(HistogramDimensions): The start_offset,
         bytes_per_bucket, and associated bar dimension methods.
-      _bar_scale(BarHeight): scaling for bar height.
 
     Notes about offset alignment:
       The start and end offsets may be any value, even fractional.
@@ -41,7 +39,7 @@ class HistogramBar():
     # pixels per bucket
     BUCKET_WIDTH = 3
 
-    # bar Y scale
+    # bar Y scale normalizer
     BUCKET_HEIGHT_MULTIPLIER = BUCKET_WIDTH
 
     # bar size in pixels
@@ -56,7 +54,7 @@ class HistogramBar():
     CANVAS_WIDTH = HISTOGRAM_BAR_WIDTH + HISTOGRAM_X_OFFSET + 1
     CANVAS_HEIGHT = HISTOGRAM_BAR_HEIGHT + HISTOGRAM_Y_OFFSET + 4
 
-    # histogram dimensions including start offset and scale
+    # histogram dimensions including start offset and bytes per bucket
     _histogram_dimensions = HistogramDimensions(NUM_BUCKETS)
 
     # histogram data and the methods that calculate this data
@@ -76,7 +74,7 @@ class HistogramBar():
     _b3_down_start_offset = None
 
     def __init__(self, master, identified_data, filters,
-                range_selection, fit_range_selection, bar_scale, preferences):
+                range_selection, fit_range_selection, preferences):
         """Args:
           master(a UI container): Parent.
           identified_data(IdentifiedData): Identified data about the scan.
@@ -84,9 +82,6 @@ class HistogramBar():
           range_selection(RangeSelection): The selected range.
           fit_range_selection(FitRangeSelection): Receive signal to fit range.
         """
-
-        # bar scale
-        self._bar_scale = bar_scale
 
         # data variables
         self._identified_data = identified_data
@@ -213,16 +208,12 @@ class HistogramBar():
         fit_range_selection.set_callback(
                                     self._handle_fit_range_selection_change)
 
-        # register to receive bar scale height change events
-        bar_scale.set_callback(self._handle_bar_scale_change)
-
         # register to receive preferences change events
         preferences.set_callback(self._handle_range_selection_change)
 
         # set to basic initial state
         self._handle_identified_data_change()
         self._handle_range_selection_change()
-        self._handle_bar_scale_change()
 
     # this function is registered to and called by Filters
     def _handle_filter_change(self, *args):
@@ -298,18 +289,6 @@ class HistogramBar():
     def _handle_fit_range_selection_change(self, *args):
         self._fit_range()
 
-    # this function is registered to and called by BarHeight
-    def _handle_bar_scale_change(self, *args):
-        # set scale in y axis markers
-        self._c.itemconfigure(self._marker1_id, text=int_string(
-                                                      self._bar_scale.scale))
-        self._c.itemconfigure(self._marker2_id, text=int_string(
-                                                    self._bar_scale.scale*10))
-        self._c.itemconfigure(self._marker3_id, text=int_string(
-                                                    self._bar_scale.scale*100))
-
-        self._draw()
-
     # this function is registered to and called by Preferences
     def _handle_preferences_change(self, *args):
         self._draw()
@@ -379,6 +358,14 @@ class HistogramBar():
             # clear
             self._bucket_count_label['text'] = "Bar matches: NA"
 
+        # Y scale marker text
+        self._c.itemconfigure(self._marker1_id, text=int_string(
+                                             self._histogram_data.y_scale))
+        self._c.itemconfigure(self._marker2_id, text=int_string(
+                                           self._histogram_data.y_scale*10))
+        self._c.itemconfigure(self._marker3_id, text=int_string(
+                                           self._histogram_data.y_scale*100))
+
     # clear everything
     def _draw_clear(self):
 
@@ -435,10 +422,11 @@ class HistogramBar():
             else:
                 self._draw_gray_bucket(bucket)
 
-    """Calculate clipped bar height in pixels, using count, scale,
+    """Calculate clipped bar height in pixels, using count, Y scale,
       and bucket height multiplier."""
     def _bar_height(self, count):
-        h = int(count * self.BUCKET_HEIGHT_MULTIPLIER // self._bar_scale.scale)
+        h = int(count * self.BUCKET_HEIGHT_MULTIPLIER //
+                                                self._histogram_data.y_scale)
 
         # make small value visible
         if h == 0 and count > 0:

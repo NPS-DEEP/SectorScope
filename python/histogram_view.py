@@ -4,7 +4,6 @@ import colors
 from icon_path import icon_path
 from tooltip import Tooltip
 from histogram_bar import HistogramBar
-from bar_scale_view import BarScaleView
 try:
     import tkinter
 except ImportError:
@@ -18,19 +17,17 @@ class HistogramView():
     """
 
     def __init__(self, master, identified_data, filters, range_selection,
-                 bar_scale, preferences):
+                 preferences):
         """Args:
           master(a UI container): Parent.
           identified_data(IdentifiedData): Identified data about the scan.
           filters(Filters): Filters that impact the view.
           range_selection(RangeSelection): The selected range.
-          bar_scale(BarScale): The vertical scale.
           preferences(Preferences): Includes the offset format preference.
         """
 
         # data variables
         self._range_selection = range_selection
-        self._bar_scale = bar_scale
 
         # the image hex window that the show hex view button can show
         self._image_hex_window = ImageHexWindow(master, identified_data,
@@ -95,10 +92,6 @@ class HistogramView():
         Tooltip(view_annotations_button, "Manage image annotations\n"
                                          "(CURRENTLY NOT AVAILABLE)")
 
-        # histogram bar scale height controls
-        self._bar_scale_view = BarScaleView(controls_frame, bar_scale)
-        self._bar_scale_view.frame.pack(side=tkinter.LEFT, padx=4)
-
         # range selection
         range_selection_frame = tkinter.Frame(self.frame, bg=colors.BACKGROUND)
         range_selection_frame.pack(side=tkinter.TOP, anchor="w")
@@ -107,7 +100,7 @@ class HistogramView():
         self._histogram_bar = HistogramBar(self.frame, identified_data,
                                     filters,
                                     range_selection, fit_range_selection,
-                                    bar_scale, preferences)
+                                    preferences)
         self._histogram_bar.frame.pack(side=tkinter.TOP)
 
         # register to receive range selection change events
@@ -118,7 +111,6 @@ class HistogramView():
 
     def _handle_fit_image(self):
         self._histogram_bar.fit_image()
-        self._bar_scale.reset()
 
     def _handle_view_annotations(self):
         print("view annotations TBD")

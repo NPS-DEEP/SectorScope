@@ -3,13 +3,14 @@ from math import floor
 class HistogramData():
     """Contains calculated data and methods for calculating that data.
     Attributes:
-      source_buckets(List): List of num_buckets sorce count values.
-      ignored_source_buckets(List): List of num_buckets sorce count values.
-      highlighted_source_buckets(List): List of num_buckets sorce count values.
+      _num_buckets(int): Number of buckets in the histogram.
       _hash_counts(map<hash, (count, is_ignored, is_highlighted)>): Data
         in this hash counts map is used to calculate bucket data plotted
         in the frequency histogram.
-      _num_buckets(int): Number of buckets in the histogram.
+      source_buckets(List): List of num_buckets sorce count values.
+      ignored_source_buckets(List): List of num_buckets sorce count values.
+      highlighted_source_buckets(List): List of num_buckets sorce count values.
+      y_scale(int): Scale to fit the list of buckets vertically.
     """
 
     def __init__(self, num_buckets):
@@ -18,6 +19,7 @@ class HistogramData():
         self.source_buckets = [0] * num_buckets
         self.ignored_source_buckets = [0] * num_buckets
         self.highlighted_source_buckets = [0] * num_buckets
+        self.y_scale = 1
 
     def calculate_hash_counts(self, hashes, filters):
         """Calculate hash counts based on identified_data and filter
@@ -99,4 +101,30 @@ class HistogramData():
             # highlighted hash and source buckets
             if is_highlighted:
                 self.highlighted_source_buckets[bucket] += count
+
+        # set Y scale
+        # find bar with biggest count
+        highest_count = max(self.source_buckets)
+        if highest_count < 100:
+            self.y_scale = 1
+        elif highest_count < 500:
+            self.y_scale = 5
+        elif highest_count < 1000:
+            self.y_scale = 10
+        elif highest_count < 5000:
+            self.y_scale = 50
+        elif highest_count < 10000:
+            self.y_scale = 100
+        elif highest_count < 50000:
+            self.y_scale = 500
+        elif highest_count < 100000:
+            self.y_scale = 1000
+        elif highest_count < 500000:
+            self.y_scale = 5000
+        elif highest_count < 1000000:
+            self.y_scale = 10000
+        elif highest_count < 5000000:
+            self.y_scale = 50000
+        else:
+            self.y_scale = 100000
 

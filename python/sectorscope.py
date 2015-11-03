@@ -18,7 +18,6 @@ from filters import Filters
 from filters_view import FiltersView
 from range_selection import RangeSelection
 from histogram_view import HistogramView
-from bar_scale import BarScale
 from preferences import Preferences
 from sources_view import SourcesView
 from open_manager import OpenManager
@@ -59,7 +58,7 @@ def build_gui(root_window, identified_data, filters, range_selection,
 
     # the histogram view
     histogram_view = HistogramView(left_frame, identified_data, filters,
-                                    range_selection, bar_scale, preferences)
+                                                 range_selection, preferences)
     histogram_view.frame.pack(side=tkinter.TOP, anchor="w")
 
 #    # the whole right side for the sources view
@@ -97,15 +96,12 @@ if __name__=="__main__":
     # the byte range selection
     range_selection = RangeSelection()
 
-    # bar height scale control
-    bar_scale = BarScale()
-
     # preferences
     preferences = Preferences()
 
     # the open manager
     open_manager = OpenManager(root_window, identified_data, filters,
-                                      range_selection, bar_scale, preferences)
+                                                range_selection, preferences)
 
     # the project window, hidden until show()
     project_window = ProjectWindow(root_window, identified_data, preferences)

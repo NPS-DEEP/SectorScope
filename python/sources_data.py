@@ -94,6 +94,7 @@ class SourcesData():
                                   source["filename"])
 
             else:
+                percent_found = 1 # NOTE: this conditional will go away
                 text = '\t?\t%d\t%d\t?\t%s\t%s\n' \
                                 %(len(sources_offsets[source_id]),
                                   len(highlighted_sources_offsets[source_id]),
