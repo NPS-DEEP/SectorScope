@@ -89,7 +89,7 @@ class HistogramView():
                            highlightthickness=0)
 
         view_annotations_button.pack(side=tkinter.LEFT, padx=4)
-        Tooltip(view_annotations_button, "Manage image annotations\n"
+        Tooltip(view_annotations_button, "Manage image metadata annotations\n"
                                          "(CURRENTLY NOT AVAILABLE)")
 
         # range selection

@@ -42,6 +42,8 @@ class IdentifiedData():
         Dictionary where keys are source IDs and values are a dictionary
         of attributes associated with the given source as obtained from
         the identified_blocks_expanded.txt file.
+      image_metadata (list<dict of (type, offset, length, text)>):
+        List of image metadata that can be annotated.
     """
 
     def __init__(self):
@@ -60,6 +62,7 @@ class IdentifiedData():
         self.forensic_paths = dict()
         self.hashes = dict()
         self.source_details = dict()
+        self.image_metadata = dict()
 
     def set_callback(self, f):
         """Register function f to be called on data change."""
@@ -88,6 +91,14 @@ class IdentifiedData():
         (forensic_paths, hashes, source_details) = \
                                self._read_identified_blocks_expanded(be_dir)
 
+        # read image metadata
+        try:
+            image_metadata = image_metadata.read(image_filename, be_dir)
+        except Exception as e:
+            # allow failure, this should be shown in a window.
+            print("unable to read image metadata: %s", e)
+            image_metadata = list()
+
         # everything worked so accept the data
         self.be_dir = be_dir
         self.image_size = image_size
@@ -98,6 +109,7 @@ class IdentifiedData():
         self.forensic_paths = forensic_paths
         self.hashes = hashes
         self.source_details = source_details
+        self._image_metadata = image_metadata
 
         # fire data changed event
         self._identified_data_changed.set(True)
@@ -116,7 +128,9 @@ class IdentifiedData():
                         self.block_size,
                         len(self.forensic_paths),
                         len(self.hashes),
-                        len(self.source_details)))
+                        len(self.source_details),
+                        len(self.image_metadata),
+              ))
 
     def _read_be_report_file(self, be_dir):
         """Read image_size, image_filename, hashdb_dir from report.xml."""
