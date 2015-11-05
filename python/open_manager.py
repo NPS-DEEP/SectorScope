@@ -10,7 +10,7 @@ except ImportError:
 
 class OpenManager():
     """Opens a bulk_extractor directory, sets data, and fires events.
- 
+
     Attributes:
       frame(Frame): The containing frame for this view.
       active_be_dir(str): The be_dir currently open, or "".

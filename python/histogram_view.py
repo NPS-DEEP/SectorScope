@@ -74,7 +74,7 @@ class HistogramView():
                               highlightthickness=0)
         self._fit_range_button.pack(side=tkinter.LEFT, padx=4)
         Tooltip(self._fit_range_button, "Zoom to range")
- 
+
         # button to show hex view for selection
         self._show_hex_view_icon = tkinter.PhotoImage(file=icon_path(
                                                               "show_hex_view"))

@@ -188,7 +188,7 @@ class SourcesTable():
 
             # next line
             line += 1
- 
+
         # set table to not editable
         self._source_text.config(state=tkinter.DISABLED)
 

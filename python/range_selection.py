@@ -148,7 +148,7 @@ class RangeSelection():
 
     def clear(self):
         self._clear()
-        
+
         # signal change
         self._range_selection_changed.set(True)
 

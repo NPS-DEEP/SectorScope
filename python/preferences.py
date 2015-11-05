@@ -26,7 +26,7 @@ class Preferences():
     def reset(self):
         self.offset_format = "hex"
         self._fire_change()
-    
+
     def set_next(self):
         if self.offset_format == "hex":
             self.offset_format = "decimal"
@@ -37,7 +37,7 @@ class Preferences():
         else:
             raise RuntimeError("program error")
         self._fire_change()
-    
+
     def set_callback(self, f):
         """Register function f to be called on bar scale change."""
         self._preferences_changed.trace_variable('w', f)

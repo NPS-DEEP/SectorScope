@@ -82,7 +82,7 @@ if __name__=="__main__":
     parser.add_argument('-i', '--be_dir',
                         help= 'path to the bulk_extractor directory',
                         default='')
-    args = parser.parse_args() 
+    args = parser.parse_args()
 
     # initialize Tk
     root_window = tkinter.Tk()

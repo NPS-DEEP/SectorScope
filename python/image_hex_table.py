@@ -13,7 +13,6 @@ class ImageHexTable():
     Attributes:
       frame(Frame): the containing frame for the hex table.
       _hex_text(Text): The Text widget to render the hex table in.
- 
     """
     def __init__(self, master, identified_data, range_selection, width=88, height=32):
         """Args:

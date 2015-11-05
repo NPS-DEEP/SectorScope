@@ -78,7 +78,6 @@ class HistogramBar():
           preferences(Preferences): Preference, namely the offset format.
           annotation_filter(AnnotationFilter): The annotation filter that
             selections modify.
- 
         """
 
         # histogram dimensions including start offset and bytes per bucket
@@ -389,7 +388,7 @@ class HistogramBar():
                     offset_string(self._histogram_dimensions.bytes_per_bucket,
                                   self._preferences.offset_format,
                                   self._identified_data.sector_size)
- 
+
         # histogram start and stop text
         self._c.itemconfigure(self._start_offset_id, text=offset_string(
                   self._bound_offset(self._histogram_dimensions.start_offset),

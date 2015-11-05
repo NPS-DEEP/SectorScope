@@ -19,7 +19,7 @@ class BEScanWindow():
     """Scan using a GUI interface.
     """
 
-    def __init__(self, master, image="", hashdb_dir="", be_dir="", 
+    def __init__(self, master, image="", hashdb_dir="", be_dir="",
                  block_size=512, sector_size=512):
 
         """Args:
