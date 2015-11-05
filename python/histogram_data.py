@@ -80,6 +80,11 @@ class HistogramData():
         self.ignored_source_buckets = [0] * self._num_buckets
         self.highlighted_source_buckets = [0] * self._num_buckets
 
+        if bytes_per_bucket == 0:
+            # no data
+            return
+
+
         # calculate the histogram
         for offset, block_hash in forensic_paths.items():
             bucket = int((offset - start_offset) // bytes_per_bucket)

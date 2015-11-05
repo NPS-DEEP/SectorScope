@@ -1,5 +1,10 @@
 from sys import maxsize
 from math import floor
+try:
+    import tkinter
+except ImportError:
+    import Tkinter as tkinter
+
 class HistogramDimensions():
     """Manages the dimensions of the histogram bar.
 
@@ -21,6 +26,16 @@ class HistogramDimensions():
 
     def __init__(self, num_buckets):
         self._num_buckets = num_buckets
+        self._histogram_dimensions_changed = tkinter.BooleanVar()
+
+    def _set_dimensions(self, start_offset, bytes_per_bucket):
+        self.start_offset = start_offset
+        self.bytes_per_bucket = bytes_per_bucket
+        self._histogram_dimensions_changed.set(True)
+
+    def set_callback(self, f):
+        """Register function f to be called on change."""
+        self._histogram_dimensions_changed.trace_variable('w', f)
 
     def fit_image(self, image_size, block_size):
         """Establish image size and zoom fully out."""
@@ -28,13 +43,8 @@ class HistogramDimensions():
         self._image_size = image_size
         self._block_size = block_size
 
-        self.start_offset = 0
-        self.bytes_per_bucket = self._round_up_to_block(self._image_size /
-                                                          self._num_buckets)
-
-        # safeguard
-        if self.bytes_per_bucket < self._block_size:
-            raise RuntimeError("program error")
+        self._set_dimensions(0, self._round_up_to_block(self._image_size /
+                                                          self._num_buckets))
 
     def fit_range(self, start_offset, stop_offset):
         """Fit view to range selection."""
@@ -75,8 +85,7 @@ class HistogramDimensions():
                               (new_stop_offset - stop_offset)
 
         # set the new values
-        self.start_offset = new_start_offset
-        self.bytes_per_bucket = new_bytes_per_bucket
+        self._set_dimensions(new_start_offset, new_bytes_per_bucket)
 
     def pan(self, start_offset_anchor, num_buckets):
         """Pan number of buckets based on the start_offset_anchor."""
@@ -86,7 +95,7 @@ class HistogramDimensions():
 
         if self._inside_graph(new_start_offset, self.bytes_per_bucket):
             # accept the pan
-            self.start_offset = new_start_offset
+            self._set_dimensions(new_start_offset, self.bytes_per_bucket)
 
     # convert bucket to offset at left edge of bucket
     def bucket_to_offset(self, bucket):
@@ -155,8 +164,7 @@ class HistogramDimensions():
 
         if self._inside_graph(new_start_offset, new_bytes_per_bucket):
             # accept the zoom
-            self.start_offset = new_start_offset
-            self.bytes_per_bucket = new_bytes_per_bucket
+            self._set_dimensions(new_start_offset, new_bytes_per_bucket)
 
     # round up to aligned block
     def _round_up_to_block(self, block_size):

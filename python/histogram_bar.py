@@ -53,12 +53,6 @@ class HistogramBar():
     CANVAS_WIDTH = HISTOGRAM_BAR_WIDTH + HISTOGRAM_X_OFFSET + 1
     CANVAS_HEIGHT = HISTOGRAM_BAR_HEIGHT + HISTOGRAM_Y_OFFSET + 4
 
-    # histogram dimensions including start offset and bytes per bucket
-    _histogram_dimensions = HistogramDimensions(NUM_BUCKETS)
-
-    # histogram data and the methods that calculate this data
-    _histogram_data = HistogramData(NUM_BUCKETS)
-
     # cursor state
     _is_valid_cursor = False
     _cursor_offset = 0
@@ -86,6 +80,12 @@ class HistogramBar():
             selections modify.
  
         """
+
+        # histogram dimensions including start offset and bytes per bucket
+        self._histogram_dimensions = HistogramDimensions(self.NUM_BUCKETS)
+
+        # histogram data and the methods that calculate this data
+        self._histogram_data = HistogramData(self.NUM_BUCKETS)
 
         # data variables
         self._identified_data = identified_data
@@ -219,22 +219,40 @@ class HistogramBar():
         # register to receive annotation filter change events
         annotation_filter.set_callback(self._handle_annotation_filter_change)
 
+        # register to receive histogram dimensions change events
+        self._histogram_dimensions.set_callback(
+                                    self._handle_histogram_dimensions_change)
+
         # set to basic initial state
         self._handle_identified_data_change()
         self._handle_range_selection_change()
 
     # this function is registered to and called by Filters
     def _handle_filter_change(self, *args):
-        self._draw("counts_changed")
+        # recalculate hash counts and bucket data
+        self._histogram_data.calculate_hash_counts(
+                                  self._identified_data.hashes, self._filters)
+        self._histogram_data.calculate_bucket_data(
+                                  self._identified_data.forensic_paths,
+                                  self._histogram_dimensions.start_offset,
+                                  self._histogram_dimensions.bytes_per_bucket)
+
+        # redraw, keeping dimensions
+        self._draw("buckets_changed")
 
     # this function is registered to and called by IdentifiedData
     def _handle_identified_data_change(self, *args):
+        # recalculate hash counts and bucket data
+        self._histogram_data.calculate_hash_counts(
+                                  self._identified_data.hashes, self._filters)
+        self._histogram_data.calculate_bucket_data(
+                                  self._identified_data.forensic_paths,
+                                  self._histogram_dimensions.start_offset,
+                                  self._histogram_dimensions.bytes_per_bucket)
 
         # set dimensions for this image
         self._histogram_dimensions.fit_image(self._identified_data.image_size,
                                              self._identified_data.block_size)
-
-        self._draw("counts_changed")
 
     def _bound_offset(self, offset):
         # return offset bound within range of image
@@ -264,6 +282,10 @@ class HistogramBar():
         print("histogram_bar.handle annotation filter change, ignored types:",
               self._annotation_filter.ignored_types)
 
+    # this function is registered to and called by HistogramDimensions
+    def _handle_histogram_dimensions_change(self, *args):
+        self._draw("buckets_changed")
+
     def _draw(self, change_mode):
         """Draw text based on change mode, then redraw the graph.
         Change modes:
@@ -275,8 +297,6 @@ class HistogramBar():
           preferences_changed: offset text units changed, change annotation.
           buckets_changed: recalculate bucket counts due to pan or zoom
             and redraw buckets.
-          counts_changed: dataset or filter changed, recalculate hash counts,
-            recalculate bucket counts, and redraw buckets.
         """
         if change_mode == "cursor_changed":
             self._draw_cursor_text()
@@ -287,14 +307,6 @@ class HistogramBar():
             self._draw_range_text()
             self._draw_histogram_annotation_text()
         elif change_mode == "buckets_changed":
-            self._histogram_data.calculate_bucket_data(
-                                  self._identified_data.forensic_paths,
-                                  self._histogram_dimensions.start_offset,
-                                  self._histogram_dimensions.bytes_per_bucket)
-            self._draw_histogram_annotation_text()
-        elif change_mode == "counts_changed":
-            self._histogram_data.calculate_hash_counts(
-                                  self._identified_data.hashes, self._filters)
             self._histogram_data.calculate_bucket_data(
                                   self._identified_data.forensic_paths,
                                   self._histogram_dimensions.start_offset,
@@ -626,17 +638,11 @@ class HistogramBar():
         # zoom in
         self._histogram_dimensions.zoom(self._cursor_offset, 0.67)
 
-        # redraw
-        self._draw("buckets_changed")
-
     def _zoom_out(self):
         """zoom and then redraw."""
 
         # zoom out
         self._histogram_dimensions.zoom(self._cursor_offset, 1.0 / 0.67)
-
-        # redraw
-        self._draw("buckets_changed")
 
     def _set_cursor(self, e):
         self._cursor_offset = self._histogram_dimensions.bucket_to_offset(
@@ -648,19 +654,13 @@ class HistogramBar():
         num_buckets = int((self._b3_down_x - e.x) / self.BUCKET_WIDTH)
         self._histogram_dimensions.pan(start_offset_anchor, num_buckets)
 
-        self._draw("buckets_changed")
-
     def _fit_range(self):
         self._histogram_dimensions.fit_range(
                                        self._range_selection.start_offset,
                                        self._range_selection.stop_offset)
 
-        self._draw("buckets_changed")
-
     def fit_image(self):
         """Fit view to show whole media image."""
         self._histogram_dimensions.fit_image(self._identified_data.image_size,
                                              self._identified_data.block_size)
-
-        self._draw("buckets_changed")
 
