@@ -3,7 +3,7 @@ try:
 except ImportError:
     import Tkinter as tkinter
 
-class ShowError:
+class ErrorWindow:
     def __init__(self, master, title, text):
         # make toplevel window
         self._root_window = tkinter.Toplevel(master)

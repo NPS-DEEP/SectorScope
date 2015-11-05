@@ -1,6 +1,5 @@
 import be_image_reader
 from scrolled_text import ScrolledText
-from show_error import ShowError
 import colors
 try:
     import tkinter

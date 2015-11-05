@@ -1,6 +1,6 @@
 import identified_data
 import filters
-from show_error import ShowError
+from error_window import ErrorWindow
 try:
     import tkinter
     import tkinter.filedialog as fd
@@ -53,7 +53,7 @@ class OpenManager():
             self._identified_data.read(be_dir)
 
         except Exception as e:
-            ShowError(self._master, "Open Error", e)
+            ErrorWindow(self._master, "Open Error", e)
             return
 
         # clear any filter settings

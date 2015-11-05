@@ -5,7 +5,6 @@ from forensic_path import offset_string, size_string, int_string
 from icon_path import icon_path
 from tooltip import Tooltip
 from math import log, floor, log10, pow, ceil
-from show_error import ShowError
 from histogram_dimensions import HistogramDimensions
 from histogram_data import HistogramData
 try:

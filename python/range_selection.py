@@ -1,6 +1,6 @@
 from sys import maxsize
 import hashlib
-from show_error import ShowError
+from error_window import ErrorWindow
 from be_image_reader import read
 try:
     import tkinter
@@ -131,7 +131,7 @@ class RangeSelection():
             self.buf = read(identified_data.image_filename,
                                        self.block_hash_offset, self.BUFSIZE)
         except Exception as e:
-            ShowError(master, "Open Error", e)
+            ErrorWindow(master, "Open Error", e)
             self.clear()
             return
 
