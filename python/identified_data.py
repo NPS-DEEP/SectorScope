@@ -3,6 +3,7 @@ import xml
 import json
 import subprocess
 from collections import defaultdict
+from annotation_reader import read_annotations
 try:
     import tkinter
 except ImportError:
@@ -42,8 +43,10 @@ class IdentifiedData():
         Dictionary where keys are source IDs and values are a dictionary
         of attributes associated with the given source as obtained from
         the identified_blocks_expanded.txt file.
-      image_metadata (list<dict of (type, offset, length, text)>):
-        List of image metadata that can be annotated.
+      annotation_types (list<(type, description, is_active)>): List
+        of annotation types available.
+      annotations (list<(type, offset, length, text)>):
+        List of image annotations that can be displayed.
     """
 
     def __init__(self):
@@ -62,7 +65,8 @@ class IdentifiedData():
         self.forensic_paths = dict()
         self.hashes = dict()
         self.source_details = dict()
-        self.image_metadata = dict()
+        self.annotation_types = list()
+        self.annotations = list()
 
     def set_callback(self, f):
         """Register function f to be called on data change."""
@@ -91,13 +95,15 @@ class IdentifiedData():
         (forensic_paths, hashes, source_details) = \
                                self._read_identified_blocks_expanded(be_dir)
 
-        # read image metadata
+        # read image annotations
         try:
-            image_metadata = image_metadata.read(image_filename, be_dir)
+            annotation_types, annotations = read_annotations(
+                                                     image_filename, be_dir)
         except Exception as e:
             # allow failure, this should be shown in a window.
-            print("unable to read image metadata: %s", e)
-            image_metadata = list()
+            print("unable to read image annotations: %s" % e)
+            annotation_types = list()
+            annotations = list()
 
         # everything worked so accept the data
         self.be_dir = be_dir
@@ -109,7 +115,8 @@ class IdentifiedData():
         self.forensic_paths = forensic_paths
         self.hashes = hashes
         self.source_details = source_details
-        self._image_metadata = image_metadata
+        self.annotation_types = annotation_types
+        self.annotations = annotations
 
         # fire data changed event
         self._identified_data_changed.set(True)
@@ -119,7 +126,10 @@ class IdentifiedData():
               "be_dir: '%s'\nImage size: %d\nImage filename: '%s'\n"
               "hashdb directory: '%s'\nSector size: %d\nBlock size: %d\n"
               "Number of forensic paths: %d\nNumber of hashes: %d\n"
-              "Number of sources: %d" % (
+              "Number of sources: %d\n"
+              "Number of image annotation types: %d\n"
+              "Number of image annotations: %d\n"
+              "" % (
                         self.be_dir,
                         self.image_size,
                         self.image_filename,
@@ -129,7 +139,8 @@ class IdentifiedData():
                         len(self.forensic_paths),
                         len(self.hashes),
                         len(self.source_details),
-                        len(self.image_metadata),
+                        len(self.annotation_types),
+                        len(self.annotations),
               ))
 
     def _read_be_report_file(self, be_dir):
@@ -139,7 +150,6 @@ class IdentifiedData():
         be_report_file = os.path.join(be_dir, "report.xml")
 
         if not os.path.exists(be_report_file):
-            print("id.b", be_report_file)
             raise ValueError("bulk_extractor Report file '%s'\n"
                              "does not exist." % be_report_file)
 

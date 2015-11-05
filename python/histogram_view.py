@@ -4,6 +4,8 @@ import colors
 from icon_path import icon_path
 from tooltip import Tooltip
 from histogram_bar import HistogramBar
+from annotation_filter import AnnotationFilter
+from annotation_window import AnnotationWindow
 try:
     import tkinter
 except ImportError:
@@ -35,6 +37,13 @@ class HistogramView():
 
         # the fit byte range selection signal manager
         fit_range_selection = FitRangeSelection()
+
+        # the annotation filter
+        annotation_filter = AnnotationFilter()
+
+        # the annotation window
+        self._annotation_window = AnnotationWindow(master, identified_data,
+                                                          annotation_filter)
 
         # make the containing frame
         self.frame = tkinter.Frame(master, bg=colors.BACKGROUND)
@@ -89,8 +98,7 @@ class HistogramView():
                            highlightthickness=0)
 
         view_annotations_button.pack(side=tkinter.LEFT, padx=4)
-        Tooltip(view_annotations_button, "Manage image metadata annotations\n"
-                                         "(CURRENTLY NOT AVAILABLE)")
+        Tooltip(view_annotations_button, "Manage annotations shown")
 
         # range selection
         range_selection_frame = tkinter.Frame(self.frame, bg=colors.BACKGROUND)
@@ -100,7 +108,7 @@ class HistogramView():
         self._histogram_bar = HistogramBar(self.frame, identified_data,
                                     filters,
                                     range_selection, fit_range_selection,
-                                    preferences)
+                                    preferences, annotation_filter)
         self._histogram_bar.frame.pack(side=tkinter.TOP)
 
         # register to receive range selection change events
@@ -113,7 +121,7 @@ class HistogramView():
         self._histogram_bar.fit_image()
 
     def _handle_view_annotations(self):
-        print("view annotations TBD")
+        self._annotation_window.show()
 
     # this function is registered to and called by RangeSelection
     def _handle_range_selection_change(self, *args):

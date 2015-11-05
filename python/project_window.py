@@ -1,5 +1,4 @@
 from forensic_path import size_string, offset_string
-from image_hex_table import ImageHexTable
 import colors
 try:
     import tkinter
