@@ -286,12 +286,13 @@ class HistogramBar():
         elif change_mode == "preferences_changed":
             self._draw_cursor_text()
             self._draw_range_text()
+            self._draw_histogram_annotation_text()
         elif change_mode == "buckets_changed":
             self._histogram_data.calculate_bucket_data(
                                   self._identified_data.forensic_paths,
                                   self._histogram_dimensions.start_offset,
                                   self._histogram_dimensions.bytes_per_bucket)
-            self._draw_bucket_text()
+            self._draw_histogram_annotation_text()
         elif change_mode == "counts_changed":
             self._histogram_data.calculate_hash_counts(
                                   self._identified_data.hashes, self._filters)
@@ -299,7 +300,7 @@ class HistogramBar():
                                   self._identified_data.forensic_paths,
                                   self._histogram_dimensions.start_offset,
                                   self._histogram_dimensions.bytes_per_bucket)
-            self._draw_bucket_text()
+            self._draw_histogram_annotation_text()
         else:
             raise RuntimeError("program error")
 
@@ -367,7 +368,7 @@ class HistogramBar():
         else:
             self._range_selection_label["text"] = "Range: NA"
 
-    def _draw_bucket_text(self):
+    def _draw_histogram_annotation_text(self):
 
         # bar width
         if self._histogram_dimensions.bytes_per_bucket == 0:
