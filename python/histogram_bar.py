@@ -7,6 +7,7 @@ from tooltip import Tooltip
 from math import log, floor, log10, pow, ceil
 from histogram_dimensions import HistogramDimensions
 from histogram_data import HistogramData
+from histogram_annotations import HistogramAnnotations
 try:
     import tkinter
 except ImportError:
@@ -44,6 +45,7 @@ class HistogramBar():
     # bar size in pixels
     HISTOGRAM_BAR_WIDTH = NUM_BUCKETS * BUCKET_WIDTH
     HISTOGRAM_BAR_HEIGHT = 300
+    ANNOTATION_HEIGHT = 100
 
     # histogram offset in canvas
     HISTOGRAM_X_OFFSET = 44
@@ -51,7 +53,8 @@ class HistogramBar():
 
     # canvas size in pixels
     CANVAS_WIDTH = HISTOGRAM_BAR_WIDTH + HISTOGRAM_X_OFFSET + 1
-    CANVAS_HEIGHT = HISTOGRAM_BAR_HEIGHT + HISTOGRAM_Y_OFFSET + 4
+    CANVAS_HEIGHT = HISTOGRAM_BAR_HEIGHT + HISTOGRAM_Y_OFFSET + \
+                                                      ANNOTATION_HEIGHT + 4
 
     # cursor state
     _is_valid_cursor = False
@@ -198,6 +201,16 @@ class HistogramBar():
                                            100 *self.BUCKET_HEIGHT_MULTIPLIER
         self._c.create_line(x-8,y,x,y, fill=colors.BOUNDING_BOX)
         self._marker3_id = self._c.create_text(x-9, y, anchor=tkinter.E)
+
+        # create the histogram annotations machine which is fully event driven
+        x0 = self.HISTOGRAM_X_OFFSET
+        y0 = self.HISTOGRAM_Y_OFFSET + self.HISTOGRAM_BAR_HEIGHT
+        w = self.NUM_BUCKETS * self.BUCKET_WIDTH
+        h = self.ANNOTATION_HEIGHT
+        self._histogram_annotations = HistogramAnnotations(self._c,
+                              x0, y0, w, h, self._histogram_dimensions,
+                              self.BUCKET_WIDTH, self._identified_data,
+                              self._annotation_filter)
 
         # register to receive identified_data change events
         identified_data.set_callback(self._handle_identified_data_change)

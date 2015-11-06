@@ -45,7 +45,7 @@ class IdentifiedData():
         the identified_blocks_expanded.txt file.
       annotation_types (list<(type, description, is_active)>): List
         of annotation types available.
-      annotations (list<(type, offset, length, text)>):
+      annotations (list<(annotation_type, offset, length, text)>):
         List of image annotations that can be displayed.
     """
 

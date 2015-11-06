@@ -16,8 +16,8 @@ class OpenManager():
       active_be_dir(str): The be_dir currently open, or "".
     """
 
-    def __init__(self, master, identified_data, filters, range_selection,
-                 preferences):
+    def __init__(self, master, identified_data, filters, annotation_filter,
+                 range_selection, preferences):
         """Args:
           master(a UI container): Parent.
           identified_data(IdentifiedData): Identified data about the scan.
@@ -30,6 +30,7 @@ class OpenManager():
         self._master = master
         self._identified_data = identified_data
         self._filters = filters
+        self._annotation_filter = annotation_filter
         self._range_selection = range_selection
         self._preferences = preferences
 
@@ -59,6 +60,9 @@ class OpenManager():
         # clear any filter settings
         self._filters.clear()
         self._filters.fire_change()
+
+        # clear annotation filter settings
+        self._annotation_filter.set([])
 
         # clear any byte range selection
         self._range_selection.clear()

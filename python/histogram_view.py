@@ -4,7 +4,6 @@ import colors
 from icon_path import icon_path
 from tooltip import Tooltip
 from histogram_bar import HistogramBar
-from annotation_filter import AnnotationFilter
 from annotation_window import AnnotationWindow
 try:
     import tkinter
@@ -18,8 +17,8 @@ class HistogramView():
       frame(Frame): the containing frame for this view.
     """
 
-    def __init__(self, master, identified_data, filters, range_selection,
-                 preferences):
+    def __init__(self, master, identified_data, filters, annotation_filter,
+                 range_selection, preferences):
         """Args:
           master(a UI container): Parent.
           identified_data(IdentifiedData): Identified data about the scan.
@@ -37,9 +36,6 @@ class HistogramView():
 
         # the fit byte range selection signal manager
         fit_range_selection = FitRangeSelection()
-
-        # the annotation filter
-        annotation_filter = AnnotationFilter()
 
         # the annotation window
         self._annotation_window = AnnotationWindow(master, identified_data,

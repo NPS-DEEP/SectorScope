@@ -15,6 +15,7 @@ except ImportError:
 from identified_data import IdentifiedData
 from menu_view import MenuView
 from filters import Filters
+from annotation_filter import AnnotationFilter
 from filters_view import FiltersView
 from range_selection import RangeSelection
 from histogram_view import HistogramView
@@ -25,8 +26,8 @@ from project_window import ProjectWindow
 import colors
 
 # compose the GUI
-def build_gui(root_window, identified_data, filters, range_selection,
-                                                open_manager, project_window):
+def build_gui(root_window, identified_data, filters, annotation_filter,
+                               range_selection, open_manager, project_window):
     """The left frame holds the banner, histogram, and table of selected
     sources.  The right frame holds the table of all sources."""
 
@@ -58,7 +59,7 @@ def build_gui(root_window, identified_data, filters, range_selection,
 
     # the histogram view
     histogram_view = HistogramView(left_frame, identified_data, filters,
-                                                 range_selection, preferences)
+                              annotation_filter, range_selection, preferences)
     histogram_view.frame.pack(side=tkinter.TOP, anchor="w")
 
 #    # the whole right side for the sources view
@@ -93,6 +94,9 @@ if __name__=="__main__":
     # the filters data including the filter_changed trace variable
     filters = Filters()
 
+    # the annotation filter
+    annotation_filter = AnnotationFilter()
+
     # the byte range selection
     range_selection = RangeSelection()
 
@@ -101,14 +105,14 @@ if __name__=="__main__":
 
     # the open manager
     open_manager = OpenManager(root_window, identified_data, filters,
-                                                range_selection, preferences)
+                             annotation_filter, range_selection, preferences)
 
     # the project window, hidden until show()
     project_window = ProjectWindow(root_window, identified_data, preferences)
 
     # build the GUI
-    build_gui(root_window, identified_data, filters, range_selection,
-                                                open_manager, project_window)
+    build_gui(root_window, identified_data, filters, annotation_filter,
+                               range_selection, open_manager, project_window)
 
     # now open the be_dir
     open_manager.open_be_dir(args.be_dir)
