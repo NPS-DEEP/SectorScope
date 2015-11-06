@@ -46,7 +46,7 @@ def _read_json(annotations_file, annotations):
        annotations.append((d["type"], d["offset"], d["length"], d["text"]))
 
 def read_annotations(image_filename, project_dir):
-    """Read image annotations from project_dir/annotations/ creating
+    """Read image annotations from project_dir/image_annotations/ creating
       and importing if necessary.
 
     Returns:
@@ -56,7 +56,7 @@ def read_annotations(image_filename, project_dir):
         defined by annotation type, image offset, length, and text.
     """
 
-    annotations_dir = os.path.join(project_dir, "annotations")
+    annotations_dir = os.path.join(project_dir, "image_annotations")
 
     # create and import annotations, if necessary
     if not os.path.exists(annotations_dir):
