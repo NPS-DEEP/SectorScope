@@ -18,7 +18,7 @@ def icon_path(name):
     if name == "select_all":
         return _absolute_path("plus_blue.gif")
     if name == "preferences":
-        return _absolute_path("preferences-system-3.gif")
+        return _absolute_path("font.gif")
 
     # ignore filters
     if name == "ignore_hashes_in_range":
@@ -56,13 +56,11 @@ def icon_path(name):
     if name == "show_hex_view":
         return _absolute_path("text-x-hex.gif")
     if name == "view_annotations":
-        return _absolute_path("table-go.gif")
+        return _absolute_path("edit-find-8.gif")
 
     # histogram y view control
     if name == "y_plus":
-#        return _absolute_path("plus_blue.gif")
         return _absolute_path("go-up-8.gif")
     if name == "y_minus":
-#        return _absolute_path("minus_blue.gif")
         return _absolute_path("go-down-8.gif")
 
