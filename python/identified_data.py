@@ -4,6 +4,7 @@ import json
 import subprocess
 from collections import defaultdict
 from annotation_reader import read_annotations
+from error_window import ErrorWindow
 try:
     import tkinter
 except ImportError:
@@ -47,6 +48,8 @@ class IdentifiedData():
         of annotation types available.
       annotations (list<(annotation_type, offset, length, text)>):
         List of image annotations that can be displayed.
+      annotation_load_status (str): status of the annotation load or none
+        if okay.
     """
 
     def __init__(self):
@@ -67,6 +70,7 @@ class IdentifiedData():
         self.source_details = dict()
         self.annotation_types = list()
         self.annotations = list()
+        self.annotation_load_status = ""
 
     def set_callback(self, f):
         """Register function f to be called on data change."""
@@ -99,9 +103,10 @@ class IdentifiedData():
         try:
             annotation_types, annotations = read_annotations(
                                                      image_filename, be_dir)
+            annotation_load_status = ""
+
         except Exception as e:
-            # allow failure, this should be shown in a window.
-            print("unable to read image annotations: %s" % e)
+            annotation_load_status = e
             annotation_types = list()
             annotations = list()
 
@@ -117,6 +122,7 @@ class IdentifiedData():
         self.source_details = source_details
         self.annotation_types = annotation_types
         self.annotations = annotations
+        self.annotation_load_status = annotation_load_status
 
         # fire data changed event
         self._identified_data_changed.set(True)
