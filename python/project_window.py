@@ -19,7 +19,7 @@ class ProjectWindow():
 
         # make toplevel window
         self._root_window = tkinter.Toplevel(master)
-        self._root_window.title("Project Attributes")
+        self._root_window.title("Project Statistics")
         self._root_window.transient(master)
         self._root_window.protocol('WM_DELETE_WINDOW', self._hide)
 

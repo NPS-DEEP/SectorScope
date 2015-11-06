@@ -52,7 +52,7 @@ class MenuView():
                        activebackground=colors.ACTIVEBACKGROUND,
                        highlightthickness=0)
         project_button.pack(side=tkinter.LEFT, padx=(0,8))
-        Tooltip(project_button, "Show opened project properties")
+        Tooltip(project_button, "Show project statistics")
 
         # import button
         self._import_icon = tkinter.PhotoImage(file=icon_path("import"))

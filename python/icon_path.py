@@ -10,7 +10,7 @@ def icon_path(name):
     if name == "open":
         return _absolute_path("document-open-2.gif")
     if name == "view_project":
-        return _absolute_path("application-view-list.gif")
+        return _absolute_path("document-new-4.gif")
     if name == "scan":
         return _absolute_path("database-gear.gif")
     if name == "import":
