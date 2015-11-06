@@ -17,7 +17,7 @@ def _run_cmd(cmd):
 
 def _import_mmls(image_filename, annotations_dir):
     # mmls for volume allocation table
-    cmd = ["zzmmls", image_filename]
+    cmd = ["mmls", image_filename]
     lines = _run_cmd(cmd)
 
     outfile = os.path.join(annotations_dir, "mmls.json")
