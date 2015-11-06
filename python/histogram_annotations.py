@@ -46,33 +46,59 @@ class HistogramAnnotations():
             # skip filtered out annotations
             if annotation_type in ignored_types:
                 continue
-            i+=1
             # load text
-            c.create_text(0,0, justify=tkinter.LEFT, tags=("annotations",
+            c.create_text(0,0, anchor="sw", tags=("annotations",
                                                        "t%d" % i), text=text)
 
             # load line
             c.create_line(0,0,0,0, tags=("annotations", "l%d" % i))
 
+            # next
+            i+=1
+
     def _place(self):
+        # skip if not initialized
+        if self._histogram_dimensions.bytes_per_bucket * \
+                                                     self._bucket_width == 0:
+            return
+
         # place annotations
         c = self._canvas
+        annotation_x0 = self._x0
+        annotation_y0 = self._y0
         annotations = self._identified_data.annotations
         ignored_types = self._annotation_filter.ignored_types
         start_offset = self._histogram_dimensions.start_offset
-        scale = self._histogram_dimensions.bytes_per_bucket * self._bucket_width
+        scale = self._bucket_width / self._histogram_dimensions.bytes_per_bucket
         i=0
         for annotation_type, offset, length, text in annotations:
             # skip filtered out annotations
             if annotation_type in ignored_types:
                 continue
-            i+=1
+
+            # x0 = annotation origin + (offset - start offset) * zoom scale
+            x0 = annotation_x0 + (offset - start_offset) * scale
+            x1 = annotation_x0 + (offset + length - start_offset) * scale
+            # y = annotation top + space + (line * text height)
+            y0 = annotation_y0 + 8 + (((i%6) + 1) * 16)
+            y1 = y0 - 14
+            # annotation color
+            if x1 - x0 < 0.1:
+                color = "#aaaaaa"
+            elif x1 - x0 < 1:
+                color = "#777777"
+            else:
+                color = "black"
             # place text
-            c.coords("t%d"%i, (offset - start_offset) * scale, 10)
+            c.coords("t%d"%i, x0, y0)
+            c.itemconfigure("t%d"%i, fill=color)
 
             # place line
-            c.coords("l%d"%i, (offset - start_offset) * scale, 10,
-                              (offset + length - start_offset) * scale, 10)
+            c.coords("l%d"%i, x0,y1, x0,y0, x1,y0, x1,y1)
+            c.itemconfigure("l%d"%i, fill=color)
+
+            # next
+            i+=1
 
     # this function is registered to and called by IdentifiedData
     def _handle_identified_data_change(self, *args):
