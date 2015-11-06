@@ -22,7 +22,6 @@ class HistogramAnnotations():
         self._identified_data = identified_data
         self._annotation_filter = annotation_filter
 
-        print("histogram_annotations", x0, y0, w, h)
         # register to receive identified_data change events
         identified_data.set_callback(self._handle_identified_data_change)
 

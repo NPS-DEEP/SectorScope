@@ -202,7 +202,7 @@ class HistogramBar():
         self._c.create_line(x-8,y,x,y, fill=colors.BOUNDING_BOX)
         self._marker3_id = self._c.create_text(x-9, y, anchor=tkinter.E)
 
-        # create the histogram annotations machine which is fully event driven
+        # create the histogram annotations renderer which is fully event driven
         x0 = self.HISTOGRAM_X_OFFSET
         y0 = self.HISTOGRAM_Y_OFFSET + self.HISTOGRAM_BAR_HEIGHT
         w = self.NUM_BUCKETS * self.BUCKET_WIDTH
@@ -210,7 +210,7 @@ class HistogramBar():
         self._histogram_annotations = HistogramAnnotations(self._c,
                               x0, y0, w, h, self._histogram_dimensions,
                               self.BUCKET_WIDTH, self._identified_data,
-                              self._annotation_filter)
+                              annotation_filter)
 
         # register to receive identified_data change events
         identified_data.set_callback(self._handle_identified_data_change)
@@ -227,9 +227,6 @@ class HistogramBar():
 
         # register to receive preferences change events
         preferences.set_callback(self._handle_preferences_change)
-
-        # register to receive annotation filter change events
-        annotation_filter.set_callback(self._handle_annotation_filter_change)
 
         # register to receive histogram dimensions change events
         self._histogram_dimensions.set_callback(
@@ -288,11 +285,6 @@ class HistogramBar():
     # this function is registered to and called by Preferences
     def _handle_preferences_change(self, *args):
         self._draw("preferences_changed")
-
-    # this function is registered to and called by AnnotationFilter
-    def _handle_annotation_filter_change(self, *args):
-        print("histogram_bar.handle annotation filter change, ignored types:",
-              self._annotation_filter.ignored_types)
 
     # this function is registered to and called by HistogramDimensions
     def _handle_histogram_dimensions_change(self, *args):
