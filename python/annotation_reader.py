@@ -11,7 +11,7 @@ def _run_cmd(cmd):
         print(*cmd, sep=' ', end="':\n")
         print(*lines, sep='\n')
         print("Aborting.")
-        raise RuntimeError("failure running cmd", cmd)
+        raise RuntimeError("failure running cmd: %s" % cmd)
 
     return lines
 
