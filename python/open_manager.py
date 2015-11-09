@@ -75,5 +75,5 @@ class OpenManager():
             ErrorWindow(self._master, "Annotation Read Error",
                               "Unable to read media image annotations.\n"
                               "Please check that TSK is installed "
-                              "and that PATH is set.")
+                              "and that PATH is set.\n%s" % self._identified_data.annotation_load_status)
 
