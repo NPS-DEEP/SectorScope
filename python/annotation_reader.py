@@ -4,8 +4,11 @@ import subprocess
 import json
 def _run_cmd(cmd):
     # run cmd, return lines
-    p = subprocess.Popen(cmd, stdout=subprocess.PIPE)
-    lines = p.communicate()[0].decode('utf-8').split("\n")
+    try:
+        p = subprocess.Popen(cmd, stdout=subprocess.PIPE)
+        lines = p.communicate()[0].decode('utf-8').split("\n")
+    except Exception as e:
+        raise RuntimeError("failure running cmd: %s: %s" % (cmd, e))
     if p.returncode != 0:
         print("error with command '", end="")
         print(*cmd, sep=' ', end="':\n")
