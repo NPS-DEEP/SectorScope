@@ -22,7 +22,7 @@
 !define PLUGINNAME "NPS-SectorScope-${VERSION}.nbm"
 !define REG_SUB_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APPNAME}"
 !define COMPANYNAME "Naval Postgraduate School"
-!define DESCRIPTION "Block Hash Tools"
+!define DESCRIPTION "Block Hash Visualization Tool"
 
 # These will be displayed by the "Click here for support information" link in "Add/Remove Programs"
 # It is possible to use "mailto:" links here to open the email client
