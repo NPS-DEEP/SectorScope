@@ -84,6 +84,12 @@ class RangeSelection():
             self.start_offset = offset2
             self.stop_offset = offset1
 
+        # bound range to image
+        if self.start_offset < 0:
+            self.start_offset = 0
+        if self.stop_offset > identified_data.image_size:
+            self.stop_offset = identified_data.image_size
+
         # optimization
         start_byte = self.start_offset
         stop_byte = self.stop_offset
