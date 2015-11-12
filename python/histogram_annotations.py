@@ -79,7 +79,7 @@ class HistogramAnnotations():
             x0 = annotation_x0 + (offset - start_offset) * scale
             x1 = annotation_x0 + (offset + length - start_offset) * scale
             # y = annotation top + space + (line * text height)
-            y0 = annotation_y0 + 8 + (((i%6) + 1) * 16)
+            y0 = annotation_y0 + 16 + 7 + ((i%6) * 16)
             y1 = y0 - 14
             # annotation color
             if x1 - x0 < 0.1:
