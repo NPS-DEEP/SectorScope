@@ -48,6 +48,11 @@ class ProjectWindow():
         self._database_text = tkinter.Label(f, bg=colors.BACKGROUND)
         self._database_text.pack(side=tkinter.TOP, anchor="w")
 
+        # sector and block size
+        self._sector_and_block_size_text = tkinter.Label(f,
+                                                       bg=colors.BACKGROUND)
+        self._sector_and_block_size_text .pack(side=tkinter.TOP, anchor="w")
+
         # size statistics
         self._sizes_text = tkinter.Label(f, bg=colors.BACKGROUND)
         self._sizes_text.pack(side=tkinter.TOP, anchor="w")
@@ -79,6 +84,10 @@ class ProjectWindow():
                                       self._identified_data.sector_size))
             self._database_text["text"] = 'Database: %s' % \
                                self._identified_data.hashdb_dir
+            self._sector_and_block_size_text["text"] = \
+                             'Sector size: %s        Block size: %s' % (
+                                      self._identified_data.sector_size,
+                                      self._identified_data.block_size)
             self._sizes_text["text"] = 'Matches: Paths: %s        ' \
                                   'Hashes: %s        Sources: %s' % (
                              len(self._identified_data.forensic_paths),
@@ -91,6 +100,9 @@ class ProjectWindow():
             self._image_text["text"] = 'Image: Not opened'
             self._image_size_text["text"] = 'Image size: Not opened'
             self._database_text["text"] = 'Database: Not opened'
+            self._sector_and_block_size_text["text"] = \
+                                           'Image size: Not opened        ' \
+                                           'Sector size: Not opened'
             self._database_text["text"] = 'Matches: Not opened'
 
     def show(self):
