@@ -18,17 +18,22 @@ class HistogramView():
     """
 
     def __init__(self, master, identified_data, filters, annotation_filter,
-                 range_selection, preferences):
+                 range_selection, preferences, histogram_control):
         """Args:
           master(a UI container): Parent.
           identified_data(IdentifiedData): Identified data about the scan.
           filters(Filters): Filters that impact the view.
           range_selection(RangeSelection): The selected range.
           preferences(Preferences): Includes the offset format preference.
+          histogram_control(HistogramControl): Interfaces for controlling
+            the histogram view.
         """
 
         # data variables
         self._range_selection = range_selection
+
+        # histogram control
+        self._histogram_control = histogram_control
 
         # the image hex window that the show hex view button can show
         self._image_hex_window = ImageHexWindow(master, identified_data,
@@ -104,7 +109,8 @@ class HistogramView():
         self._histogram_bar = HistogramBar(self.frame, identified_data,
                                     filters,
                                     range_selection, fit_range_selection,
-                                    preferences, annotation_filter)
+                                    preferences, annotation_filter,
+                                    histogram_control)
         self._histogram_bar.frame.pack(side=tkinter.TOP)
 
         # register to receive range selection change events

@@ -18,6 +18,7 @@ from filters import Filters
 from annotation_filter import AnnotationFilter
 from filters_view import FiltersView
 from range_selection import RangeSelection
+from histogram_control import HistogramControl
 from histogram_view import HistogramView
 from preferences import Preferences
 from sources_view import SourcesView
@@ -59,7 +60,8 @@ def build_gui(root_window, identified_data, filters, annotation_filter,
 
     # the histogram view
     histogram_view = HistogramView(left_frame, identified_data, filters,
-                              annotation_filter, range_selection, preferences)
+                              annotation_filter, range_selection, preferences,
+                                                           histogram_control)
     histogram_view.frame.pack(side=tkinter.TOP, anchor="w")
 
 #    # the whole right side for the sources view
@@ -102,6 +104,9 @@ if __name__=="__main__":
 
     # preferences
     preferences = Preferences()
+
+    # histogram control
+    histogram_control = HistogramControl()
 
     # the open manager
     open_manager = OpenManager(root_window, identified_data, filters,
