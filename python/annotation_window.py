@@ -8,15 +8,15 @@ class AnnotationWindow():
     _checkbuttons = list() # (checkbutton, annotation_type, int_var)
     """Provides a window to show opened project attributes.
     """
-    def __init__(self, master, identified_data, annotation_filter):
+    def __init__(self, master, data_manager, annotation_filter):
         """Args:
           master(a UI container): Parent.
-          identified_data(IdentifiedData): Identified data about the scan.
+          data_manager(DataManager): Manages project data and filters.
           annotation_filter(AnnotationFilter): The annotation filter that
             selections modify.
         """
         # variables
-        self._identified_data = identified_data
+        self._data_manager = data_manager
         self._annotation_filter = annotation_filter
 
         # make toplevel window
@@ -36,14 +36,14 @@ class AnnotationWindow():
                                              side=tkinter.TOP, padx=100,
                                                                pady=(0,4))
 
-        # register to receive identified_data change events
-        identified_data.set_callback(self._handle_identified_data_change)
+        # register to receive data manager change events
+        data_manager.set_callback(self._handle_data_manager_change)
 
         # start with window hidden
         self._root_window.withdraw()
 
     # this function is registered to and called by IdentifiedData
-    def _handle_identified_data_change(self, *args):
+    def _handle_data_manager_change(self, *args):
 
         # clear existing checkbuttons
         for checkbutton, _, _ in self._checkbuttons:
@@ -55,7 +55,7 @@ class AnnotationWindow():
 
         # process each annotation type
         for annotation_type, description, is_active in \
-                               self._identified_data.annotation_types:
+                               self._data_manager.annotation_types:
 
             # mark ignored types
             if not is_active:

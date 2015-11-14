@@ -14,17 +14,19 @@ class ImageHexTable():
       frame(Frame): the containing frame for the hex table.
       _hex_text(Text): The Text widget to render the hex table in.
     """
-    def __init__(self, master, identified_data, range_selection, width=88, height=32):
+    def __init__(self, master, data_manager, histogram_control,
+                                                        width=88, height=32):
         """Args:
           master(a UI container): Parent.
-          identified_data(IdentifiedData): Identified data about the scan.
-          range_selection(OffsetSelection): The selected range.
+          data_manager(DataManager): Manages project data and filters.
+          histogram_control(HistogramControl): Interfaces for controlling
+            the histogram view.
         """
         # variables
         self.PAGESIZE = 16384 # 2^14
         self.LINESIZE = 16
-        self._identified_data = identified_data
-        self._range_selection = range_selection
+        self._data_manager = data_manager
+        self._histogram_control = histogram_control
 
         # make the containing frame
         self.frame = tkinter.Frame(master)
@@ -50,7 +52,7 @@ class ImageHexTable():
         self._hex_text.tag_config("outside_block", background="white")
 
         # register to receive range selection change events
-        range_selection.set_callback(self._handle_range_selection_change)
+        histogram_control.set_callback(self._handle_histogram_control_change)
 
     def _get_line_tag(self, i):
         # return the line tag associated with the match and line state
@@ -70,7 +72,9 @@ class ImageHexTable():
             else:
                 return "odd_unmatched"
 
-    def _handle_range_selection_change(self, *args):
+    def _handle_histogram_control_change(self, *args):
+        print("image_hex_table TBD")
+        return
         self._set_view()
 
     def _set_view(self):

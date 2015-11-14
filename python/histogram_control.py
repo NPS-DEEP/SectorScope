@@ -6,8 +6,6 @@ from forensic_path import offset_string, size_string, int_string
 from icon_path import icon_path
 from tooltip import Tooltip
 from math import log, floor, log10, pow, ceil
-from histogram_dimensions import HistogramDimensions
-from histogram_data import HistogramData
 from histogram_annotations import HistogramAnnotations
 try:
     import tkinter
@@ -67,7 +65,7 @@ class HistogramControl():
                "block_size=%d, num_buckets=%d, start_offset=%d, " \
                "bytes_per_bucket=%d, is_valid_cursor=%s, " \
                "cursor_offset=%d, is_valid_range=%s, " \
-               "range_start=%d, range_stop=%d" % (self.change_type,
+               "range_start=%d, range_stop=%d)" % (self.change_type,
                 self.image_size, self.block_size, self.num_buckets,
                 self.start_offset, self.bytes_per_bucket,
                 self.is_valid_cursor, self.cursor_offset,
@@ -231,6 +229,9 @@ class HistogramControl():
 
     # round up to aligned block
     def _round_up_to_block(self, size):
+        # not initialized
+        if self.block_size == 0:
+            return 0
 
         # fix decimal limitation and get as int
         size = int(floor(round(size, 5)))
@@ -290,15 +291,17 @@ class HistogramControl():
         self.bytes_per_bucket = new_bytes_per_bucket
         self._fire_change("plot_region_changed")
 
-    def fit_image(self, image_size, block_size, num_buckets):
+    def set_bounds(self, image_size, block_size, num_buckets):
         """Establish image size and zoom fully out."""
 
         self.image_size = image_size
         self.block_size = block_size
         self.num_buckets = num_buckets
+        self.fit_image()
 
+    def fit_image(self):
         self._set_plot_region(0, self._round_up_to_block(
-                                                   image_size / num_buckets))
+                                         self.image_size / self.num_buckets))
 
     def fit_range(self):
         """Fit view to range selection."""

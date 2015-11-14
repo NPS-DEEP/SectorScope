@@ -3,7 +3,6 @@ from collections import defaultdict
 from scrolled_text import ScrolledText
 from icon_path import icon_path
 from tooltip import Tooltip
-from sources_data import SourcesData
 import colors
 try:
     import tkinter
@@ -44,24 +43,19 @@ class SourcesTable():
       _source_text(Text): The Text widget to render sources in.
     """
 
-    def __init__(self, master, identified_data, filters, range_selection,
+    def __init__(self, master, data_manager, histogram_control,
                                                        width=40, height=12):
         """Args:
           master(a UI container): Parent.
-          identified_data(IdentifiedData): All data related to the block
-            hash scan.
-          filters(Filters): Filters that impact the view.
-          range_selection(RangeSelection): The selected range.
-          width, height(int): size in characters of table.
+          data_manager(DataManager): Manages project data and filters.
+          histogram_control(HistogramControl): Interfaces for controlling
+            the histogram view.
+           width, height(int): size in characters of table.
         """
 
-        # tool
-        self._sources_data = SourcesData()
-
         # variables
-        self._identified_data = identified_data
-        self._filters = filters
-        self._range_selection = range_selection
+        self._data_manager = data_manager
+        self._histogram_control = histogram_control
 
         # state
         self._line_to_id = {}
@@ -108,14 +102,11 @@ class SourcesTable():
             self._source_text.bind('<Button-3>', self._handle_b3_mouse_press,
                                                                     add='+')
 
-        # register to receive identified data change events
-        identified_data.set_callback(self._handle_identified_data_change)
-
-        # register to receive filter change events
-        filters.set_callback(self._handle_filter_change)
+        # register to receive data manager change events
+        data_manager.set_callback(self._handle_data_manager_change)
 
         # register to receive range selection change events
-        range_selection.set_callback(self._handle_range_selection_change)
+        histogram_control.set_callback(self._handle_histogram_control_change)
 
         # set initial state data
         self._set_table()
@@ -150,15 +141,18 @@ class SourcesTable():
                                  "title")
 
         # get local reference to source information list
-        sources_list = self._sources_data.sources_list
+        sources_list = self._data_manager.calculate_sources_list()
 
         # get the set of source IDs to show
-        if self._range_selection.is_selected == True:
+        if self._histogram_control.is_valid_range == True:
             # just show sources in the range
-            source_ids = self._range_selection.source_ids_in_range
+            source_ids, _ = \
+                     self._data_manager.calculate_sources_and_hashes_in_range(
+                                       self._histogram_control.range_start,
+                                       self._histogram_control.range_stop)
         else:
-            # show all sources referenced in identified_data
-            source_ids = self._identified_data.source_details.keys()
+            # show all sources referenced in data_manager
+            source_ids = self._data_manager.source_ids
 
         # prepare the displayed list from the total list
         displayed_sources_list = list()
@@ -213,7 +207,7 @@ class SourcesTable():
                                                   foreground=foreground)
 
         # set the data tag color
-        if source_id in self._range_selection.source_ids_in_range \
+        if source_id in self._source_ids_in_range \
                                               and line != self._cursor_line:
             # use range selection color for the data portion
             self._source_text.tag_config(data_tag_name,
@@ -229,8 +223,8 @@ class SourcesTable():
     def _source_color(self, line, source_id):
         # return foreground, background tuple depending on filtering
         # and alternating line coloration
-        if source_id in self._filters.ignored_sources and \
-                    source_id in self._filters.highlighted_sources:
+        if source_id in self._data_manager.ignored_sources and \
+                    source_id in self._data_manager.highlighted_sources:
             # use IGNORED_AND_HIGHLIGHTED color scheme
             if line == self._cursor_line:
                 foreground = "white"
@@ -241,7 +235,7 @@ class SourcesTable():
                     background = colors.EVEN_IGNORED_AND_HIGHLIGHTED
                 else:
                     background = colors.ODD_IGNORED_AND_HIGHLIGHTED
-        elif source_id in self._filters.ignored_sources:
+        elif source_id in self._data_manager.ignored_sources:
             # use IGNORED color scheme
             if line == self._cursor_line:
                 foreground = "white"
@@ -252,7 +246,7 @@ class SourcesTable():
                     background = colors.EVEN_IGNORED
                 else:
                     background = colors.ODD_IGNORED
-        elif source_id in self._filters.highlighted_sources:
+        elif source_id in self._data_manager.highlighted_sources:
             # use HIGHLIGHTED color scheme
             if line == self._cursor_line:
                 foreground = "white"
@@ -311,13 +305,12 @@ class SourcesTable():
 
         # toggle filter state for source
         source_id = self._line_to_id[line]
-        if source_id in self._filters.highlighted_sources:
-            self._filters.highlighted_sources.remove(source_id)
+        if source_id in self._data_manager.highlighted_sources:
+            self._data_manager.highlighted_sources.remove(source_id)
+            self._data_manager.fire_filter_change()
         else:
-            self._filters.highlighted_sources.add(source_id)
-
-        # fire change
-        self._filters.fire_change()
+            self._data_manager.highlighted_sources.add(source_id)
+            self._data_manager.fire_filter_change()
 
     # ignore this source
     def _handle_b3_mouse_press(self, e):
@@ -329,13 +322,12 @@ class SourcesTable():
 
         # toggle filter state for source
         source_id = self._line_to_id[line]
-        if source_id in self._filters.ignored_sources:
-            self._filters.ignored_sources.remove(source_id)
+        if source_id in self._data_manager.ignored_sources:
+            self._data_manager.ignored_sources.remove(source_id)
+            self._data_manager.fire_filter_change()
         else:
-            self._filters.ignored_sources.add(source_id)
-
-        # fire change
-        self._filters.fire_change()
+            self._data_manager.ignored_sources.add(source_id)
+            self._data_manager.fire_filter_change()
 
     def _handle_enter(self, e):
         self._handle_mouse_move(e)
@@ -347,19 +339,14 @@ class SourcesTable():
             self._cursor_line = -1
             self._set_line_color(old_cursor_line)
 
-    def _handle_identified_data_change(self, *args):
-        self._sources_data.calculate_sources_list(self._identified_data,
-                                                               self._filters)
+    def _handle_data_manager_change(self, *args):
+        self._source_ids_in_range, _ = self._data_manager.calculate_sources_and_hashes_in_range(self._histogram_control.range_start, self._histogram_control.range_stop)
         self._set_table()
         self._set_colors()
 
-    def _handle_filter_change(self, *args):
-        self._sources_data.calculate_sources_list(self._identified_data,
-                                                               self._filters)
-        self._set_table()
-        self._set_colors()
-
-    def _handle_range_selection_change(self, *args):
-        self._set_table()
-        self._set_colors()
+    def _handle_histogram_control_change(self, *args):
+        if self._histogram_control.change_type == "range_changed":
+            self._source_ids_in_range, _ = self._data_manager.calculate_sources_and_hashes_in_range(self._histogram_control.range_start, self._histogram_control.range_stop)
+            self._set_table()
+            self._set_colors()
 

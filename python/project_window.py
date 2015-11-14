@@ -8,13 +8,13 @@ except ImportError:
 class ProjectWindow():
     """Provides a window to show opened project attributes.
     """
-    def __init__(self, master, identified_data, preferences):
+    def __init__(self, master, data_manager, preferences):
         """Args:
           master(a UI container): Parent.
-          identified_data(IdentifiedData): Identified data about the scan.
-        """
+          data_manager(DataManager): Manages project data and filters.
+         """
         # variables
-        self._identified_data = identified_data
+        self._data_manager = data_manager
         self._preferences = preferences
 
         # make toplevel window
@@ -57,45 +57,45 @@ class ProjectWindow():
         self._sizes_text = tkinter.Label(f, bg=colors.BACKGROUND)
         self._sizes_text.pack(side=tkinter.TOP, anchor="w")
 
-        # register to receive identified_data change events
-        identified_data.set_callback(self._handle_identified_data_change)
+        # register to receive data manager change events
+        data_manager.set_callback(self._handle_data_manager_change)
 
         # register to receive preferences change events
-        preferences.set_callback(self._handle_identified_data_change)
+        preferences.set_callback(self._handle_data_manager_change)
 
         # set initial state
-        self._handle_identified_data_change()
+        self._handle_data_manager_change()
 
         # start with window hidden
         self._root_window.withdraw()
 
     # this function is registered to and called by IdentifiedData
-    def _handle_identified_data_change(self, *args):
-        if self._identified_data.image_filename:
-            # identified_data opened
+    def _handle_data_manager_change(self, *args):
+        if self._data_manager.image_filename:
+            # data_manager opened
             self._scan_path_text["text"] = 'Scan path: %s' % \
-                               self._identified_data.be_dir
+                               self._data_manager.be_dir
             self._image_text["text"] = 'Image: %s' % \
-                               self._identified_data.image_filename
+                               self._data_manager.image_filename
             self._image_size_text["text"] = 'Image size: %s  (%s)' % (
-                               size_string(self._identified_data.image_size),
-                               offset_string(self._identified_data.image_size,
+                               size_string(self._data_manager.image_size),
+                               offset_string(self._data_manager.image_size,
                                       self._preferences.offset_format,
-                                      self._identified_data.sector_size))
+                                      self._data_manager.sector_size))
             self._database_text["text"] = 'Database: %s' % \
-                               self._identified_data.hashdb_dir
+                               self._data_manager.hashdb_dir
             self._sector_and_block_size_text["text"] = \
                              'Sector size: %s        Block size: %s' % (
-                                      self._identified_data.sector_size,
-                                      self._identified_data.block_size)
+                                      self._data_manager.sector_size,
+                                      self._data_manager.block_size)
             self._sizes_text["text"] = 'Matches: Paths: %s        ' \
                                   'Hashes: %s        Sources: %s' % (
-                             len(self._identified_data.forensic_paths),
-                             len(self._identified_data.hashes),
-                             len(self._identified_data.source_details))
+                             self._data_manager.len_forensic_paths,
+                             self._data_manager.len_hashes,
+                             self._data_manager.len_source_details)
 
         else:
-            # identified_data not opened
+            # data_manager not opened
             self._scan_path_text["text"] = 'Scan path: Not opened'
             self._image_text["text"] = 'Image: Not opened'
             self._image_size_text["text"] = 'Image size: Not opened'

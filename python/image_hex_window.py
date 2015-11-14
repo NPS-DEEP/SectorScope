@@ -8,17 +8,16 @@ class ImageHexWindow():
     """Provides a window to show a hex dump of specified bytes of a
     media image.
     """
-    def __init__(self, master, identified_data, filters, range_selection):
+    def __init__(self, master, data_manager, histogram_control):
         """Args:
           master(a UI container): Parent.
-          identified_data(IdentifiedData): Identified data about the scan.
-          filters(Filters): Filters that impact the view.
-          range_selection(OffsetSelection): The selected range.
+          data_manager(DataManager): Manages project data and filters.
+          histogram_control(HistogramControl): Interfaces for controlling
+            the histogram view.
         """
         # variables
-        self._identified_data = identified_data
-        self._filters = filters
-        self._range_selection = range_selection
+        self._data_manager = data_manager
+        self._histogram_control = histogram_control
 
         # make toplevel window
         self._root_window = tkinter.Toplevel(master)
@@ -35,22 +34,22 @@ class ImageHexWindow():
         self._md5_label.pack(side=tkinter.TOP)
 
         # add the frame to contain the image hex table
-        image_hex_table = ImageHexTable(self._root_window, identified_data,
-                                       range_selection, width=88, height=32)
+        image_hex_table = ImageHexTable(self._root_window, data_manager,
+                                      histogram_control, width=88, height=32)
         image_hex_table.frame.pack(side=tkinter.TOP, anchor="w")
 
-        # register to receive filter change events
-        filters.set_callback(self._handle_change)
-
         # register to receive range selection change events
-        range_selection.set_callback(self._handle_change)
+        histogram_control.set_callback(self._handle_change)
 
         self._root_window.withdraw()
 
     def _handle_change(self, *args):
+        print("image_hex_window TBD")
+        return
+
         # generate annotation text about the selection
         text = ""
-        if self._range_selection.is_selected:
+        if self._histogram_control.is_selected:
             block_hash = self._range_selection.block_hash
             if self._range_selection.block_hash_is_in:
                 # ignore and highlight status for hash
@@ -69,10 +68,10 @@ class ImageHexWindow():
                                                              source_id_set)):
                     text += "source highlighted, "
 
-                # also indicate matched identified_data
+                # also indicate matched identified data
                 text += "hash matched"
             else:
-                # indicate not matched identified_data
+                # indicate not matched identified data
                 text += "hash not matched"
         else:
             # no hash is selected

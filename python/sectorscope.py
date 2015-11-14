@@ -12,12 +12,10 @@ except ImportError:
     import Tkinter as tkinter
 
 # local import
-from identified_data import IdentifiedData
+from data_manager import DataManager
 from menu_view import MenuView
-from filters import Filters
 from annotation_filter import AnnotationFilter
 from filters_view import FiltersView
-from range_selection import RangeSelection
 from histogram_control import HistogramControl
 from histogram_view import HistogramView
 from preferences import Preferences
@@ -27,8 +25,8 @@ from project_window import ProjectWindow
 import colors
 
 # compose the GUI
-def build_gui(root_window, identified_data, filters, annotation_filter,
-                               range_selection, open_manager, project_window):
+def build_gui(root_window, data_manager, annotation_filter,
+                             histogram_control, open_manager, project_window):
     """The left frame holds the banner, histogram, and table of selected
     sources.  The right frame holds the table of all sources."""
 
@@ -54,24 +52,17 @@ def build_gui(root_window, identified_data, filters, annotation_filter,
     menu_view.frame.pack(side=tkinter.LEFT, anchor="n", padx=(0,80), pady=4)
 
     # filters
-    filters_view = FiltersView(menu_and_filters_frame, identified_data,
-                                                     filters, range_selection)
+    filters_view = FiltersView(menu_and_filters_frame, data_manager,
+                                                            histogram_control)
     filters_view.frame.pack(side=tkinter.LEFT, anchor="n", padx=4, pady=4)
 
     # the histogram view
-    histogram_view = HistogramView(left_frame, identified_data, filters,
-                              annotation_filter, range_selection, preferences,
-                                                           histogram_control)
+    histogram_view = HistogramView(left_frame, data_manager,
+                            annotation_filter, preferences, histogram_control)
     histogram_view.frame.pack(side=tkinter.TOP, anchor="w")
 
-#    # the whole right side for the sources view
-#    sources_view = SourcesView(root_window, identified_data, filters,
-#                                                              range_selection)
-#    sources_view.frame.pack(side=tkinter.LEFT, anchor="n", padx=(4,0))
-
     # the sources view
-    sources_view = SourcesView(left_frame, identified_data, filters,
-                                                              range_selection)
+    sources_view = SourcesView(left_frame, data_manager, histogram_control)
     sources_view.frame.pack(side=tkinter.LEFT, anchor="n", padx=(4,0))
 
 # main
@@ -90,17 +81,11 @@ if __name__=="__main__":
     # initialize Tk
     root_window = tkinter.Tk()
 
-    # the identified data dataset
-    identified_data = IdentifiedData()
-
-    # the filters data including the filter_changed trace variable
-    filters = Filters()
+    # the project data dataset
+    data_manager = DataManager()
 
     # the annotation filter
     annotation_filter = AnnotationFilter()
-
-    # the byte range selection
-    range_selection = RangeSelection()
 
     # preferences
     preferences = Preferences()
@@ -109,15 +94,15 @@ if __name__=="__main__":
     histogram_control = HistogramControl()
 
     # the open manager
-    open_manager = OpenManager(root_window, identified_data, filters,
-                             annotation_filter, range_selection, preferences)
+    open_manager = OpenManager(root_window, data_manager,
+                           annotation_filter, histogram_control, preferences)
 
     # the project window, hidden until show()
-    project_window = ProjectWindow(root_window, identified_data, preferences)
+    project_window = ProjectWindow(root_window, data_manager, preferences)
 
     # build the GUI
-    build_gui(root_window, identified_data, filters, annotation_filter,
-                               range_selection, open_manager, project_window)
+    build_gui(root_window, data_manager, annotation_filter,
+                             histogram_control, open_manager, project_window)
 
     # now open the be_dir
     open_manager.open_be_dir(args.be_dir)

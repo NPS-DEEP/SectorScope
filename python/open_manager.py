@@ -1,5 +1,3 @@
-import identified_data
-import filters
 from error_window import ErrorWindow
 try:
     import tkinter
@@ -13,29 +11,24 @@ class OpenManager():
 
     Attributes:
       frame(Frame): The containing frame for this view.
-      active_be_dir(str): The be_dir currently open, or "".
     """
 
-    def __init__(self, master, identified_data, filters, annotation_filter,
-                 range_selection, preferences):
+    def __init__(self, master, data_manager, annotation_filter,
+                 histogram_control, preferences):
         """Args:
           master(a UI container): Parent.
-          identified_data(IdentifiedData): Identified data about the scan.
-          filters(Filters): Filters that impact the view.
-          range_selection(RangeSelection): The selected range.
-          preferences(Preferences): Preference, namely the offset format.
+          data_manager(DataManager): Manages project data and filters.
+          histogram_control(HistogramControl): Interfaces for controlling
+            the histogram view.
+           preferences(Preferences): Preference, namely the offset format.
         """
 
         # local references
         self._master = master
-        self._identified_data = identified_data
-        self._filters = filters
+        self._data_manager = data_manager
         self._annotation_filter = annotation_filter
-        self._range_selection = range_selection
+        self._histogram_control = histogram_control
         self._preferences = preferences
-
-        # state
-        active_be_dir = identified_data.be_dir
 
     """Open be_dir or if not be_dir open be_dir from chooser."""
     def open_be_dir(self, be_dir):
@@ -43,7 +36,7 @@ class OpenManager():
             # get be_dir from chooser
             be_dir = fd.askdirectory(
                      title="Open bulk_extractor directory",
-                     mustexist=True, initialdir=self._identified_data.be_dir)
+                     mustexist=True, initialdir=self._data_manager.be_dir)
 
         if not be_dir:
             # user did not choose, so abort
@@ -51,29 +44,25 @@ class OpenManager():
 
         # read be_dir else show error window
         try:
-            self._identified_data.read(be_dir)
+            self._data_manager.read(be_dir)
 
         except Exception as e:
             ErrorWindow(self._master, "Open Error", e)
             return
 
-        # clear any filter settings
-        self._filters.clear()
-        self._filters.fire_change()
-
         # clear annotation filter settings
         self._annotation_filter.set([])
 
         # clear any byte range selection
-        self._range_selection.clear()
+        self._histogram_control.clear_range()
 
         # reset preferences
         self._preferences.reset()
 
         # report if annotation reader failed
-        if self._identified_data.annotation_load_status:
+        if self._data_manager.annotation_load_status:
             ErrorWindow(self._master, "Annotation Read Error",
                               "Unable to read media image annotations.\n"
                               "Please check that TSK is installed "
-                              "and that PATH is set.\n%s" % self._identified_data.annotation_load_status)
+                              "and that PATH is set.\n%s" % self._data_manager.annotation_load_status)
 

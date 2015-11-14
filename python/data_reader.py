@@ -10,10 +10,11 @@ try:
 except ImportError:
     import Tkinter as tkinter
 
-class IdentifiedData():
-    """Provides hash, source, and image data related to a block hash scan.
+class DataReader():
+    """Read project data from a project directory to provide hash,
+      source, and image data related to a block hash scan.
 
-    Registered callbacks are called after data is changed.
+    This is a helper class to be used only by the data manager.
 
     The bulk_extractor output from a hashdb scan run must exist.  The
     identified_blocks_expanded.txt file will be created if it does not
@@ -72,10 +73,6 @@ class IdentifiedData():
         self.annotations = list()
         self.annotation_load_status = ""
 
-    def set_callback(self, f):
-        """Register function f to be called on data change."""
-        self._identified_data_changed.trace_variable('w', f)
-
     def read(self, be_dir):
         """
         Reads and sets data else raises an exception and leaves data alone.
@@ -127,14 +124,14 @@ class IdentifiedData():
         # fire data changed event
         self._identified_data_changed.set(True)
 
-    def print_stats(self):
-        print("identified_data statistics\n"
-              "be_dir: '%s'\nImage size: %d\nImage filename: '%s'\n"
-              "hashdb directory: '%s'\nSector size: %d\nBlock size: %d\n"
-              "Number of forensic paths: %d\nNumber of hashes: %d\n"
-              "Number of sources: %d\n"
-              "Number of image annotation types: %d\n"
-              "Number of image annotations: %d\n"
+    def __repr__(self):
+        return("DataReader("
+              "be_dir: '%s', Image size: %d, Image filename: '%s', "
+              "hashdb directory: '%s', Sector size: %d, Block size: %d, "
+              "Number of forensic paths: %d, Number of hashes: %d, "
+              "Number of sources: %d, "
+              "Number of image annotation types: %d, "
+              "Number of image annotations: %d)"
               "" % (
                         self.be_dir,
                         self.image_size,

@@ -17,33 +17,29 @@ class HistogramView():
       frame(Frame): the containing frame for this view.
     """
 
-    def __init__(self, master, identified_data, filters, annotation_filter,
-                 range_selection, preferences, histogram_control):
+    def __init__(self, master, data_manager, annotation_filter,
+                 preferences, histogram_control):
         """Args:
           master(a UI container): Parent.
-          identified_data(IdentifiedData): Identified data about the scan.
-          filters(Filters): Filters that impact the view.
-          range_selection(RangeSelection): The selected range.
+          data_manager(DataManager): Manages project data and filters.
+          annotation_filter(AnnotationFilter): The annotation selection filter.
           preferences(Preferences): Includes the offset format preference.
           histogram_control(HistogramControl): Interfaces for controlling
             the histogram view.
         """
 
-        # data variables
-        self._range_selection = range_selection
-
         # histogram control
         self._histogram_control = histogram_control
 
         # the image hex window that the show hex view button can show
-        self._image_hex_window = ImageHexWindow(master, identified_data,
-                                                  filters, range_selection)
+        self._image_hex_window = ImageHexWindow(master, data_manager,
+                                                  histogram_control)
 
         # the fit byte range selection signal manager
         fit_range_selection = FitRangeSelection()
 
         # the annotation window
-        self._annotation_window = AnnotationWindow(master, identified_data,
+        self._annotation_window = AnnotationWindow(master, data_manager,
                                                           annotation_filter)
 
         # make the containing frame
@@ -106,28 +102,27 @@ class HistogramView():
         range_selection_frame.pack(side=tkinter.TOP, anchor="w")
 
         # add the histogram bar
-        self._histogram_bar = HistogramBar(self.frame, identified_data,
-                                    filters,
-                                    range_selection, fit_range_selection,
+        self._histogram_bar = HistogramBar(self.frame, data_manager,
+                                    fit_range_selection,
                                     preferences, annotation_filter,
                                     histogram_control)
         self._histogram_bar.frame.pack(side=tkinter.TOP)
 
-        # register to receive range selection change events
-        range_selection.set_callback(self._handle_range_selection_change)
+        # register to receive histogram_control change events
+        histogram_control.set_callback(self._handle_histogram_control_change)
 
         # set to basic initial state
-        self._handle_range_selection_change()
+        self._handle_histogram_control_change()
 
     def _handle_fit_image(self):
-        self._histogram_bar.fit_image()
+        self._histogram_control.fit_image()
 
     def _handle_view_annotations(self):
         self._annotation_window.show()
 
     # this function is registered to and called by RangeSelection
-    def _handle_range_selection_change(self, *args):
-        if self._range_selection.is_selected:
+    def _handle_histogram_control_change(self, *args):
+        if self._histogram_control.is_valid_range:
             # enable button to zoom to fit range
             self._fit_range_button.config(state=tkinter.NORMAL)
 

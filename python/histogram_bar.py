@@ -6,8 +6,6 @@ from forensic_path import offset_string, size_string, int_string
 from icon_path import icon_path
 from tooltip import Tooltip
 from math import log, floor, log10, pow, ceil
-from histogram_dimensions import HistogramDimensions
-from histogram_data import HistogramData
 from histogram_annotations import HistogramAnnotations
 try:
     import tkinter
@@ -23,8 +21,11 @@ class HistogramBar():
     Attributes:
       frame(Frame): the containing frame for this plot.
       _photo_image(PhotoImage): The image on which the plot is rendered.
-      _histogram_dimensions(HistogramDimensions): The start_offset,
+      _histogram_control(HistogramControl): The start_offset,
         bytes_per_bucket, and associated bar dimension methods.
+      _sector_size(int): Cashed from data_manager during data_change event.
+      _hash_counts(map<hash, (count, is_ignored, is_highlighted)>):
+        Cached from and used by data_manager.
 
     Notes about offset alignment:
       The start and end offsets may be any value, even fractional.
@@ -57,14 +58,12 @@ class HistogramBar():
     _b3_dragged = False
     _b3_down_start_offset = None
 
-    def __init__(self, master, identified_data, filters,
-                range_selection, fit_range_selection, preferences,
+    def __init__(self, master, data_manager,
+                fit_range_selection, preferences,
                 annotation_filter, histogram_control):
         """Args:
           master(a UI container): Parent.
-          identified_data(IdentifiedData): Identified data about the scan.
-          filters(Filters): Filters that impact the view.
-          range_selection(RangeSelection): The selected range.
+          data_manager(DataManager): Manages project data and filters.
           fit_range_selection(FitRangeSelection): Receive signal to fit range.
           preferences(Preferences): Preference, namely the offset format.
           annotation_filter(AnnotationFilter): The annotation filter that
@@ -73,16 +72,8 @@ class HistogramBar():
             the histogram view.
         """
 
-        # histogram dimensions including start offset and bytes per bucket
-        self._histogram_dimensions = HistogramDimensions(self.NUM_BUCKETS)
-
-        # histogram data and the methods that calculate this data
-        self._histogram_data = HistogramData(self.NUM_BUCKETS)
-
         # data variables
-        self._identified_data = identified_data
-        self._filters = filters
-        self._range_selection = range_selection
+        self._data_manager = data_manager
         self._preferences = preferences
         self._annotation_filter = annotation_filter
 
@@ -188,15 +179,14 @@ class HistogramBar():
         w = self.NUM_BUCKETS * histogram_constants.BUCKET_WIDTH
         h = histogram_constants.ANNOTATION_HEIGHT
         self._histogram_annotations = HistogramAnnotations(self._c,
-                      x0, y0, w, h, self._histogram_dimensions,
-                      histogram_constants.BUCKET_WIDTH, self._identified_data,
-                      annotation_filter)
+                      x0, y0, w, h, self._histogram_control,
+                      self._data_manager, annotation_filter)
 
-        # register to receive identified_data change events
-        identified_data.set_callback(self._handle_identified_data_change)
+        # register to receive data manager change events
+        data_manager.set_callback(self._handle_data_manager_change)
 
-        # register to receive filter change events
-        filters.set_callback(self._handle_filter_change)
+        # register to receive fit range change events
+        fit_range_selection.set_callback(self._handle_fit_range_selection)
 
         # register to receive preferences change events
         preferences.set_callback(self._handle_preferences_change)
@@ -206,36 +196,42 @@ class HistogramBar():
                                     self._handle_histogram_control_change)
 
         # set to basic initial state
-        self._handle_identified_data_change()
+        self._handle_data_manager_change()
         self._draw("range_changed")
+
+    def _calculate_bucket_data(self):
+        (self._source_buckets, self._ignored_source_buckets,
+         self._highlighted_source_buckets, self._y_scale) = \
+                      self._data_manager.calculate_bucket_data(
+                                    self._hash_counts,
+                                    self._histogram_control.start_offset,
+                                    self._histogram_control.bytes_per_bucket,
+                                    self.NUM_BUCKETS)
 
     # this function is registered to and called by Filters
     def _handle_filter_change(self, *args):
         # recalculate hash counts and bucket data
-        self._histogram_data.calculate_hash_counts(
-                                  self._identified_data.hashes, self._filters)
-        self._histogram_data.calculate_bucket_data(
-                                  self._identified_data.forensic_paths,
-                                  self._histogram_control.start_offset,
-                                  self._histogram_control.bytes_per_bucket)
+        self._hash_counts = self._data_manager.calculate_hash_counts()
+        self._calculate_bucket_data()
 
         # redraw, keeping dimensions
         self._draw("plot_region_changed")
 
     # this function is registered to and called by IdentifiedData
-    def _handle_identified_data_change(self, *args):
+    def _handle_data_manager_change(self, *args):
+        self._sector_size = self._data_manager.sector_size
         # recalculate hash counts and bucket data
-        self._histogram_data.calculate_hash_counts(
-                                  self._identified_data.hashes, self._filters)
-        self._histogram_data.calculate_bucket_data(
-                                  self._identified_data.forensic_paths,
-                                  self._histogram_control.start_offset,
-                                  self._histogram_control.bytes_per_bucket)
+        self._hash_counts = self._data_manager.calculate_hash_counts()
+        self._calculate_bucket_data()
 
         # set dimensions for this image
-        self._histogram_control.fit_image(self._identified_data.image_size,
-                                             self._identified_data.block_size,
+        self._histogram_control.set_bounds(self._data_manager.image_size,
+                                             self._data_manager.block_size,
                                              self.NUM_BUCKETS)
+
+    # this function is registered to and called by FitRangeSelection
+    def _handle_fit_range_selection(self, *args):
+        self._histogram_control.fit_range()
 
     # this function is registered to and called by Preferences
     def _handle_preferences_change(self, *args):
@@ -243,7 +239,6 @@ class HistogramBar():
 
     # this function is registered to and called by HistogramControl
     def _handle_histogram_control_change(self, *args):
-        print("_handle_histogram_control_change:", self._histogram_control.change_type)
         self._draw(self._histogram_control.change_type)
 
     def _draw(self, change_mode):
@@ -267,10 +262,7 @@ class HistogramBar():
             self._draw_range_text()
             self._draw_histogram_annotation_text()
         elif change_mode == "plot_region_changed":
-            self._histogram_data.calculate_bucket_data(
-                                  self._identified_data.forensic_paths,
-                                  self._histogram_control.start_offset,
-                                  self._histogram_control.bytes_per_bucket)
+            self._calculate_bucket_data()
             self._draw_histogram_annotation_text()
         else:
             raise RuntimeError("program error")
@@ -292,7 +284,7 @@ class HistogramBar():
                                      self._histogram_control.bound_offset(
                                      self._histogram_control.cursor_offset),
                                   self._preferences.offset_format,
-                                  self._identified_data.sector_size))
+                                  self._sector_size))
 
         else:
             # clear
@@ -305,13 +297,13 @@ class HistogramBar():
             # bucket count at cursor
             self._bucket_count_label["text"] = \
                           "Bar matches: %s, h=%s, i=%s" % (
-                             self._histogram_data.source_buckets[
+                             self._source_buckets[
                              self._histogram_control.offset_to_bucket(
                                       self._histogram_control.cursor_offset)],
-                             self._histogram_data.highlighted_source_buckets[
+                             self._highlighted_source_buckets[
                              self._histogram_control.offset_to_bucket(
                                       self._histogram_control.cursor_offset)],
-                             self._histogram_data.ignored_source_buckets[
+                             self._ignored_source_buckets[
                              self._histogram_control.offset_to_bucket(
                                       self._histogram_control.cursor_offset)])
         else:
@@ -320,24 +312,24 @@ class HistogramBar():
 
     def _draw_range_text(self):
         # range selection text
-        if self._range_selection.is_selected:
+        if self._histogram_control.is_valid_range:
             self._range_selection_label["text"] = \
                            "Range: %s \u2014 %s  (%s)" % (
                            # start_offset
                            offset_string(self._histogram_control.bound_offset(
-                                         self._range_selection.start_offset),
+                                         self._histogram_control.range_start),
                                          self._preferences.offset_format,
-                                         self._identified_data.sector_size),
+                                         self._sector_size),
                            # stop_offset
                            offset_string(self._histogram_control.bound_offset(
-                                         self._range_selection.stop_offset-1),
+                                         self._histogram_control.range_stop-1),
                                          self._preferences.offset_format,
-                                         self._identified_data.sector_size),
+                                         self._sector_size),
                            # range
                            size_string(self._histogram_control.bound_offset(
-                                       self._range_selection.stop_offset) -
+                                       self._histogram_control.range_stop) -
                                        self._histogram_control.bound_offset(
-                                       self._range_selection.start_offset)))
+                                       self._histogram_control.range_start)))
         else:
             self._range_selection_label["text"] = "Range: NA"
 
@@ -350,29 +342,29 @@ class HistogramBar():
             self._bucket_width_label["text"] = "Bar width: %s" % \
                     offset_string(self._histogram_control.bytes_per_bucket,
                                   self._preferences.offset_format,
-                                  self._identified_data.sector_size)
+                                  self._sector_size)
 
         # histogram start and stop text
         self._c.itemconfigure(self._start_offset_id, text=offset_string(
                   self._histogram_control.bound_offset(
                                   self._histogram_control.start_offset),
                                   self._preferences.offset_format,
-                                  self._identified_data.sector_size))
+                                  self._sector_size))
         stop_offset = self._histogram_control.start_offset + (
                                self._histogram_control.bytes_per_bucket *
                                                           self.NUM_BUCKETS) - 1
         self._c.itemconfigure(self._stop_offset_id, text=offset_string(
                   self._histogram_control.bound_offset(stop_offset),
                                   self._preferences.offset_format,
-                                  self._identified_data.sector_size))
+                                  self._sector_size))
 
         # Y scale marker text
         self._c.itemconfigure(self._marker1_id, text=int_string(
-                                             self._histogram_data.y_scale))
+                                                           self._y_scale))
         self._c.itemconfigure(self._marker2_id, text=int_string(
-                                           self._histogram_data.y_scale*10))
+                                                           self._y_scale*10))
         self._c.itemconfigure(self._marker3_id, text=int_string(
-                                           self._histogram_data.y_scale*100))
+                                                           self._y_scale*100))
 
     # clear histogram graph
     def _draw_clear(self):
@@ -390,18 +382,18 @@ class HistogramBar():
 
     # draw the range selection
     def _draw_range_selection(self):
-        if self._range_selection.is_selected:
+        if self._histogram_control.is_valid_range:
 
             # get bucket 1 value
             b1 = self._histogram_control.offset_to_bucket(
-                                           self._range_selection.start_offset)
+                                           self._histogram_control.range_start)
             if b1 < 0: b1 = 0
             if b1 > self.NUM_BUCKETS: b1 = self.NUM_BUCKETS
             x1 = b1 * histogram_constants.BUCKET_WIDTH
 
             # get bucket b2 value
             b2 = self._histogram_control.offset_to_bucket(
-                                           self._range_selection.stop_offset)
+                                           self._histogram_control.range_stop)
             if b2 < 0: b2 = 0
             if b2 > self.NUM_BUCKETS: b2 = self.NUM_BUCKETS
             x2 = b2 * histogram_constants.BUCKET_WIDTH
@@ -436,7 +428,7 @@ class HistogramBar():
       and bucket height multiplier."""
     def _bar_height(self, count):
         h = int(count * histogram_constants.BUCKET_HEIGHT_MULTIPLIER //
-                                                self._histogram_data.y_scale)
+                                                self._y_scale)
 
         # make small value visible
         if h == 0 and count > 0:
@@ -489,16 +481,16 @@ class HistogramBar():
 
         # all sources with ignored sources removed: light blue bar
         self._draw_bar(colors.ALL_LIGHTER,
-                    self._histogram_data.source_buckets[i] -
-                    self._histogram_data.ignored_source_buckets[i], i)
+                    self._source_buckets[i] -
+                    self._ignored_source_buckets[i], i)
 
         # all sources: light blue tick
         self._draw_tick(colors.ALL_LIGHTER,
-                    self._histogram_data.source_buckets[i], i)
+                    self._source_buckets[i], i)
 
         # highlighted matches: light green bar
         self._draw_bar(colors.HIGHLIGHTED_LIGHTER,
-                    self._histogram_data.highlighted_source_buckets[i], i)
+                    self._highlighted_source_buckets[i], i)
 
     # draw one gray bucket for out-of-range data
     def _draw_gray_bucket(self, i):

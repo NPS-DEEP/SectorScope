@@ -1,4 +1,5 @@
 import colors
+import histogram_constants
 try:
     import tkinter
 except ImportError:
@@ -9,28 +10,27 @@ class HistogramAnnotations():
     registered events.
     """
 
-    def __init__(self, canvas, x0, y0, w, h, histogram_dimensions,
-                 bucket_width, identified_data, annotation_filter):
+    def __init__(self, canvas, x0, y0, w, h, histogram_control,
+                 data_manager, annotation_filter):
 
         self._canvas = canvas
         self._x0 = x0
         self._y0 = y0
         self._w = w
         self._h = h
-        self._histogram_dimensions = histogram_dimensions
-        self._bucket_width = bucket_width
-        self._identified_data = identified_data
+        self._histogram_control = histogram_control
+        self._data_manager = data_manager
         self._annotation_filter = annotation_filter
 
-        # register to receive identified_data change events
-        identified_data.set_callback(self._handle_identified_data_change)
+        # register to receive data_manager change events
+        data_manager.set_callback(self._handle_data_manager_change)
 
         # register to receive annotation filter change events
         annotation_filter.set_callback(self._handle_annotation_filter_change)
 
-        # register to receive histogram dimensions change events
-        self._histogram_dimensions.set_callback(
-                                    self._handle_histogram_dimensions_change)
+        # register to receive histogram control change events
+        self._histogram_control.set_callback(
+                                    self._handle_histogram_control_change)
 
     def _load(self):
         # clear existing annotations from the canvas
@@ -38,7 +38,7 @@ class HistogramAnnotations():
 
         # load annotations into the canvas
         c = self._canvas
-        annotations = self._identified_data.annotations
+        annotations = self._data_manager.annotations
         ignored_types = self._annotation_filter.ignored_types
         i=0
         for annotation_type, offset, length, text in annotations:
@@ -57,18 +57,18 @@ class HistogramAnnotations():
 
     def _place(self):
         # skip if not initialized
-        if self._histogram_dimensions.bytes_per_bucket * \
-                                                     self._bucket_width == 0:
+        if self._histogram_control.bytes_per_bucket == 0:
             return
 
         # place annotations
         c = self._canvas
         annotation_x0 = self._x0
         annotation_y0 = self._y0
-        annotations = self._identified_data.annotations
+        annotations = self._data_manager.annotations
         ignored_types = self._annotation_filter.ignored_types
-        start_offset = self._histogram_dimensions.start_offset
-        scale = self._bucket_width / self._histogram_dimensions.bytes_per_bucket
+        start_offset = self._histogram_control.start_offset
+        scale = histogram_constants.BUCKET_WIDTH / \
+                                  self._histogram_control.bytes_per_bucket
         i=0
         for annotation_type, offset, length, text in annotations:
             # skip filtered out annotations
@@ -99,18 +99,18 @@ class HistogramAnnotations():
             # next
             i+=1
 
-    # this function is registered to and called by IdentifiedData
-    def _handle_identified_data_change(self, *args):
-        # wait for annotation filter change instead
-        self._load()
-        self._place()
+    # this function is registered to and called by DataManager
+    def _handle_data_manager_change(self, *args):
+        if self._data_manager.change_type == "data_changed":
+            self._load()
+            self._place()
 
     # this function is registered to and called by AnnotationFilter
     def _handle_annotation_filter_change(self, *args):
         self._load()
         self._place()
 
-    # this function is registered to and called by HistogramDimensions
-    def _handle_histogram_dimensions_change(self, *args):
+    # this function is registered to and called by HistogramControl
+    def _handle_histogram_control_change(self, *args):
         self._place()
 

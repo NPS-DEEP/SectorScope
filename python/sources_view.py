@@ -16,18 +16,16 @@ class SourcesView():
       frame(Frame): the containing frame for this view.
     """
 
-    def __init__(self, master, identified_data, filters, range_selection):
+    def __init__(self, master, data_manager, histogram_control):
         """Args:
           master(a UI container): Parent.
-          identified_data(IdentifiedData): All data related to the block
-            hash scan.
-          filters(Filters): Filters that impact the view.
-          range_selection(RangeSelection): The selected range.
-         """
+          data_manager(DataManager): Manages project data and filters.
+          histogram_control(HistogramControl): Interfaces for controlling
+            the histogram view.
+          """
 
         # variables
-        self._identified_data = identified_data
-        self._filters = filters
+        self._data_manager = data_manager
 
         # make the containing frame
         self.frame = tkinter.Frame(master, bg=colors.BACKGROUND)
@@ -37,8 +35,7 @@ class SourcesView():
                                                              side=tkinter.TOP)
 
         # the sources table
-        self._sources_table = SourcesTable(self.frame, identified_data,
-                                                  filters, range_selection,
-                                                  width=500, height=500)
+        self._sources_table = SourcesTable(self.frame, data_manager,
+                                     histogram_control, width=500, height=500)
         self._sources_table.frame.pack(side=tkinter.TOP, anchor="w")
 

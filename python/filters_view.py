@@ -3,7 +3,6 @@ from tooltip import Tooltip
 from be_scan_window import BEScanWindow
 from be_import_window import BEImportWindow
 import colors
-from filter_changer import FilterChanger
 try:
     import tkinter
 except ImportError:
@@ -16,25 +15,22 @@ class FiltersView():
       frame(Frame): the containing frame for this view.
     """
 
-    def __init__(self, master, identified_data, filters, range_selection):
+    def __init__(self, master, data_manager, histogram_control):
         """Args:
           master(a UI container): Parent.
-          filters(Filters): Filters for hashes and sources.
-          range_selection(RangeSelection): The selected range.
+          data_manager(DataManager): Manages project data and filters.
+          histogram_control(HistogramControl): Interfaces for controlling
+            the histogram view.
          """
 
-        # the filter changer helper
-        self._fc = FilterChanger(identified_data, filters, range_selection)
+        self._data_manager = data_manager
+        self._histogram_control = histogram_control
 
         # state to prevent infinite filter change loop
         self._is_handle_filter_change = False
 
         # UI state
         self._ignore_flagged_blocks_trace_var = tkinter.IntVar()
-
-        # local references
-        self._filters = filters
-        self._range_selection = range_selection
 
         # make the containing frame
         self.frame = tkinter.Frame(master, bg=colors.BACKGROUND)
@@ -58,7 +54,7 @@ class FiltersView():
                            image=self._highlight_hashes_in_range_icon,
                            text="H",
                            compound="left", padx=4, pady=0,
-                           command=self._fc.highlight_hashes_in_range,
+                           command=self._handle_highlight_hashes_in_range,
                            bg=colors.BACKGROUND,
                            activebackground=colors.ACTIVEBACKGROUND,
                            highlightthickness=0)
@@ -74,7 +70,7 @@ class FiltersView():
                    image=self._highlight_sources_with_hashes_in_range_icon,
                    text="S",
                    compound="left", padx=4, pady=0,
-                   command=self._fc.highlight_sources_with_hashes_in_range,
+                   command=self._handle_highlight_sources_with_hashes_in_range,
                    bg=colors.BACKGROUND,
                    activebackground=colors.ACTIVEBACKGROUND,
                    highlightthickness=0)
@@ -90,7 +86,7 @@ class FiltersView():
                    image=self._clear_highlighted_hashes_icon,
                    text="H",
                    compound="left", padx=4, pady=0,
-                   command=self._fc.clear_highlighted_hashes,
+                   command=self._handle_clear_highlighted_hashes,
                    bg=colors.BACKGROUND,
                    activebackground=colors.ACTIVEBACKGROUND,
                    highlightthickness=0)
@@ -105,7 +101,7 @@ class FiltersView():
                    image=self._clear_highlighted_sources_icon,
                    text="S",
                    compound="left", padx=4, pady=0,
-                   command=self._fc.clear_highlighted_sources,
+                   command=self._handle_clear_highlighted_sources,
                    bg=colors.BACKGROUND,
                    activebackground=colors.ACTIVEBACKGROUND,
                    highlightthickness=0)
@@ -150,7 +146,6 @@ class FiltersView():
                                          "Ignore flagged blocks")
 
         # bind actions for ignore_flagged_blocks checkbutton
-        self._ignore_flagged_blocks_trace_var.set(filters.ignore_flagged_blocks)
         self._ignore_flagged_blocks_trace_var.trace_variable('w',
                              self._handle_ignore_flagged_blocks_selection)
 
@@ -163,7 +158,7 @@ class FiltersView():
                            image=self._ignore_hashes_in_range_icon,
                            text="H",
                            compound="left", padx=4, pady=0,
-                           command=self._fc.ignore_hashes_in_range,
+                           command=self._handle_ignore_hashes_in_range,
                            bg=colors.BACKGROUND,
                            activebackground=colors.ACTIVEBACKGROUND,
                            highlightthickness=0)
@@ -179,7 +174,7 @@ class FiltersView():
                    image=self._ignore_sources_with_hashes_in_range_icon,
                    text="S",
                    compound="left", padx=4, pady=0,
-                   command=self._fc.ignore_sources_with_hashes_in_range,
+                   command=self._handle_ignore_sources_with_hashes_in_range,
                    bg=colors.BACKGROUND,
                    activebackground=colors.ACTIVEBACKGROUND,
                    highlightthickness=0)
@@ -194,7 +189,7 @@ class FiltersView():
                    image=self._clear_ignored_hashes_icon,
                    text="H",
                    compound="left", padx=4, pady=0,
-                   command=self._fc.clear_ignored_hashes,
+                   command=self._handle_clear_ignored_hashes,
                    bg=colors.BACKGROUND,
                    activebackground=colors.ACTIVEBACKGROUND,
                    highlightthickness=0)
@@ -208,60 +203,65 @@ class FiltersView():
                    image=self._clear_ignored_sources_icon,
                    text="S",
                    compound="left", padx=4, pady=0,
-                   command=self._fc.clear_ignored_sources,
+                   command=self._handle_clear_ignored_sources,
                    bg=colors.BACKGROUND,
                    activebackground=colors.ACTIVEBACKGROUND,
                    highlightthickness=0)
         self._clear_ignored_sources_button.pack(side=tkinter.LEFT)
         Tooltip(self._clear_ignored_sources_button, "Clear all ignored sources")
 
-        # register to receive highlight change events
-        filters.set_callback(self._handle_filter_change)
+        # register to receive data manager change events
+        data_manager.set_callback(self._handle_data_manager_change)
 
-        # register to receive range selection change events
-        range_selection.set_callback(self._handle_range_selection_change)
+        # register to receive histogram control change events
+        histogram_control.set_callback(self._handle_histogram_control_change)
 
         # set initial state
-        self._handle_filter_change()
-        self._handle_range_selection_change()
+        self._handle_data_manager_change()
+        self._handle_histogram_control_change()
 
-    def _handle_filter_change(self, *args):
+    def _handle_data_manager_change(self, *args):
         # set state for ignore max hashes entry and ignore
         # flagged blocks trace var without causing a circular
         # handle_filter_change loop
         self._is_handle_filter_change = True
-        self._set_ignore_max_hashes_entry(self._filters.ignore_max_hashes)
+
+        # ignore max hashes
+        self._set_ignore_max_hashes_entry(self._data_manager.ignore_max_hashes)
+
+        # ignore flagged blocks
         self._ignore_flagged_blocks_trace_var.set(
-                                   self._filters.ignore_flagged_blocks)
-        self._is_handle_filter_change = False
+                                   self._data_manager.ignore_flagged_blocks)
 
         # ignored hashes
-        if len(self._filters.ignored_hashes):
+        if len(self._data_manager.ignored_hashes):
             self._clear_ignored_hashes_button.config(state=tkinter.NORMAL)
         else:
             self._clear_ignored_hashes_button.config(state=tkinter.DISABLED)
 
         # ignored sources
-        if len(self._filters.ignored_sources):
+        if len(self._data_manager.ignored_sources):
             self._clear_ignored_sources_button.config(state=tkinter.NORMAL)
         else:
             self._clear_ignored_sources_button.config(state=tkinter.DISABLED)
 
         # highlighted hashes
-        if len(self._filters.highlighted_hashes):
+        if len(self._data_manager.highlighted_hashes):
             self._clear_highlighted_hashes_button.config(state=tkinter.NORMAL)
         else:
             self._clear_highlighted_hashes_button.config(state=tkinter.DISABLED)
 
         # highlighted sources
-        if len(self._filters.highlighted_sources):
+        if len(self._data_manager.highlighted_sources):
             self._clear_highlighted_sources_button.config(state=tkinter.NORMAL)
         else:
             self._clear_highlighted_sources_button.config(
                                                        state=tkinter.DISABLED)
 
-    def _handle_range_selection_change(self, *args):
-        if self._range_selection.is_selected:
+        self._is_handle_filter_change = False
+
+    def _handle_histogram_control_change(self, *args):
+        if self._histogram_control.is_valid_range:
             state = tkinter.NORMAL
         else:
             state = tkinter.DISABLED
@@ -275,8 +275,7 @@ class FiltersView():
         if ignore_max_hashes == 0:
             self._ignore_max_hashes_entry.insert(0, "None")
         else:
-            self._ignore_max_hashes_entry.insert(0,
-                                    "%s" % self._filters.ignore_max_hashes)
+            self._ignore_max_hashes_entry.insert(0, "%s" % ignore_max_hashes)
 
     def _handle_ignore_max_hashes_selection(self, e):
         # get max_hashes int
@@ -288,23 +287,52 @@ class FiltersView():
         # set entry to make sure it looks nice
         self._set_ignore_max_hashes_entry(ignore_max_hashes)
 
-        # fire if change is from the user
+        # accept if change is from the user
         if not self._is_handle_filter_change:
 
-            # only set if ignore_max_hashes changes
-            if ignore_max_hashes != self._filters.ignore_max_hashes:
-                self._filters.ignore_max_hashes = ignore_max_hashes
-                self._filters.fire_change()
+            # drop focus so entry visually looks accepted
+            # by giving focus to something that doesn't need or show it
+            self.frame.focus()
 
-                # drop focus so it visually looks accepted
-                # by giving focus to something that doesn't need or show it
-                self.frame.focus()
+            # ignore if no change
+            if ignore_max_hashes == self._data_manager.ignore_max_hashes:
+                return
+
+            self._data_manager.ignore_max_hashes = ignore_max_hashes
+            self._data_manager.fire_filter_change()
 
     def _handle_ignore_flagged_blocks_selection(self, *args):
-        self._filters.ignore_flagged_blocks = \
-                               self._ignore_flagged_blocks_trace_var.get()
 
-        # fire if change is from the user
+        # accept if change is from the user
         if not self._is_handle_filter_change:
-            self._filters.fire_change()
+            # make the change
+            self._data_manager.ignore_flagged_blocks = \
+                                self._ignore_flagged_blocks_trace_var.get()
+            self._data_manager.fire_filter_change()
+
+    # filter button handlers
+    def _handle_highlight_hashes_in_range(self):
+        self._data_manager.highlight_hashes_in_range(
+                                       self._histogram_control.range_start,
+                                       self._histogram_control.range_stop)
+    def _handle_highlight_sources_with_hashes_in_range(self):
+        self._data_manager.highlight_sources_with_hashes_in_range(
+                                       self._histogram_control.range_start,
+                                       self._histogram_control.range_stop)
+    def _handle_clear_highlighted_hashes(self):
+        self._data_manager.clear_highlighted_hashes()
+    def _handle_clear_highlighted_sources(self):
+        self._data_manager.clear_highlighted_sources()
+    def _handle_ignore_hashes_in_range(self):
+        self._data_manager.ignore_hashes_in_range(
+                                       self._histogram_control.range_start,
+                                       self._histogram_control.range_stop)
+    def _handle_ignore_sources_with_hashes_in_range(self):
+        self._data_manager.ignore_sources_with_hashes_in_range(
+                                       self._histogram_control.range_start,
+                                       self._histogram_control.range_stop)
+    def _handle_clear_ignored_hashes(self):
+        self._data_manager.clear_ignored_hashes()
+    def _handle_clear_ignored_sources(self):
+        self._data_manager.clear_ignored_sources()
 
