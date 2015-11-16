@@ -54,11 +54,6 @@ class DataReader():
     """
 
     def __init__(self):
-        # instantiate the signal variable
-        # Note that Tk must already be initialized for tkinter.Variable to work.
-        # Note that the boolean variable is not actually used.
-        self._identified_data_changed = tkinter.BooleanVar()
-
         # set initial state
         self.be_dir = ""
         self.image_size = 0
@@ -120,9 +115,6 @@ class DataReader():
         self.annotation_types = annotation_types
         self.annotations = annotations
         self.annotation_load_status = annotation_load_status
-
-        # fire data changed event
-        self._identified_data_changed.set(True)
 
     def __repr__(self):
         return("DataReader("

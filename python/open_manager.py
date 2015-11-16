@@ -1,4 +1,5 @@
 from error_window import ErrorWindow
+from data_reader import DataReader
 try:
     import tkinter
     import tkinter.filedialog as fd
@@ -17,6 +18,7 @@ class OpenManager():
                  histogram_control, preferences):
         """Args:
           master(a UI container): Parent.
+          data_reader(DataReader): Data reader.
           data_manager(DataManager): Manages project data and filters.
           histogram_control(HistogramControl): Interfaces for controlling
             the histogram view.
@@ -29,6 +31,8 @@ class OpenManager():
         self._annotation_filter = annotation_filter
         self._histogram_control = histogram_control
         self._preferences = preferences
+
+        self._data_reader = DataReader()
 
     """Open be_dir or if not be_dir open be_dir from chooser."""
     def open_be_dir(self, be_dir):
@@ -44,25 +48,29 @@ class OpenManager():
 
         # read be_dir else show error window
         try:
-            self._data_manager.read(be_dir)
+            self._data_reader.read(be_dir)
 
         except Exception as e:
             ErrorWindow(self._master, "Open Error", e)
             return
 
-        # clear annotation filter settings
-        self._annotation_filter.set([])
-
-        # clear any byte range selection
-        self._histogram_control.clear_range()
-
-        # reset preferences
-        self._preferences.reset()
+        # the read worked so accept the the project
 
         # report if annotation reader failed
         if self._data_manager.annotation_load_status:
             ErrorWindow(self._master, "Annotation Read Error",
                               "Unable to read media image annotations.\n"
                               "Please check that TSK is installed "
-                              "and that PATH is set.\n%s" % self._data_manager.annotation_load_status)
+                              "and that PATH is set.\n%s" %
+                              self._data_manager.annotation_load_status)
+
+        # clear annotation filter settings
+        self._annotation_filter.set([])
+
+        # reset the histogram control settings
+        self._histogram_control.set_project(self._data_reader.image_size,
+                                            self._data_reader.block_size)
+
+        # accept the data, firing change
+        self._data_manager.set_data(self._data_reader)
 

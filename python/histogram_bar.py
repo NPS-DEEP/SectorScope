@@ -23,9 +23,9 @@ class HistogramBar():
       _photo_image(PhotoImage): The image on which the plot is rendered.
       _histogram_control(HistogramControl): The start_offset,
         bytes_per_bucket, and associated bar dimension methods.
-      _sector_size(int): Cashed from data_manager during data_change event.
       _hash_counts(map<hash, (count, is_ignored, is_highlighted)>):
         Cached from and used by data_manager.
+      _valid_bucket_range(tuple(first, last)): Vaid bucket endpoints.
 
     Notes about offset alignment:
       The start and end offsets may be any value, even fractional.
@@ -35,15 +35,6 @@ class HistogramBar():
         block hash features align to block boundaries.
       Selection and range selection values round down to block boundary
     """
-    # number of buckets across the bar
-    NUM_BUCKETS = 320
-
-    # bar size in pixels
-    HISTOGRAM_BAR_WIDTH = NUM_BUCKETS * histogram_constants.BUCKET_WIDTH
-
-    # canvas size in pixels
-    CANVAS_WIDTH = HISTOGRAM_BAR_WIDTH + \
-                                   histogram_constants.HISTOGRAM_X_OFFSET + 1
 
     # cursor state
     _is_valid_cursor = False
@@ -81,10 +72,12 @@ class HistogramBar():
         self._histogram_control = histogram_control
 
         # the photo_image
-        self._photo_image = tkinter.PhotoImage(width=self.HISTOGRAM_BAR_WIDTH,
-                              height=histogram_constants.HISTOGRAM_BAR_HEIGHT)
-        self._photo_image.put("gray", to=(0, 0, self.HISTOGRAM_BAR_WIDTH,
-                                    histogram_constants.HISTOGRAM_BAR_HEIGHT))
+        self._photo_image = tkinter.PhotoImage(
+                            width=self._histogram_control.histogram_bar_width,
+                            height=histogram_constants.HISTOGRAM_BAR_HEIGHT)
+        self._photo_image.put("gray", to=(0, 0,
+                                 self._histogram_control.histogram_bar_width,
+                                 histogram_constants.HISTOGRAM_BAR_HEIGHT))
 
         # make the containing frame
         self.frame = tkinter.Frame(master, bg=colors.BACKGROUND)
@@ -111,7 +104,7 @@ class HistogramBar():
 
         # add the canvas containing the histogram graph
         self._c = tkinter.Canvas(self.frame, relief=tkinter.SUNKEN,
-                              width=self.CANVAS_WIDTH,
+                              width=self._histogram_control.canvas_width,
                               height=histogram_constants.CANVAS_HEIGHT, bd=0,
                               highlightthickness=0, bg=colors.BACKGROUND)
         self._c.pack(side=tkinter.TOP)
@@ -123,7 +116,7 @@ class HistogramBar():
         self._c.create_rectangle(histogram_constants.HISTOGRAM_X_OFFSET-1,
                                     histogram_constants.HISTOGRAM_Y_OFFSET-1,
                                     histogram_constants.HISTOGRAM_X_OFFSET+0 +
-                                    self.HISTOGRAM_BAR_WIDTH,
+                                    self._histogram_control.histogram_bar_width,
                                     histogram_constants.HISTOGRAM_Y_OFFSET+0 +
                                     histogram_constants.HISTOGRAM_BAR_HEIGHT,
                    outline=colors.BOUNDING_BOX)
@@ -140,13 +133,15 @@ class HistogramBar():
 
         # cursor offset
         self._cursor_offset_id = self._c.create_text(
-                                     histogram_constants.HISTOGRAM_X_OFFSET +
-                         self.HISTOGRAM_BAR_WIDTH // 2, 0, anchor=tkinter.N)
+                         histogram_constants.HISTOGRAM_X_OFFSET +
+                         self._histogram_control.histogram_bar_width // 2,
+                         0, anchor=tkinter.N)
 
         # stop offset
         self._stop_offset_id = self._c.create_text(
                              histogram_constants.HISTOGRAM_X_OFFSET +
-                             self.HISTOGRAM_BAR_WIDTH, 0, anchor=tkinter.NE)
+                             self._histogram_control.histogram_bar_width,
+                             0, anchor=tkinter.NE)
 
         # y axis gradient mark 1
         x = histogram_constants.HISTOGRAM_X_OFFSET
@@ -176,7 +171,8 @@ class HistogramBar():
         x0 = histogram_constants.HISTOGRAM_X_OFFSET
         y0 = histogram_constants.HISTOGRAM_Y_OFFSET + \
                                       histogram_constants.HISTOGRAM_BAR_HEIGHT
-        w = self.NUM_BUCKETS * histogram_constants.BUCKET_WIDTH
+        w = self._histogram_control.num_buckets * \
+                                      histogram_constants.BUCKET_WIDTH
         h = histogram_constants.ANNOTATION_HEIGHT
         self._histogram_annotations = HistogramAnnotations(self._c,
                       x0, y0, w, h, self._histogram_control,
@@ -196,8 +192,7 @@ class HistogramBar():
                                     self._handle_histogram_control_change)
 
         # set to basic initial state
-        self._handle_data_manager_change()
-        self._draw("range_changed")
+        self._draw("data_changed")
 
     def _calculate_bucket_data(self):
         (self._source_buckets, self._ignored_source_buckets,
@@ -206,66 +201,79 @@ class HistogramBar():
                                     self._hash_counts,
                                     self._histogram_control.start_offset,
                                     self._histogram_control.bytes_per_bucket,
-                                    self.NUM_BUCKETS)
-
-    # this function is registered to and called by Filters
-    def _handle_filter_change(self, *args):
-        # recalculate hash counts and bucket data
-        self._hash_counts = self._data_manager.calculate_hash_counts()
-        self._calculate_bucket_data()
-
-        # redraw, keeping dimensions
-        self._draw("plot_region_changed")
-
-    # this function is registered to and called by IdentifiedData
-    def _handle_data_manager_change(self, *args):
-        self._sector_size = self._data_manager.sector_size
-        # recalculate hash counts and bucket data
-        self._hash_counts = self._data_manager.calculate_hash_counts()
-        self._calculate_bucket_data()
-
-        # set dimensions for this image
-        self._histogram_control.set_bounds(self._data_manager.image_size,
-                                             self._data_manager.block_size,
-                                             self.NUM_BUCKETS)
-
-    # this function is registered to and called by FitRangeSelection
-    def _handle_fit_range_selection(self, *args):
-        self._histogram_control.fit_range()
-
-    # this function is registered to and called by Preferences
-    def _handle_preferences_change(self, *args):
-        self._draw("preferences_changed")
+                                    self._histogram_control.num_buckets)
 
     # this function is registered to and called by HistogramControl
     def _handle_histogram_control_change(self, *args):
+        # cursor_moved, range_changed, plot_region_changed
         self._draw(self._histogram_control.change_type)
+
+    # this function is registered to and called by Preferences
+    def _handle_preferences_change(self, *args):
+        # preferences_changed
+        self._draw("preferences_changed")
+
+    # this function is registered to and called by FitRangeSelection
+    def _handle_fit_range_selection(self, *args):
+        # fit_range
+        self._draw("fit_range")
+
+    # this function is registered to and called by the data manager
+    def _handle_data_manager_change(self, *args):
+        # data_changed or filter_changed
+        self._draw(self._data_manager.change_type)
 
     def _draw(self, change_mode):
         """Draw text based on change mode, then redraw the graph.
         Change modes:
-          cursor_moved: cursor moved, redraw cursor bar and cursor
+          cursor_moved: Cursor moved, redraw cursor bar and cursor
             offset text.
-          range_changed: range changed, recalculate sources in range,
+          range_changed: Range changed, recalculate sources in range,
             draw range rectangle and fire change for redrawing the
             sources table.
-          preferences_changed: offset text units changed, change annotation.
-          plot_region_changed: recalculate bucket counts due to pan or zoom
+          plot_region_changed: Histogram zoomed or panned, redraw bars and
+            annotation.
+          fit_range: Redraw to fit range.
+          preferences_changed: Offset text units changed, change annotation.
+          plot_region_changed: Recalculate bucket counts due to pan or zoom
             and redraw buckets.
         """
         if change_mode == "cursor_moved":
             self._draw_cursor_text()
+
         elif change_mode == "range_changed":
-            self._draw_range_text()
-        elif change_mode == "preferences_changed":
-            self._draw_cursor_text()
-            self._draw_range_text()
-            self._draw_histogram_annotation_text()
+            self._draw_cursor_and_range_text()
+
         elif change_mode == "plot_region_changed":
             self._calculate_bucket_data()
-            self._draw_histogram_annotation_text()
+            self._draw_all_text()
+            self._valid_bucket_range = \
+                             self._histogram_control.valid_bucket_range()
+
+        elif change_mode == "preferences_changed":
+            self._draw_all_text()
+
+        elif change_mode == "fit_range":
+            self._histogram_control.fit_range()
+            self._calculate_bucket_data()
+            self._draw_all_text()
+            self._valid_bucket_range = \
+                             self._histogram_control.valid_bucket_range()
+
+        elif change_mode == "filter_changed":
+            self._hash_counts = self._data_manager.calculate_hash_counts()
+            self._calculate_bucket_data()
+            self._draw_all_text()
+
+        elif change_mode == "data_changed":
+            self._hash_counts = self._data_manager.calculate_hash_counts()
+            self._calculate_bucket_data()
+            self._draw_all_text()
+            self._valid_bucket_range = \
+                             self._histogram_control.valid_bucket_range()
+
         else:
-            raise RuntimeError("program error")
+            raise RuntimeError("program error in mode '%s'" % change_mode)
 
         # draw the histogram graph
         self._draw_clear()
@@ -275,6 +283,7 @@ class HistogramBar():
         self._draw_cursor_marker()
 
     def _draw_cursor_text(self):
+        # just draw cursor text
 
         # cursor offset
         if self._histogram_control.is_valid_cursor or \
@@ -284,7 +293,7 @@ class HistogramBar():
                                      self._histogram_control.bound_offset(
                                      self._histogram_control.cursor_offset),
                                   self._preferences.offset_format,
-                                  self._sector_size))
+                                  self._data_manager.sector_size))
 
         else:
             # clear
@@ -310,7 +319,8 @@ class HistogramBar():
             # clear
             self._bucket_count_label['text'] = "Bar matches: NA"
 
-    def _draw_range_text(self):
+    def _draw_cursor_and_range_text(self):
+        self._draw_cursor_text()
         # range selection text
         if self._histogram_control.is_valid_range:
             self._range_selection_label["text"] = \
@@ -319,12 +329,12 @@ class HistogramBar():
                            offset_string(self._histogram_control.bound_offset(
                                          self._histogram_control.range_start),
                                          self._preferences.offset_format,
-                                         self._sector_size),
+                                         self._data_manager.sector_size),
                            # stop_offset
                            offset_string(self._histogram_control.bound_offset(
                                          self._histogram_control.range_stop-1),
                                          self._preferences.offset_format,
-                                         self._sector_size),
+                                         self._data_manager.sector_size),
                            # range
                            size_string(self._histogram_control.bound_offset(
                                        self._histogram_control.range_stop) -
@@ -333,7 +343,10 @@ class HistogramBar():
         else:
             self._range_selection_label["text"] = "Range: NA"
 
-    def _draw_histogram_annotation_text(self):
+    def _draw_all_text(self):
+        # draw all histogram annotations
+        self._draw_cursor_text()
+        self._draw_cursor_and_range_text()
 
         # bar width
         if self._histogram_control.bytes_per_bucket == 0:
@@ -342,21 +355,21 @@ class HistogramBar():
             self._bucket_width_label["text"] = "Bar width: %s" % \
                     offset_string(self._histogram_control.bytes_per_bucket,
                                   self._preferences.offset_format,
-                                  self._sector_size)
+                                  self._data_manager.sector_size)
 
         # histogram start and stop text
         self._c.itemconfigure(self._start_offset_id, text=offset_string(
                   self._histogram_control.bound_offset(
                                   self._histogram_control.start_offset),
                                   self._preferences.offset_format,
-                                  self._sector_size))
+                                  self._data_manager.sector_size))
         stop_offset = self._histogram_control.start_offset + (
                                self._histogram_control.bytes_per_bucket *
-                                                          self.NUM_BUCKETS) - 1
+                               self._histogram_control.num_buckets) - 1
         self._c.itemconfigure(self._stop_offset_id, text=offset_string(
                   self._histogram_control.bound_offset(stop_offset),
                                   self._preferences.offset_format,
-                                  self._sector_size))
+                                  self._data_manager.sector_size))
 
         # Y scale marker text
         self._c.itemconfigure(self._marker1_id, text=int_string(
@@ -370,32 +383,34 @@ class HistogramBar():
     def _draw_clear(self):
 
         # clear any previous content
-        self._photo_image.put("white", to=(0,0,self.HISTOGRAM_BAR_WIDTH,
+        self._photo_image.put("white",
+                          to=(0,0,self._histogram_control.histogram_bar_width,
                                     histogram_constants.HISTOGRAM_BAR_HEIGHT))
 
     # draw black x axis across bottom
     def _draw_x_axis(self):
         self._photo_image.put(colors.X_AXIS,
                          to=(0, histogram_constants.HISTOGRAM_BAR_HEIGHT,
-                         self.HISTOGRAM_BAR_WIDTH,
+                         self._histogram_control.histogram_bar_width,
                          histogram_constants.HISTOGRAM_BAR_HEIGHT-1))
 
     # draw the range selection
     def _draw_range_selection(self):
         if self._histogram_control.is_valid_range:
+            num_buckets = self._histogram_control.num_buckets
 
             # get bucket 1 value
             b1 = self._histogram_control.offset_to_bucket(
                                            self._histogram_control.range_start)
             if b1 < 0: b1 = 0
-            if b1 > self.NUM_BUCKETS: b1 = self.NUM_BUCKETS
+            if b1 > num_buckets: b1 = num_buckets
             x1 = b1 * histogram_constants.BUCKET_WIDTH
 
             # get bucket b2 value
             b2 = self._histogram_control.offset_to_bucket(
                                            self._histogram_control.range_stop)
             if b2 < 0: b2 = 0
-            if b2 > self.NUM_BUCKETS: b2 = self.NUM_BUCKETS
+            if b2 > num_buckets: b2 = num_buckets
             x2 = b2 * histogram_constants.BUCKET_WIDTH
 
             # keep range from becoming too narrow to plot
@@ -412,11 +427,10 @@ class HistogramBar():
             return
 
         # valid bucket boundaries map inside the image
-        leftmost_bucket, rightmost_bucket = \
-                             self._histogram_control.valid_bucket_range()
+        leftmost_bucket, rightmost_bucket = self._valid_bucket_range
 
         # draw the buckets
-        for bucket in range(self.NUM_BUCKETS):
+        for bucket in range(self._histogram_control.num_buckets):
 
             # bucket view depends on whether byte offset is in range
             if bucket >= leftmost_bucket and bucket <= rightmost_bucket:

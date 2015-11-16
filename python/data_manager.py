@@ -1,5 +1,4 @@
 from collections import defaultdict
-from data_reader import DataReader
 from math import floor
 from forensic_path import size_string
 from copy import copy
@@ -22,6 +21,10 @@ class DataManager():
     hashdb_dir = ""
     sector_size = 0
     block_size = 0
+    forensic_paths = dict()
+    hashes = dict()
+    source_details = dict()
+ 
     len_forensic_paths = 0
     len_hashes = 0
     len_source_details = 0
@@ -45,33 +48,36 @@ class DataManager():
     def __init__(self):
         self._data_manager_changed = tkinter.BooleanVar()
 
-        # project data is kept in the data reader
-        self._data_reader = DataReader()
-
-    def read(self, be_dir):
-        self._data_reader.read(be_dir)
-
-        # set project attributes
-        self.be_dir = self._data_reader.be_dir
-        self.image_size = self._data_reader.image_size
-        self.image_filename = self._data_reader.image_filename
-        self.hashdb_dir = self._data_reader.hashdb_dir
-        self.sector_size = self._data_reader.sector_size
-        self.block_size = self._data_reader.block_size
-        self.len_forensic_paths = len(self._data_reader.forensic_paths)
-        self.len_hashes = len(self._data_reader.hashes)
-        self.len_source_details = len(self._data_reader.source_details)
+    def set_data(self, data_reader):
+        # copy project attributes from data reader
+        self.be_dir = data_reader.be_dir
+        self.image_size = data_reader.image_size
+        self.image_filename = data_reader.image_filename
+        self.hashdb_dir = data_reader.hashdb_dir
+        self.sector_size = data_reader.sector_size
+        self.block_size = data_reader.block_size
+        self.forensic_paths = data_reader.forensic_paths
+        self.hashes = data_reader.hashes
+        self.source_details = data_reader.source_details
+        self.len_forensic_paths = len(data_reader.forensic_paths)
+        self.len_hashes = len(data_reader.hashes)
+        self.len_source_details = len(data_reader.source_details)
 
         # clear any filter settings
-        self._clear_filters()
+        self.ignore_max_hashes = 0
+        self.ignore_flagged_blocks = True
+        self.ignored_sources.clear()
+        self.ignored_hashes.clear()
+        self.highlighted_sources.clear()
+        self.highlighted_hashes.clear()
 
         # set source IDs
-        self.source_ids = self._data_reader.source_details.keys()
+        self.source_ids = data_reader.source_details.keys()
 
         # annotations
-        self.annotation_types = self._data_reader.annotation_types
-        self.annotations = self._data_reader.annotations
-        self.annotation_load_status = self._data_reader.annotation_load_status
+        self.annotation_types = data_reader.annotation_types
+        self.annotations = data_reader.annotations
+        self.annotation_load_status = data_reader.annotation_load_status
 
         self._fire_change("data_changed")
 
@@ -109,7 +115,7 @@ class DataManager():
 
         # calculate hash_counts based on identified data
         for block_hash, (count, source_id_set, _, has_label) in \
-                                             self._data_reader.hashes.items():
+                                             self.hashes.items():
             is_ignored = False
             is_highlighted = False
 
@@ -168,7 +174,7 @@ class DataManager():
 
 
         # calculate the histogram
-        for offset, block_hash in self._data_reader.forensic_paths.items():
+        for offset, block_hash in self.forensic_paths.items():
             bucket = int((offset - start_offset) // bytes_per_bucket)
 
             if bucket < 0 or bucket >= num_buckets:
@@ -221,14 +227,6 @@ class DataManager():
     # ############################################################
     # filter actions
     # ############################################################
-    def _clear_filters(self):
-        self.ignore_max_hashes = 0
-        self.ignore_flagged_blocks = True
-        self.ignored_sources.clear()
-        self.ignored_hashes.clear()
-        self.highlighted_sources.clear()
-        self.highlighted_hashes.clear()
-
     def fire_filter_change(self):
         """Use this when directly changing filter state."""
 
@@ -247,9 +245,8 @@ class DataManager():
             return(source_ids_in_range, hashes_in_range)
 
         # iterate through forensic paths and gather data about the range
-        hashes = self._data_reader.hashes
         for forensic_path, block_hash in \
-                                     self._data_reader.forensic_paths.items():
+                                     self.forensic_paths.items():
             offset = int(forensic_path)
 
             # skip if not in range
@@ -258,7 +255,7 @@ class DataManager():
 
             # get source ids in range
             # get source IDs associated with this hash
-            (_, source_id_set, _, _) = hashes[block_hash]
+            (_, source_id_set, _, _) = self.hashes[block_hash]
 
             # append source IDs from this hash
             if not source_id_set.issubset(source_ids_in_range):
@@ -368,7 +365,7 @@ class DataManager():
 
         # calculate the data
         for block_hash, (count, source_id_set, id_offset_pairs, has_label) in \
-                                             self._data_reader.hashes.items():
+                                             self.hashes.items():
 
             # skip ignored hashes
 
@@ -397,15 +394,15 @@ class DataManager():
                     highlighted_sources_offsets[source_id].add(file_offset)
 
 
-            source_ids = self._data_reader.source_details.keys()
+            source_ids = self.source_details.keys()
 
         # now calculte the tuple of source table information
 
         # create a list of source information to make the sorted list from
         sources_list = list()
-        block_size = self._data_reader.block_size
-        for source_id in self._data_reader.source_details.keys():
-            source = self._data_reader.source_details[source_id]
+        temp_block_size = self.block_size
+        for source_id in self.source_details.keys():
+            source = self.source_details[source_id]
 
             # compose the source text
             # handle missing fields, which can happen if an image was
@@ -414,9 +411,9 @@ class DataManager():
 
                 # calculate percent of this source file found
                 percent_found = len(sources_offsets[source_id]) / \
-                               (int((source["filesize"] + block_size -1)
-                               / block_size)) * 100
-#                print ("len source: ", len(sources_offsets[source_id]), source["filesize"], int(source["filesize"]), block_size)
+                               (int((source["filesize"] + temp_block_size -1)
+                               / temp_block_size)) * 100
+#                print ("len source: ", len(sources_offsets[source_id]), source["filesize"], int(source["filesize"]), temp_block_size)
 
                 text = '\t%.1f%%\t%d\t%d\t%s\t%s\t%s\n' \
                                 %(percent_found,

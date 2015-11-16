@@ -24,13 +24,17 @@ class HistogramControl():
       _histogram_mouse_changed is used as a signal.  Its value is always true.
     """
 
+    # histogram dimensions
+    num_buckets = 0
+    histogram_bar_width = 0
+    canvas_width = 0
+
     # change type signaled: plot_region_changed, cursor_moved, range_changed
     change_type = ""
 
     # sizes
     image_size = 0
     block_size = 0
-    num_buckets = 320
 
     # plot region
     start_offset = 0
@@ -59,17 +63,46 @@ class HistogramControl():
 
     def __init__(self):
         self._histogram_mouse_changed = tkinter.BooleanVar()
+        self.set_width(320)
 
     def __repr__(self):
         return "HistogramControl(change_type=%s, image_size=%d, " \
-               "block_size=%d, num_buckets=%d, start_offset=%d, " \
+               "block_size=%d, num_buckets=%d, " \
+               "histogram_bar_width=%d, canvas_width=%d, "\
+               "start_offset=%d, " \
                "bytes_per_bucket=%d, is_valid_cursor=%s, " \
                "cursor_offset=%d, is_valid_range=%s, " \
                "range_start=%d, range_stop=%d)" % (self.change_type,
                 self.image_size, self.block_size, self.num_buckets,
+                self.histogram_bar_width, self.canvas_width,
                 self.start_offset, self.bytes_per_bucket,
                 self.is_valid_cursor, self.cursor_offset,
                 self.is_valid_range, self.range_start, self.range_stop)
+
+    def set_width(self, num_buckets):
+        self.num_buckets = num_buckets
+        self.histogram_bar_width = self.num_buckets * \
+                                   histogram_constants.BUCKET_WIDTH
+        self.canvas_width = self.histogram_bar_width + \
+                                   histogram_constants.HISTOGRAM_X_OFFSET + 1
+        self._fire_change("width_changed")
+
+    def set_project(self, image_size, block_size):
+        """Establish starting bounds, zoom fully out, and clear any range
+          without firing any events."""
+        # set constants given a project dataset
+        self.image_size = image_size
+        self.block_size = block_size
+
+        # zoom fully out
+        self.start_offset = 0
+        self.bytes_per_bucket = self._round_up_to_block(
+                                          self.image_size / self.num_buckets)
+
+        # clear any selected range
+        self.is_valid_range = False
+        self.range_start = 0
+        self.range_stop = 0
 
     def bind_mouse(self, canvas):
         # only call once
@@ -112,14 +145,18 @@ class HistogramControl():
     # mouse handlers
     # ############################################################
     def _handle_motion_and_b1_motion(self, e):
-        # set mouse cursor
-        self._set_cursor(e)
-
-        # select range if b1 down
         if self._b1_pressed:
+            # set cursor variables
+            self.cursor_offset = self.bucket_to_offset(self._mouse_to_bucket(e))
+            self.is_valid_cursor = self.offset_is_on_graph(self.cursor_offset)
+
+            # select range
             self._set_range(self._b1_pressed_offset, self.bucket_to_offset(
                                                    self._mouse_to_bucket(e)))
-            self._fire_change("range_changed")
+
+        else:
+            # just set mouse cursor
+            self._set_cursor(e)
 
     def _handle_b1_press(self, e):
         self._set_cursor(e)
@@ -291,14 +328,6 @@ class HistogramControl():
         self.bytes_per_bucket = new_bytes_per_bucket
         self._fire_change("plot_region_changed")
 
-    def set_bounds(self, image_size, block_size, num_buckets):
-        """Establish image size and zoom fully out."""
-
-        self.image_size = image_size
-        self.block_size = block_size
-        self.num_buckets = num_buckets
-        self.fit_image()
-
     def fit_image(self):
         self._set_plot_region(0, self._round_up_to_block(
                                          self.image_size / self.num_buckets))
@@ -393,9 +422,14 @@ class HistogramControl():
     # cursor moved
     # ############################################################
     def _set_cursor(self, e):
-        self.cursor_offset = self.bucket_to_offset(self._mouse_to_bucket(e))
-        self.is_valid_cursor = self.offset_is_on_graph(self.cursor_offset)
-        self._fire_change("cursor_moved")
+        offset = self.bucket_to_offset(self._mouse_to_bucket(e))
+        valid_cursor = self.offset_is_on_graph(offset)
+
+        # accept the cursor change
+        if offset != self.cursor_offset or valid_cursor != self.is_valid_cursor:
+            self.cursor_offset = offset
+            self.is_valid_cursor = valid_cursor
+            self._fire_change("cursor_moved")
 
     # ############################################################
     # range changed
@@ -414,23 +448,27 @@ class HistogramControl():
             self.clear_range()
             return
 
-        # set is_selected
-        self.is_valid_range = True
-
         # set range_start, range_stop
         if offset1 < offset2:
-            self.range_start = offset1
-            self.range_stop = offset2
+            start = offset1
+            stop = offset2
         else:
-            self.range_start = offset2
-            self.range_stop = offset1
+            start = offset2
+            stop = offset1
 
         # bound range to image
-        if self.range_start < 0:
-            self.range_start = 0
-        if self.range_stop > self.image_size:
-            self.range_stop = self.image_size
+        if start < 0:
+            start = 0
+        if stop > self.image_size:
+            stop = self.image_size
 
-        # signal change
-        self._fire_change("range_changed")
+        # accept the range change
+        if not self.is_valid_range or start != self.range_start or \
+                                     stop != self.range_stop:
+            self.is_valid_range = True
+            self.range_start = start
+            self.range_stop = stop
+
+            # signal change
+            self._fire_change("range_changed")
 
