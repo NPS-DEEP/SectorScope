@@ -1,4 +1,7 @@
 from image_hex_table import ImageHexTable
+from be_image_reader import read
+import hashlib
+from error_window import ErrorWindow
 try:
     import tkinter
 except ImportError:
@@ -8,6 +11,9 @@ class ImageHexWindow():
     """Provides a window to show a hex dump of specified bytes of a
     media image.
     """
+
+    BUFSIZE = 16384 # 2^14
+
     def __init__(self, master, data_manager, histogram_control):
         """Args:
           master(a UI container): Parent.
@@ -16,6 +22,7 @@ class ImageHexWindow():
             the histogram view.
         """
         # variables
+        self._is_visible = False
         self._data_manager = data_manager
         self._histogram_control = histogram_control
 
@@ -34,62 +41,98 @@ class ImageHexWindow():
         self._md5_label.pack(side=tkinter.TOP)
 
         # add the frame to contain the image hex table
-        image_hex_table = ImageHexTable(self._root_window, data_manager,
+        self._image_hex_table = ImageHexTable(self._root_window, data_manager,
                                       histogram_control, width=88, height=32)
-        image_hex_table.frame.pack(side=tkinter.TOP, anchor="w")
+        self._image_hex_table.frame.pack(side=tkinter.TOP, anchor="w")
 
-        # register to receive range selection change events
-        histogram_control.set_callback(self._handle_change)
+        # register to receive histogram control change events
+        histogram_control.set_callback(self._handle_histogram_control_change)
 
         self._root_window.withdraw()
 
-    def _handle_change(self, *args):
-        print("image_hex_window TBD")
-        return
+    def _handle_histogram_control_change(self, *args):
+        # hex window is not visible
+        if not self._is_visible:
+            return
+
+        # show hex dump or leave view alone
+        if self._histogram_control.is_valid_cursor:
+            self._set_view()
+
+    def _set_view(self):
+        # read page of image bytes starting at offset else warn and clear
+        block_hash_offset = self._histogram_control.cursor_offset
+        try:
+            buf = read(self._data_manager.image_filename,
+                         self._histogram_control.cursor_offset, self.BUFSIZE)
+        except Exception as e:
+            ErrorWindow(self._root_window, "Open Error", e)
+            self._clear_view()
+            raise RuntimeError("bad: %s" % e)
+            return
+
+        # calculate the MD5 from the block of data in buf
+        m = hashlib.md5()
+        m.update(buf[:self._data_manager.block_size])
+        if len(buf) < self._data_manager.block_size:
+            # zero-extend the short block
+            m.update(bytearray(self._data_manager.block_size - len(buf)))
+        block_hash = m.hexdigest()
 
         # generate annotation text about the selection
         text = ""
-        if self._histogram_control.is_selected:
-            block_hash = self._range_selection.block_hash
-            if self._range_selection.block_hash_is_in:
-                # ignore and highlight status for hash
-                if block_hash in self._filters.ignored_hashes:
-                    text += "hash ignored, "
-                if block_hash in self._filters.highlighted_hashes:
-                    text += "hash highlighted, "
+        is_in = block_hash in self._data_manager.hashes
+        if is_in:
 
-                # set ignore and highlight status for blocks matching this hash
-                (_, source_id_set, _, _) = \
+            # ignore and highlight status for hash
+            if block_hash in self._filters.ignored_hashes:
+                text += "hash ignored, "
+            if block_hash in self._filters.highlighted_hashes:
+                text += "hash highlighted, "
+
+            # set ignore and highlight status for blocks matching this hash
+            (_, source_id_set, _, _) = \
                                      self._identified_data.hashes[block_hash]
-                if len(self._filters.ignored_sources.intersection(
+            if len(self._filters.ignored_sources.intersection(
                                                              source_id_set)):
-                    text += "source ignored, "
-                if len(self._filters.highlighted_sources.intersection(
+                text += "source ignored, "
+            if len(self._filters.highlighted_sources.intersection(
                                                              source_id_set)):
-                    text += "source highlighted, "
+                text += "source highlighted, "
 
-                # also indicate matched identified data
-                text += "hash matched"
-            else:
-                # indicate not matched identified data
-                text += "hash not matched"
+            # also indicate matched identified data
+            text += "hash matched"
         else:
-            # no hash is selected
-            text = "Status: No selection."
+            # indicate not matched identified data
+            text += "hash not matched"
 
         # set annotation text
         self._annotation_label["text"] = text
 
-        # set MD5
-        if self._range_selection.is_selected:
-            self._md5_label["text"]='MD5: %s' % self._range_selection.block_hash
-        else:
-            self._md5_label["text"]='MD5: No selection.'
+        # set MD5 label
+        self._md5_label["text"]='MD5: %s' % block_hash
+
+        # set hex table
+        self._image_hex_table.set_view(block_hash_offset, buf, is_in)
+
+    def _clear_view(self):
+
+        # clear annotation text
+        self._annotation_label["text"] = "Status: No selection."
+
+        # clear MD5 label
+        self._md5_label["text"]='MD5: No selection.'
+
+        # clear hex table
+        self._image_hex_table.clear_view()
 
     def show(self):
+        self._is_visible = True
         self._root_window.deiconify()
         self._root_window.lift()
+        self._handle_histogram_control_change()
 
     def _hide(self):
+        self._is_visible = False
         self._root_window.withdraw()
 

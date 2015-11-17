@@ -51,15 +51,12 @@ class ImageHexTable():
                                              background=colors.ODD_MATCHED)
         self._hex_text.tag_config("outside_block", background="white")
 
-        # register to receive range selection change events
-        histogram_control.set_callback(self._handle_histogram_control_change)
-
-    def _get_line_tag(self, i):
+    def _get_line_tag(self, i, is_in):
         # return the line tag associated with the match and line state
-        if i >= self._identified_data.block_size:
+        if i >= self._data_manager.block_size:
             # index is outside of block range
             return "outside_block"
-        elif self._range_selection.block_hash_is_in:
+        elif is_in:
             # hash is in dataset
             if (i / self.LINESIZE) % 2 == 0:
                 return "even_matched"
@@ -72,22 +69,13 @@ class ImageHexTable():
             else:
                 return "odd_unmatched"
 
-    def _handle_histogram_control_change(self, *args):
-        print("image_hex_table TBD")
-        return
-        self._set_view()
-
-    def _set_view(self):
-
+    def clear_view(self):
         # clear any existing view
         self._hex_text.delete(1.0, "end")
 
-        if self._range_selection.is_selected:
-            self._set_lines()
-
-    def _set_lines(self):
-        offset = self._range_selection.block_hash_offset
-        buf = self._range_selection.buf
+    def set_view(self, offset, buf, is_in):
+        # clear any existing view
+        self._hex_text.delete(1.0, "end")
 
         # format bytes into the hex text view
         for i in range(0, self.PAGESIZE, self.LINESIZE):
@@ -126,7 +114,7 @@ class ImageHexTable():
             line += "\n"
 
             # get the tag for this line
-            line_tag = self._get_line_tag(i)
+            line_tag = self._get_line_tag(i, is_in)
 
             # add this composed line
             self._hex_text.insert(tkinter.END, line, line_tag)
