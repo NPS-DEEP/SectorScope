@@ -2,6 +2,7 @@ from collections import defaultdict
 from math import floor
 from forensic_path import size_string
 from copy import copy
+from timestamp import ts0, ts
 try:
     import tkinter
 except ImportError:
@@ -103,6 +104,8 @@ class DataManager():
             data plotted in the frequency histogram.
         """
 
+        t0 = ts0("data_manager.calculate_hash_counts start")
+
         # optimization: make local references to filter variables
         ignore_max_hashes = self.ignore_max_hashes
         ignore_flagged_blocks = self.ignore_flagged_blocks
@@ -116,36 +119,19 @@ class DataManager():
         # calculate hash_counts based on identified data
         for block_hash, (count, source_id_set, _, has_label) in \
                                              self.hashes.items():
-            is_ignored = False
-            is_highlighted = False
 
-            # count exceeds ignore_max_hashes
-            if ignore_max_hashes != 0 and count > ignore_max_hashes:
-                is_ignored = True
+            hash_counts[block_hash] = (count,
+                  # is_ignored
+                  ignore_max_hashes != 0 and count > ignore_max_hashes or
+                  block_hash in ignored_hashes or
+                  ignore_flagged_blocks and has_label or
+                  len(ignored_sources.intersection(source_id_set)),
 
-            # hash is ignored
-            if block_hash in ignored_hashes:
-                is_ignored = True
+                  # is_highlighted
+                  block_hash in highlighted_hashes or
+                  len(highlighted_sources.intersection(source_id_set)))
 
-            # hash is highlighted
-            if block_hash in highlighted_hashes:
-                is_highlighted = True
-
-            # flagged blocks are ignored
-            if ignore_flagged_blocks and has_label:
-                is_ignored = True
-
-            # a source associated with this hash is ignored
-            if len(ignored_sources.intersection(source_id_set)):
-                is_ignored = True
-
-            # a source associated with this hash is highlighted
-            if len(highlighted_sources.intersection(source_id_set)):
-                is_highlighted = True
-
-            # set the count tuple for the hash
-            hash_counts[block_hash] = (count, is_ignored, is_highlighted)
-
+        ts("data_manager.calculate_hash_counts done", t0)
         return hash_counts
 
     def calculate_bucket_data(self, hash_counts, start_offset,
@@ -161,6 +147,7 @@ class DataManager():
             count values.
           y_scale(int): Scale to fit the list of buckets vertically.
         """
+        t0 = ts0("data_manager.calculate_bucket_data.start")
         # initialize empty buckets for each data type tracked
         source_buckets = [0] * num_buckets
         ignored_source_buckets = [0] * num_buckets
@@ -169,6 +156,7 @@ class DataManager():
 
         if bytes_per_bucket == 0:
             # no data
+            ts("data_manager.calculate_bucket_data none", t0)
             return (source_buckets, ignored_source_buckets,
                                         highlighted_source_buckets, y_scale)
 
@@ -221,6 +209,7 @@ class DataManager():
         else:
             y_scale = 100000
 
+        ts("data_manager.calculate_bucket_data done", t0)
         return (source_buckets, ignored_source_buckets,
                 highlighted_source_buckets, y_scale)
 
@@ -229,6 +218,7 @@ class DataManager():
     # ############################################################
     def fire_filter_change(self):
         """Use this when directly changing filter state."""
+        self._fire_change("filter_changed")
 
     def calculate_sources_and_hashes_in_range(self, start_byte, stop_byte):
         """ Calculate sources and hashes in range.
@@ -236,12 +226,14 @@ class DataManager():
           source_ids_in_range(set): Set of source IDs in range.
           hashes_in_range(set): Set of hashes in range.
         """
+        t0 = ts0("data_manager.calculate_sources_and_hashes_in_range start")
         # clear source IDs and hashes in any previous range
         source_ids_in_range = set()
         hashes_in_range = set()
 
         # done if no range
         if start_byte == stop_byte or start_byte == stop_byte + 1:
+            ts("data_manager.calculate_sources_and_hashes_in_range.none", t0)
             return(source_ids_in_range, hashes_in_range)
 
         # iterate through forensic paths and gather data about the range
@@ -264,6 +256,7 @@ class DataManager():
             # get hashes in range
             hashes_in_range.add(block_hash)
 
+        ts("data_manager.calculate_sources_and_hashes_in_range done", t0)
         return(source_ids_in_range, hashes_in_range)
 
     # ignore hashes in range
@@ -435,3 +428,36 @@ class DataManager():
             sources_list.append((source_id, percent_found, text))
 
         return sources_list
+
+
+
+
+
+    def calculate_hash_counts2(self):
+        # an optional implementation of calculate_hash_counts using
+        # dict=y for x in f(x) syntax.  Timing shows f(x) is slower,
+        # so this optional implementation will not be used.
+        t0 = ts0("data_manager.calculate_hash_counts start")
+
+        hash_counts = {block_hash:self._hash_count(
+                           block_hash, count, source_id_set, has_label) \
+
+                for (block_hash, (count, source_id_set, _, has_label)) in \
+                self.hashes.items()}
+
+        ts("data_manager.calculate_hash_counts done (%d)"%len(hash_counts), t0)
+        return hash_counts
+
+    def _hash_count(self, block_hash, count, source_id_set, has_label):
+
+        return (count,
+                # is_ignored
+                (self.ignore_max_hashes != 0 and count > self.ignore_max_hashes) or
+                block_hash in self.ignored_hashes or
+                self.ignore_flagged_blocks and has_label or
+                len(self.ignored_sources.intersection(source_id_set)),
+                # is_highlighted
+                block_hash in self.highlighted_hashes or
+                len(self.highlighted_sources.intersection(source_id_set))
+               )
+

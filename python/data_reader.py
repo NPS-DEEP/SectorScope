@@ -5,6 +5,7 @@ import subprocess
 from collections import defaultdict
 from annotation_reader import read_annotations
 from error_window import ErrorWindow
+from timestamp import ts0, ts
 try:
     import tkinter
 except ImportError:
@@ -77,19 +78,26 @@ class DataReader():
 
         Raises read related exceptions.
         """
+        t0 = ts0("data_reader.read start")
+
         # get attributes from bulk_extractor report.xml
         (image_size, image_filename, hashdb_dir) = self._read_be_report_file(
                                                                       be_dir)
 
+        t1 = ts("data_reader.read finished report.xml", t0)
+
         # get attributes from hashdb settings.xml
         (sector_size, block_size) = self._read_settings_file(hashdb_dir)
 
+        t2 = ts("data_reader.read finished settings.xml", t1)
         # make identified_blocks_expanded.txt file if it does not exist
         self._maybe_make_identified_blocks_expanded_file(be_dir, hashdb_dir)
 
+        t3 = ts("data_reader.read finished maybe make expanded", t2)
         # read identified_blocks_expanded.txt
         (forensic_paths, hashes, source_details) = \
                                self._read_identified_blocks_expanded(be_dir)
+        t4 = ts("data_reader.read finished read expanded", t3)
 
         # read image annotations
         try:
@@ -102,6 +110,7 @@ class DataReader():
             annotation_types = list()
             annotations = list()
 
+        t5 = ts("data_reader.read finished read annotations.  Done.", t4)
         # everything worked so accept the data
         self.be_dir = be_dir
         self.image_size = image_size
