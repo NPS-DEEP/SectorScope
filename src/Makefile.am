@@ -49,7 +49,7 @@ EXTRA_DIST = \
 #libdata_reader_la_CFLAGS = -avoid-version
 #libdata_manager_la_CFLAGS = -avoid-version
 
-AM_CPPFLAGS = -I${top_srcdir}/src/json
+AM_CPPFLAGS = -I${top_srcdir}/src/rapidjson
 
 AM_CFLAGS = $(SECTORSCOPE_CFLAGS)
 AM_CXXFLAGS = $(SECTORSCOPE_CXXFLAGS)
