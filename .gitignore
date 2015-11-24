@@ -23,37 +23,6 @@ python/icons/not/*
 *.so
 *.o
 
-# Autotool generated files
-AUTHORS
-ChangeLog
-INSTALL
-Makefile
-Makefile.in
-NEWS
-README
-aclocal.m4
-autom4te.cache
-compile
-config.guess
-config.h
-config.h.in
-config.h.in~
-config.status
-config.sub
-configure
-depcomp
-install-sh
-libtool
-ltmain.sh
-missing
-space
-.deps
-stamp-h
-stamp-h1
-src/test
-
-
-
 # Distribution / packaging
 .Python
 env/
