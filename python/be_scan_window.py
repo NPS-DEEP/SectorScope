@@ -328,8 +328,8 @@ class BEScanWindow():
         cmd = ["bulk_extractor", "-E", "hashdb",
                "-S", "hashdb_mode=scan",
                "-S", "hashdb_block_size=%s" % block_size,
-               "-S", "hashdb_scan_path_or_socket=%s" % hashdb_dir,
-               "-S", "hashdb_scan_sector_size=%s" % sector_size,
+               "-S", "hashdb_sector_size=%s" % sector_size,
+               "-S", "hashdb_scan_path=%s" % hashdb_dir,
                "-o", be_dir,
                image]
 

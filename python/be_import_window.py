@@ -317,8 +317,8 @@ class BEImportWindow():
         cmd = ["bulk_extractor", "-E", "hashdb",
                "-S", "hashdb_mode=import",
                "-S", "hashdb_block_size=%s" % block_size,
-               "-S", "hashdb_import_sector_size=%s" % sector_size,
-               "-S", "hashdb_import_repository_name=%s" % repository_name,
+               "-S", "hashdb_sector_size=%s" % sector_size,
+               "-S", "hashdb_repository_name=%s" % repository_name,
                "-o", be_dir,
                "-R", source_dir]
 

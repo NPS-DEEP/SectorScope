@@ -17,18 +17,12 @@ class DataReader():
 
     This is a helper class to be used only by the data manager.
 
-    The bulk_extractor output from a hashdb scan run must exist.  The
-    identified_blocks_expanded.txt file will be created if it does not
-    exist.
+    The bulk_extractor output from a hashdb scan run must exist.
 
     The following resources are accessed:
       be_dir/report.xml
       be_dir/hashdb.hdb/settings.xml
-      be_dir/identified_blocks_expanded.txt or be_dir/identified_blocks.txt
-
-    If be_dir/identified_blocks_expanded.txt does not exist, it is
-    created using be_dir/identified_blocks.txt and the other required
-    resources.
+      be_dir/identified_blocks.txt
 
     Attributes:
       be_dir (str): The bulk_extractor directory being read.
@@ -39,19 +33,20 @@ class DataReader():
         displaying media offset values in terms of sectors.
       block_size (int): Block size used by the hashdb database.
       forensic_paths (dict<forensic path int, hash hexcode str>):
-        Dictionary maps forensic paths to their hash value.
-      hashes (dict<hash hexcode str, tuple<source ID set, list id offset pair,
-        bool has_label>>).  Dictionary maps hashes to hash information.
-      source_details (dict<source ID int, dict<source metadata attributes>>):
-        Dictionary where keys are source IDs and values are a dictionary
-        of attributes associated with the given source as obtained from
-        the identified_blocks_expanded.txt file.
+      hashes (dict<hash hexcode str, whole json data plus source_hashes>
+              where source_hashes is set of source hexcodes associated with
+              the hash)
+      sources (dict<source hash, the json data under sources[i]>).
+        the identified_blocks.txt file.
       annotation_types (list<(type, description, is_active)>): List
         of annotation types available.
       annotations (list<(annotation_type, offset, length, text)>):
         List of image annotations that can be displayed.
       annotation_load_status (str): status of the annotation load or none
         if okay.
+
+    Note: this may be used to access source, offset pairs:
+      for src, off in zip(pairs[0::2], pairs[1::2]):
     """
 
     def __init__(self):
@@ -64,7 +59,7 @@ class DataReader():
         self.block_size = -1
         self.forensic_paths = dict()
         self.hashes = dict()
-        self.source_details = dict()
+        self.sources = dict()
         self.annotation_types = list()
         self.annotations = list()
         self.annotation_load_status = ""
@@ -90,14 +85,11 @@ class DataReader():
         (sector_size, block_size) = self._read_settings_file(hashdb_dir)
 
         t2 = ts("data_reader.read finished settings.xml", t1)
-        # make identified_blocks_expanded.txt file if it does not exist
-        self._maybe_make_identified_blocks_expanded_file(be_dir, hashdb_dir)
 
-        t3 = ts("data_reader.read finished maybe make expanded", t2)
-        # read identified_blocks_expanded.txt
-        (forensic_paths, hashes, source_details) = \
-                               self._read_identified_blocks_expanded(be_dir)
-        t4 = ts("data_reader.read finished read expanded", t3)
+        # read identified_blocks.txt
+        (forensic_paths, hashes, sources) = \
+                               self._read_identified_blocks(be_dir)
+        t3 = ts("data_reader.read finished read identified_blocks", t2)
 
         # read image annotations
         try:
@@ -110,7 +102,7 @@ class DataReader():
             annotation_types = list()
             annotations = list()
 
-        t5 = ts("data_reader.read finished read annotations.  Done.", t4)
+        t4 = ts("data_reader.read finished read annotations.  Done.", t3)
         # everything worked so accept the data
         self.be_dir = be_dir
         self.image_size = image_size
@@ -120,7 +112,7 @@ class DataReader():
         self.block_size = block_size
         self.forensic_paths = forensic_paths
         self.hashes = hashes
-        self.source_details = source_details
+        self.sources = sources
         self.annotation_types = annotation_types
         self.annotations = annotations
         self.annotation_load_status = annotation_load_status
@@ -142,7 +134,7 @@ class DataReader():
                         self.block_size,
                         len(self.forensic_paths),
                         len(self.hashes),
-                        len(self.source_details),
+                        len(self.sources),
                         len(self.annotation_types),
                         len(self.annotations),
               ))
@@ -170,11 +162,11 @@ class DataReader():
         # hashdb_dir from command_line tag
         command_line = xmldoc.getElementsByTagName(
                            "command_line")[0].firstChild.wholeText
-        i = command_line.find('hashdb_scan_path_or_socket=')
+        i = command_line.find('hashdb_scan_path=')
         if i == -1:
             raise ValueError("Path to hash database not found in %s." %
                                                             be_report_file)
-        i += 27
+        i += 17
         if command_line[i] == '"':
             # db is quoted
             i += 1
@@ -201,113 +193,87 @@ class DataReader():
         """Read block_size from settings.xml."""
 
         # path to settings file
-        hashdb_settings_file = os.path.join(hashdb_dir, "settings.xml")
+        hashdb_settings_file = os.path.join(hashdb_dir, "settings.json")
 
+        # read
         if not os.path.exists(hashdb_settings_file):
             raise ValueError("hashdb database '%s' is not valid." % hashdb_dir)
-        xmldoc = xml.dom.minidom.parse(open(hashdb_settings_file, 'r'))
+        with open(hashdb_settings_file, 'r') as f:
+            json_settings = json.loads(f.readline())
 
-        # sector size from byte alignment
-        sector_size = int((xmldoc.getElementsByTagName(
-                                "byte_alignment")[0].firstChild.wholeText))
-
-        # block size from hash_block_size
-        block_size = int((xmldoc.getElementsByTagName(
-                                "hash_block_size")[0].firstChild.wholeText))
+        # parse
+        sector_size = json_settings["sector_size"]
+        block_size = json_settings["block_size"]
 
         return (sector_size, block_size)
 
-    def _maybe_make_identified_blocks_expanded_file(self, be_dir, hashdb_dir):
-        """Create identified_blocks_expanded.txt if it does not exist yet.
+    def _read_identified_blocks(self, be_dir):
+
+        """Read identified_blocks.txt into forensic_paths, hashes,
+        and sources dictionaries.  Also add source_hashes set.
         """
 
-        # establish the path to the identified blocks expanded file
-        expanded_file = os.path.join(be_dir, 'identified_blocks_expanded.txt')
-
-        if not os.path.exists(expanded_file):
-            # get the path to the identified_blocks file
-            identified_blocks_file = os.path.join(be_dir,
-                                                  "identified_blocks.txt")
-
-            # make the hashdb command
-            cmd = ["hashdb", "expand_identified_blocks", "-m", "0", hashdb_dir,
-                   identified_blocks_file]
-
-            # run hashdb to make the identified blocks expanded file
-            with open(expanded_file, "w") as outfile:
-                status=subprocess.call(cmd, stdout=outfile)
-                if status != 0:
-                    raise ValueError("Unable to create expanded file '%s'"
-                                                           % expanded_file)
-
-    def _read_identified_blocks_expanded(self, be_dir):
-
-        """Read identified_blocks_expanded.txt into forensic_paths,
-        hashes, and source_details dictionaries.
-        """
-
-        # establish the path to the identified blocks expanded file
-        expanded_file = os.path.join(be_dir, 'identified_blocks_expanded.txt')
+        # establish the path to the identified blocks file
+        identified_blocks_file = os.path.join(be_dir, 'identified_blocks.txt')
 
         # read each line
         forensic_paths=dict()
         hashes = dict()
-        source_details=dict()
-        with open(expanded_file, 'r') as f:
+        sources=dict()
+        with open(identified_blocks_file, 'r') as f:
             i = 0
             for line in f:
+                line = line.strip()
                 try:
                     i+=1
-                    if line[0]=='#' or len(line)==0:
+                    if len(line) == 0 or line[0]=='#':
                         continue
 
                     # get line parts
-                    (forensic_path, block_hash, json_data) = line.split("\t")
+                    parts = line.split("\t")
+                    if len(parts) == 3:
+                        (forensic_path, block_hash, json_string) = parts
 
-                    # store hash at forensic path
-                    forensic_paths[int(forensic_path)] = block_hash
+                        # store hash at forensic path
+                        forensic_paths[int(forensic_path)] = block_hash
 
-                    # store entropy label and source data for new hash
-                    if block_hash not in hashes:
-                        # get json data
-                        extracted_json_data = json.loads(json_data)
+                        # store hash information if present
+                        # file hashes.
+                        if len(json_string.strip()) > 0:
+                            # get json data
+                            json_data = json.loads(json_string)
 
-                        # json sources
-                        json_sources = extracted_json_data[1]["sources"]
+                            # hashes
+                            hashes[block_hash] = json_data
 
-                        # count
-                        count = len(json_sources)
+                            # calculate source_hashes
+                            source_hashes = set()
+                            pairs = json_data["source_offset_pairs"]
+                            for file_hash in pairs[0::2]:
+                                source_hashes.add(file_hash)
 
-                        # source_ids and ID, offset pairs
-                        source_ids = set()
-                        id_offset_pairs = list()
-                        for json_source in json_sources:
-                            source_id = json_source["source_id"]
+                            # add additional field source_hashes
+                            hashes[block_hash]["source_hashes"] = source_hashes
 
-                            # add source ID to source_ids set
-                            source_ids.add(source_id)
+                            # sources
+                            for source in json_data["sources"]:
+                                sources[source["file_hash"]] = source
 
-                            # add pair to pairs list
-                            file_offset = json_source["file_offset"]
-                            id_offset_pairs.append((source_id, file_offset))
+                    elif len(parts) == 2:
+                        (forensic_path, block_hash) = parts
 
-                            # also store source details if first time seen
-                            if "filename" in json_source:
-                                source_details[source_id] = json_source
+                        # store hash at forensic path
+                        forensic_paths[int(forensic_path)] = block_hash
 
-                        # has_label, currently obtained from source[0]
-                        has_label = "label" in json_sources[0]
-
-                        # store hash and attributes as (int, set, list, bool)
-                        hashes[block_hash] = (count, source_ids,
-                                                  id_offset_pairs, has_label)
+                    else:
+                        raise ValueError("Invalid line format")
 
                 except Exception as e:
                     raise ValueError("Error reading file '%s' "
                              "line %d:'%s':%s\nPlease check that "
-                             "identified_blocks_expanded.txt was made "
+                             "identified_blocks.txt was made "
                              "using the hash database at '%s'." % (
-                                     expanded_file, i, line, e, be_dir))
+                                   identified_blocks_file, i, line, e, be_dir))
 
-        return (forensic_paths, hashes, source_details)
+        return (forensic_paths, hashes, sources)
 

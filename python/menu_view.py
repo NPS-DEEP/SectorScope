@@ -62,7 +62,7 @@ class MenuView():
                        activebackground=colors.ACTIVEBACKGROUND,
                        highlightthickness=0)
         import_button.pack(side=tkinter.LEFT)
-        Tooltip(import_button, "Import files into a\nnew hashdb database")
+        Tooltip(import_button, "Import from files into a\nnew hashdb database")
 
         # scan button
         self._scan_icon = tkinter.PhotoImage(file=icon_path("scan"))

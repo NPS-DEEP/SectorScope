@@ -24,14 +24,11 @@ class DataManager():
     block_size = 0
     forensic_paths = dict()
     hashes = dict()
-    source_details = dict()
+    sources = dict()
  
     len_forensic_paths = 0
     len_hashes = 0
-    len_source_details = 0
-
-    # source IDs
-    source_ids = list()
+    len_sources = 0
 
     # annotation
     annotatioin_types = list()
@@ -59,10 +56,10 @@ class DataManager():
         self.block_size = data_reader.block_size
         self.forensic_paths = data_reader.forensic_paths
         self.hashes = data_reader.hashes
-        self.source_details = data_reader.source_details
+        self.sources = data_reader.sources
         self.len_forensic_paths = len(data_reader.forensic_paths)
         self.len_hashes = len(data_reader.hashes)
-        self.len_source_details = len(data_reader.source_details)
+        self.len_sources = len(data_reader.sources)
 
         # clear any filter settings
         self.ignore_max_hashes = 0
@@ -71,9 +68,6 @@ class DataManager():
         self.ignored_hashes.clear()
         self.highlighted_sources.clear()
         self.highlighted_hashes.clear()
-
-        # set source IDs
-        self.source_ids = data_reader.source_details.keys()
 
         # annotations
         self.annotation_types = data_reader.annotation_types
@@ -114,22 +108,27 @@ class DataManager():
         highlighted_sources = self.highlighted_sources
         highlighted_hashes = self.highlighted_hashes
 
+        # tuple counts of hashes: map<hash, (count, is_ignored, is_highlighted)>
         hash_counts = dict()
 
         # calculate hash_counts based on identified data
-        for block_hash, (count, source_id_set, _, has_label) in \
-                                             self.hashes.items():
+        for block_hash, hash_data in self.hashes.items():
 
-            hash_counts[block_hash] = (count,
-                  # is_ignored
-                  ignore_max_hashes != 0 and count > ignore_max_hashes or
-                  block_hash in ignored_hashes or
-                  ignore_flagged_blocks and has_label or
-                  len(ignored_sources.intersection(source_id_set)),
+            hash_counts[block_hash] = (
+                    # count
+                    len(hash_data["source_offset_pairs"]) // 2,
 
-                  # is_highlighted
-                  block_hash in highlighted_hashes or
-                  len(highlighted_sources.intersection(source_id_set)))
+                    # is_ignored
+                    ignore_max_hashes != 0 and count > ignore_max_hashes or
+                    block_hash in ignored_hashes or
+                    ignore_flagged_blocks and len(hash_data["block_label"]) or
+                    len(ignored_sources.intersection(
+                                             hash_data["source_hashes"])),
+
+                    # is_highlighted
+                    block_hash in highlighted_hashes or
+                    len(highlighted_sources.intersection(
+                                             hash_data["source_hashes"])))
 
         ts("data_manager.calculate_hash_counts done", t0)
         return hash_counts
@@ -223,46 +222,44 @@ class DataManager():
     def calculate_sources_and_hashes_in_range(self, start_byte, stop_byte):
         """ Calculate sources and hashes in range.
         Returns:
-          source_ids_in_range(set): Set of source IDs in range.
-          hashes_in_range(set): Set of hashes in range.
+          sources_in_range(set): Set of source hashes in range.
+          hashes_in_range(set): Set of block hashes in range.
         """
         t0 = ts0("data_manager.calculate_sources_and_hashes_in_range start")
-        # clear source IDs and hashes in any previous range
-        source_ids_in_range = set()
+        # clear sources and hashes in any previous range
+        sources_in_range = set()
         hashes_in_range = set()
 
         # done if no range
         if start_byte == stop_byte or start_byte == stop_byte + 1:
             ts("data_manager.calculate_sources_and_hashes_in_range.none", t0)
-            return(source_ids_in_range, hashes_in_range)
+            return(sources_in_range, hashes_in_range)
 
         # iterate through forensic paths and gather data about the range
-        for forensic_path, block_hash in \
-                                     self.forensic_paths.items():
+        hashes = self.hashes
+        for forensic_path, block_hash in self.forensic_paths.items():
             offset = int(forensic_path)
 
             # skip if not in range
             if offset < start_byte or offset >= stop_byte:
                 continue
 
-            # get source ids in range
-            # get source IDs associated with this hash
-            (_, source_id_set, _, _) = self.hashes[block_hash]
+            # append source hashes from this block hash to sources in range
+            if not hashes[block_hash]["source_hashes"].issubset(
+                                              sources_in_range):
+                sources_in_range = sources_in_range.union(
+                                     hashes[block_hash]["source_hashes"])
 
-            # append source IDs from this hash
-            if not source_id_set.issubset(source_ids_in_range):
-                source_ids_in_range = source_ids_in_range.union(source_id_set)
-
-            # get hashes in range
+            # add block hash to hashes in range
             hashes_in_range.add(block_hash)
 
         ts("data_manager.calculate_sources_and_hashes_in_range done", t0)
-        return(source_ids_in_range, hashes_in_range)
+        return(sources_in_range, hashes_in_range)
 
     # ignore hashes in range
     def ignore_hashes_in_range(self, start_byte, stop_byte):
-        # get shources and hashes in range
-        sources, hashes = self.calculate_sources_and_hashes_in_range(
+        # get sources and hashes in range
+        _, hashes = self.calculate_sources_and_hashes_in_range(
                                                       start_byte, stop_byte)
 
         # set filters based on hashes
@@ -272,9 +269,9 @@ class DataManager():
         # fire filter change
         self._fire_change("filter_changed")
 
-    # ignore sources with hashes in range
+    # ignore sources in range
     def ignore_sources_with_hashes_in_range(self, start_byte, stop_byte):
-        sources, hashes = self.calculate_sources_and_hashes_in_range(
+        sources, _ = self.calculate_sources_and_hashes_in_range(
                                                       start_byte, stop_byte)
         self.ignored_sources = self.ignored_sources.union(sources)
         self.highlighted_sources = self.highlighted_sources.difference(sources)
@@ -300,7 +297,7 @@ class DataManager():
 
     # highlight hashes in range
     def highlight_hashes_in_range(self, start_byte, stop_byte):
-        sources, hashes = self.calculate_sources_and_hashes_in_range(
+        _, hashes = self.calculate_sources_and_hashes_in_range(
                                                       start_byte, stop_byte)
         self.ignored_hashes = self.ignored_hashes.difference(hashes)
         self.highlighted_hashes = self.highlighted_hashes.union(hashes)
@@ -310,7 +307,7 @@ class DataManager():
 
     # highlight sources with hashes in range
     def highlight_sources_with_hashes_in_range(self, start_byte, stop_byte):
-        sources, hashes = self.calculate_sources_and_hashes_in_range(
+        sources, _ = self.calculate_sources_and_hashes_in_range(
                                                       start_byte, stop_byte)
         self.ignored_sources = self.ignored_sources.difference(sources)
         self.highlighted_sources = self.highlighted_sources.union(sources)
@@ -338,10 +335,11 @@ class DataManager():
     # sources list
     # ############################################################
     def calculate_sources_list(self):
-        """Calculate the sources list tuple.
+        """Calculate the sources list tuple to be rendered in the
+        sources table.
 
         Returns:
-          sources_list(list<(source_id, percent_found, text)>): List of
+          sources_list(list<(source_hash, percent_found, text)>): List of
             tuple of sources found.
         """
         # similar to calculate_hash_counts()
@@ -357,17 +355,17 @@ class DataManager():
         highlighted_sources_offsets = defaultdict(set)
 
         # calculate the data
-        for block_hash, (count, source_id_set, id_offset_pairs, has_label) in \
-                                             self.hashes.items():
+        for block_hash, hash_data in self.hashes.items():
 
             # skip ignored hashes
 
             # hash count exceeds ignore_max_hashes
+            count = len(hash_data["source_offset_pairs"]) // 2
             if ignore_max_hashes != 0 and count > ignore_max_hashes:
                 continue
 
             # hash has entropy label flag
-            if ignore_flagged_blocks and has_label:
+            if ignore_flagged_blocks and len(hash_data["block_label"]) > 0:
                 continue
 
             # hash is in filter ignored set
@@ -375,89 +373,43 @@ class DataManager():
                 continue
 
             # track sources
-            for source_id, file_offset in id_offset_pairs:
+            pairs = hash_data["source_offset_pairs"]
+            for source_hash, file_offset in zip(pairs[0::2], pairs[1::2]):
 
                 # track sources not in ignored sources
-                if source_id not in ignored_sources:
-                    sources_offsets[source_id].add(file_offset)
+                if source_hash not in ignored_sources:
+                    sources_offsets[source_hash].add(file_offset)
 
                 # track highlighted sources
                 if block_hash in highlighted_hashes or \
-                                         source_id in highlighted_sources:
-                    highlighted_sources_offsets[source_id].add(file_offset)
-
-
-            source_ids = self.source_details.keys()
+                                     source_hash in highlighted_sources:
+                    highlighted_sources_offsets[source_hash].add(file_offset)
 
         # now calculte the tuple of source table information
 
         # create a list of source information to make the sorted list from
         sources_list = list()
         temp_block_size = self.block_size
-        for source_id in self.source_details.keys():
-            source = self.source_details[source_id]
+        for source_hash, source in self.sources.items():
 
             # compose the source text
-            # handle missing fields, which can happen if an image was
-            # imported, instead of a directory of files
-            if "filesize" in source:
 
-                # calculate percent of this source file found
-                percent_found = len(sources_offsets[source_id]) / \
-                               (int((source["filesize"] + temp_block_size -1)
-                               / temp_block_size)) * 100
-#                print ("len source: ", len(sources_offsets[source_id]), source["filesize"], int(source["filesize"]), temp_block_size)
+            # calculate percent of this source file found
+            percent_found = len(sources_offsets[source_hash]) / \
+                           (int((source["filesize"] + temp_block_size -1)
+                           / temp_block_size)) * 100
+#                print ("len source: ", len(sources_offsets[sources]), source["filesize"], int(source["filesize"]), temp_block_size)
 
-                text = '\t%.1f%%\t%d\t%d\t%s\t%s\t%s\n' \
-                                %(percent_found,
-                                  len(sources_offsets[source_id]),
-                                  len(highlighted_sources_offsets[source_id]),
-                                  size_string(source["filesize"]),
-                                  source["repository_name"],
-                                  source["filename"])
-
-            else:
-                percent_found = 1 # NOTE: this conditional will go away
-                text = '\t?\t%d\t%d\t?\t%s\t%s\n' \
-                                %(len(sources_offsets[source_id]),
-                                  len(highlighted_sources_offsets[source_id]),
-                                  source["repository_name"],
-                                  source["filename"])
+            text = '\t%.1f%%\t%d\t%d\t%s\t%s\t%s\n' \
+                            %(percent_found,
+                              len(sources_offsets[source_hash]),
+                              len(highlighted_sources_offsets[source_hash]),
+                              size_string(source["filesize"]),
+                              source["name_pairs"][0], # just show first source
+                              source["name_pairs"][1])
 
             # append source information tuple
-            sources_list.append((source_id, percent_found, text))
+            sources_list.append((source_hash, percent_found, text))
 
         return sources_list
-
-
-
-
-
-    def calculate_hash_counts2(self):
-        # an optional implementation of calculate_hash_counts using
-        # dict=y for x in f(x) syntax.  Timing shows f(x) is slower,
-        # so this optional implementation will not be used.
-        t0 = ts0("data_manager.calculate_hash_counts start")
-
-        hash_counts = {block_hash:self._hash_count(
-                           block_hash, count, source_id_set, has_label) \
-
-                for (block_hash, (count, source_id_set, _, has_label)) in \
-                self.hashes.items()}
-
-        ts("data_manager.calculate_hash_counts done (%d)"%len(hash_counts), t0)
-        return hash_counts
-
-    def _hash_count(self, block_hash, count, source_id_set, has_label):
-
-        return (count,
-                # is_ignored
-                (self.ignore_max_hashes != 0 and count > self.ignore_max_hashes) or
-                block_hash in self.ignored_hashes or
-                self.ignore_flagged_blocks and has_label or
-                len(self.ignored_sources.intersection(source_id_set)),
-                # is_highlighted
-                block_hash in self.highlighted_hashes or
-                len(self.highlighted_sources.intersection(source_id_set))
-               )
 

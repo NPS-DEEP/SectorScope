@@ -92,7 +92,7 @@ class ProjectWindow():
                                   'Hashes: %s        Sources: %s' % (
                              self._data_manager.len_forensic_paths,
                              self._data_manager.len_hashes,
-                             self._data_manager.len_source_details)
+                             self._data_manager.len_sources)
 
         else:
             # data_manager not opened
