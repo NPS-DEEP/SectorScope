@@ -1,4 +1,4 @@
-# Run this Makefile to build the NPS-block_match Windows Installer and
+# Run this Makefile to build the SectorScope Windows Installer and
 # the .zip distribution.  Both are copied into the download directory.
 #
 # Prerequisites:
@@ -6,7 +6,7 @@
 # .nbm file: The .nbm file is generated using NetBeans on Windows.
 #            Build it on Windows and then git push to make it current.
 
-VERSION = 0.5.6
+VERSION = 0.6.0
 
 SOURCES = ../python/*.py
 ICONS = ../python/icons/*.gif
@@ -14,11 +14,11 @@ UM_DIR = ../doc/sectorscope_um
 UM_FROM = $(UM_DIR)/sectorscope_um.pdf
 UM_TO = download/sectorscope_um.pdf
 
-WIN_INSTALLER = NPS-SectorScope-$(VERSION)-windowsinstaller.exe
-ZIP = NPS-SectorScope-$(VERSION).zip
-ZIP_DIR = NPS-SectorScope-$(VERSION)
+WIN_INSTALLER = SectorScope-$(VERSION)-windowsinstaller.exe
+ZIP = SectorScope-$(VERSION).zip
+ZIP_DIR = SectorScope-$(VERSION)
 AUTOPSY_PLUGIN_FROM = ../SectorScope_autopsy_plugin/build/edu-nps-sectorscope.nbm
-AUTOPSY_PLUGIN_TO = download/NPS-SectorScope-$(VERSION).nbm
+AUTOPSY_PLUGIN_TO = download/SectorScope-$(VERSION).nbm
 
 all: zip $(AUTOPSY_PLUGIN_TO) $(UM_TO) win_installer
 

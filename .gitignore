@@ -15,6 +15,8 @@ structure.aux
 # generated installer and zip
 install/NPS-SectorScope*.exe
 install/NPS-SectorScope*.zip
+install/SectorScope*.exe
+install/SectorScope*.zip
 
 # unused icons
 python/icons/not/*

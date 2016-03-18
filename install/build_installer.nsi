@@ -1,4 +1,4 @@
-# NSIS script for creating the Windows NPS SectorScope installer file.
+# NSIS script for creating the Windows SectorScope installer file.
 #
 # Installs the following:
 #   .py scripts and requisite button icons
@@ -18,8 +18,8 @@
 	!error "Invalid usage"
 !endif
 
-!define APPNAME "NPS SectorScope ${VERSION}"
-!define PLUGINNAME "NPS-SectorScope-${VERSION}.nbm"
+!define APPNAME "SectorScope ${VERSION}"
+!define PLUGINNAME "SectorScope-${VERSION}.nbm"
 !define REG_SUB_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APPNAME}"
 !define COMPANYNAME "Naval Postgraduate School"
 !define DESCRIPTION "Block Hash Visualization Tool"
@@ -37,7 +37,7 @@ RequestExecutionLevel admin
 InstallDir "$PROGRAMFILES64\${APPNAME}"
  
 Name "${APPNAME}"
-	outFile "NPS-SectorScope-${VERSION}-windowsinstaller.exe"
+	outFile "SectorScope-${VERSION}-windowsinstaller.exe"
  
 !include LogicLib.nsh
 !include EnvVarUpdate.nsi
