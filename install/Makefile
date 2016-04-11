@@ -6,7 +6,7 @@
 # .nbm file: The .nbm file is generated using NetBeans on Windows.
 #            Build it on Windows and then git push to make it current.
 
-VERSION = 0.6.0
+VERSION = 0.6.1
 
 SOURCES = ../python/*.py
 ICONS = ../python/icons/*.gif

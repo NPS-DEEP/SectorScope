@@ -76,12 +76,13 @@ class ReaderThread(threading.Thread):
         # Tkinter widgets can't handle large unicode, so use escape.
         # Ref. http://stackoverflow.com/questions/23530080/
         # how-to-print-non-bmp-unicode-characters-in-tkinter-e-g
-        l=list(s);
+        l=list(s)
         i=0;
         while i<len(l):
-            o=ord(l[i]);
+            o=ord(l[i])
             if o>65535:
-                l[i]="{"+str(o)+"ū}";
+                l[i]="{"+str(o)+"ū}"
+                l[i]="?"
             i+=1;
-        return "".join(l);
+        return "".join(l)
 
