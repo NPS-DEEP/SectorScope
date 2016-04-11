@@ -81,7 +81,6 @@ class ReaderThread(threading.Thread):
         while i<len(l):
             o=ord(l[i])
             if o>65535:
-                # l[i]="{"+str(o)+"ū}"
                 l[i]="?"
             i+=1;
         return "".join(l)
