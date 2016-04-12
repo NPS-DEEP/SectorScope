@@ -138,7 +138,7 @@ class BEImportWindow():
         # byte alignment entry
         self._byte_alignment_entry = tkinter.Entry(optional_frame, width=8)
         self._byte_alignment_entry.grid(
-                                    row=1, column=1, sticky=tkinter.W, padx=8)
+                                    row=2, column=1, sticky=tkinter.W, padx=8)
         self._byte_alignment_entry.insert(0, self._byte_alignment)
 
         # repository name label
@@ -147,7 +147,7 @@ class BEImportWindow():
 
         # repository name entry
         self._repository_name_entry = tkinter.Entry(optional_frame, width=40)
-        self._repository_name_entry.grid(row=2, column=1, sticky=tkinter.W,
+        self._repository_name_entry.grid(row=3, column=1, sticky=tkinter.W,
                                          padx=(8,0))
         self._repository_name_entry.insert(0, self._repository_name)
 

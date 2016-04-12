@@ -70,20 +70,20 @@ def _import_fsstat(image_filename, annotations_dir):
             continue
         for line in lines:
             try:
-                print("line.a:", line)
+#                print("line.a:", line)
                 p1 = line.index('-')
                 p2 = line.index(' (')
                 p3 = line.index(')')
-                print("line:", line, p1, p2, p3)
-                print("o:'%s', l:'%s'" % (line[0:p1], line[p2+2:p3]))
+#                print("line:", line, p1, p2, p3)
+#                print("o:'%s', l:'%s'" % (line[0:p1], line[p2+2:p3]))
 
                 # create dictionary entry for this line
                 d = dict()
                 d["type"] = "fsstat"
                 d["offset"] = int(line[0:p1]) * 512
-                print("off", d["offset"])
+#                print("off", d["offset"])
                 d["length"] = int(line[p2+2:p3]) * 512
-                print("len", d["length"])
+#                print("len", d["length"])
                 d["text"] = line
                 f.write("%s\n" % json.dumps(d))
 

@@ -36,7 +36,6 @@ class DataReader():
       hashes (dict<hash hexcode str, whole json data plus source_hashes>
         where source_hashes is set of source hexcodes associated with the hash)
       sources (dict<source hash, the json data under sources[i]>).
-        the identified_blocks.txt file.
       annotation_types (list<(type, description, is_active)>): List
         of annotation types available.
       annotations (list<(annotation_type, offset, length, text)>):
@@ -230,42 +229,31 @@ class DataReader():
 
                     # get line parts
                     parts = line.split("\t")
-                    if len(parts) == 3:
-                        (forensic_path, block_hash, json_string) = parts
+                    (forensic_path, block_hash, json_string) = parts
 
-                        # store hash at forensic path
-                        forensic_paths[int(forensic_path)] = block_hash
+                    # store hash at forensic path
+                    forensic_paths[int(forensic_path)] = block_hash
 
-                        # store hash information if present
-                        # file hashes.
-                        if len(json_string.strip()) > 0:
-                            # get json data
-                            json_data = json.loads(json_string)
+                    # store hash information if present
+                    # get json data
+                    json_data = json.loads(json_string)
 
-                            # hashes
-                            hashes[block_hash] = json_data
+                    if len(json_data) > 0:
+                        # take data for hash
+                        hashes[block_hash] = json_data
 
-                            # calculate source_hashes
-                            source_hashes = set()
-                            pairs = json_data["source_offset_pairs"]
-                            for file_hash in pairs[0::2]:
-                                source_hashes.add(file_hash)
+                        # calculate source_hashes
+                        source_hashes = set()
+                        pairs = json_data["source_offset_pairs"]
+                        for file_hash in pairs[0::2]:
+                            source_hashes.add(file_hash)
 
-                            # add additional field source_hashes
-                            hashes[block_hash]["source_hashes"] = source_hashes
+                        # add additional source_hashes field
+                        hashes[block_hash]["source_hashes"] = source_hashes
 
-                            # sources
-                            for source in json_data["sources"]:
-                                sources[source["file_hash"]] = source
-
-                    elif len(parts) == 2:
-                        (forensic_path, block_hash) = parts
-
-                        # store hash at forensic path
-                        forensic_paths[int(forensic_path)] = block_hash
-
-                    else:
-                        raise ValueError("Invalid line format")
+                        # sources
+                        for source in json_data["sources"]:
+                            sources[source["file_hash"]] = source
 
                 except Exception as e:
                     raise ValueError("Error reading file '%s' "
