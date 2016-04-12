@@ -29,13 +29,12 @@ class DataReader():
       image_size (int): Size in bytes of the media image.
       image_filename (str): Full path of the media image filename.
       hashdb_dir (str): Full path to the hash database directory.
-      sector_size (int): Sector size used by the hashdb database, used for
-        displaying media offset values in terms of sectors.
+      byte_alignment(int): The largest alignment value divisible by step
+        size, usually step size.
       block_size (int): Block size used by the hashdb database.
       forensic_paths (dict<forensic path int, hash hexcode str>):
       hashes (dict<hash hexcode str, whole json data plus source_hashes>
-              where source_hashes is set of source hexcodes associated with
-              the hash)
+        where source_hashes is set of source hexcodes associated with the hash)
       sources (dict<source hash, the json data under sources[i]>).
         the identified_blocks.txt file.
       annotation_types (list<(type, description, is_active)>): List
@@ -55,7 +54,7 @@ class DataReader():
         self.image_size = 0
         self.image_filename = ""
         self.hashdb_dir = ""
-        self.sector_size = -1
+        self.byte_alignment = -1
         self.block_size = -1
         self.forensic_paths = dict()
         self.hashes = dict()
@@ -82,7 +81,7 @@ class DataReader():
         t1 = ts("data_reader.read finished report.xml", t0)
 
         # get attributes from hashdb settings.xml
-        (sector_size, block_size) = self._read_settings_file(hashdb_dir)
+        (byte_alignment, block_size) = self._read_settings_file(hashdb_dir)
 
         t2 = ts("data_reader.read finished settings.xml", t1)
 
@@ -108,7 +107,7 @@ class DataReader():
         self.image_size = image_size
         self.image_filename = image_filename
         self.hashdb_dir = hashdb_dir
-        self.sector_size = sector_size
+        self.byte_alignment = byte_alignment
         self.block_size = block_size
         self.forensic_paths = forensic_paths
         self.hashes = hashes
@@ -130,7 +129,7 @@ class DataReader():
                         self.image_size,
                         self.image_filename,
                         self.hashdb_dir,
-                        self.sector_size,
+                        self.byte_alignment,
                         self.block_size,
                         len(self.forensic_paths),
                         len(self.hashes),
@@ -190,7 +189,7 @@ class DataReader():
         return (image_size, image_filename, hashdb_dir)
 
     def _read_settings_file(self, hashdb_dir):
-        """Read block_size from settings.xml."""
+        """Read byte_alignment and block_size from settings.xml."""
 
         # path to settings file
         hashdb_settings_file = os.path.join(hashdb_dir, "settings.json")
@@ -202,10 +201,10 @@ class DataReader():
             json_settings = json.loads(f.readline())
 
         # parse
-        sector_size = json_settings["sector_size"]
+        byte_alignment = json_settings["byte_alignment"]
         block_size = json_settings["block_size"]
 
-        return (sector_size, block_size)
+        return (byte_alignment, block_size)
 
     def _read_identified_blocks(self, be_dir):
 

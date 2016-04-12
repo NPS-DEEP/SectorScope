@@ -48,10 +48,11 @@ class ProjectWindow():
         self._database_text = tkinter.Label(f, bg=colors.BACKGROUND)
         self._database_text.pack(side=tkinter.TOP, anchor="w")
 
-        # sector and block size
-        self._sector_and_block_size_text = tkinter.Label(f,
+        # byte_alignment and block size
+        self._byte_alignment_and_block_size_text = tkinter.Label(f,
                                                        bg=colors.BACKGROUND)
-        self._sector_and_block_size_text .pack(side=tkinter.TOP, anchor="w")
+        self._byte_alignment_and_block_size_text .pack(
+                                               side=tkinter.TOP, anchor="w")
 
         # size statistics
         self._sizes_text = tkinter.Label(f, bg=colors.BACKGROUND)
@@ -81,12 +82,12 @@ class ProjectWindow():
                                size_string(self._data_manager.image_size),
                                offset_string(self._data_manager.image_size,
                                       self._preferences.offset_format,
-                                      self._data_manager.sector_size))
+                                      self._data_manager.byte_alignment))
             self._database_text["text"] = 'Database: %s' % \
                                self._data_manager.hashdb_dir
-            self._sector_and_block_size_text["text"] = \
+            self._byte_alignment_and_block_size_text["text"] = \
                              'Sector size: %s        Block size: %s' % (
-                                      self._data_manager.sector_size,
+                                      self._data_manager.byte_alignment,
                                       self._data_manager.block_size)
             self._sizes_text["text"] = 'Matches: Paths: %s        ' \
                                   'Hashes: %s        Sources: %s' % (
@@ -100,7 +101,7 @@ class ProjectWindow():
             self._image_text["text"] = 'Image: Not opened'
             self._image_size_text["text"] = 'Image size: Not opened'
             self._database_text["text"] = 'Database: Not opened'
-            self._sector_and_block_size_text["text"] = \
+            self._byte_alignment_and_block_size_text["text"] = \
                                            'Image size: Not opened        ' \
                                            'Sector size: Not opened'
             self._database_text["text"] = 'Matches: Not opened'

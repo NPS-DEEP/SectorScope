@@ -20,7 +20,7 @@ class BEScanWindow():
     """
 
     def __init__(self, master, image="", hashdb_dir="", be_dir="",
-                 block_size=512, sector_size=512):
+                 block_size=512, step_size=512, byte_alignment=512):
 
         """Args:
           image(str): The media image to scan.
@@ -28,14 +28,18 @@ class BEScanWindow():
           be_dir(str): The new bulk_extractor directory to create during the
                        scan.  It will contain identified_blocks.txt.
           block_size(int): The block size to hash when scanning hashes.
-          sector_size(int): The sector size to increment along while scanning.
+          step_size(int): The step size to increment along while scanning.
+          byte_alignment(int): The largest alignment value divisible by step
+                       size, usually step size.
+
         """
         # input parameters
         self._image = image
         self._hashdb_dir = hashdb_dir
         self._be_dir = be_dir
         self._block_size = block_size
-        self._sector_size = sector_size
+        self._step_size = step_size
+        self._byte_alignment = byte_alignment
 
         # the queue for import text
         self._queue = queue.Queue()
@@ -134,14 +138,14 @@ class BEScanWindow():
         self._block_size_entry.grid(row=0, column=1, sticky=tkinter.W, padx=8)
         self._block_size_entry.insert(0, self._block_size)
 
-        # sector size label
-        tkinter.Label(optional_frame, text="Sector Size") \
+        # step size label
+        tkinter.Label(optional_frame, text="Step Size") \
                           .grid(row=1, column=0, sticky=tkinter.W)
 
-        # sector size entry
-        self._sector_size_entry = tkinter.Entry(optional_frame, width=8)
-        self._sector_size_entry.grid(row=1, column=1, sticky=tkinter.W, padx=8)
-        self._sector_size_entry.insert(0, self._sector_size)
+        # step size entry
+        self._step_size_entry = tkinter.Entry(optional_frame, width=8)
+        self._step_size_entry.grid(row=1, column=1, sticky=tkinter.W, padx=8)
+        self._step_size_entry.insert(0, self._step_size)
 
         return optional_frame
 
@@ -316,19 +320,19 @@ class BEScanWindow():
                                   self._block_size_entry.get())
             return
 
-        # get sector size
+        # get step size
         try:
-            sector_size = int(self._sector_size_entry.get())
+            step_size = int(self._step_size_entry.get())
         except ValueError:
-            self._set_status_text("Error: invalid sector size value: '%s'." %
-                                  self._sector_size_entry.get())
+            self._set_status_text("Error: invalid step size value: '%s'." %
+                                  self._step_size_entry.get())
             return
 
         # compose the bulk_extractor scan command
         cmd = ["bulk_extractor", "-E", "hashdb",
                "-S", "hashdb_mode=scan",
                "-S", "hashdb_block_size=%s" % block_size,
-               "-S", "hashdb_sector_size=%s" % sector_size,
+               "-S", "hashdb_step_size=%s" % step_size,
                "-S", "hashdb_scan_path=%s" % hashdb_dir,
                "-o", be_dir,
                image]

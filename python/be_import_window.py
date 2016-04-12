@@ -22,20 +22,23 @@ class BEImportWindow():
     """
 
     def __init__(self, master, source_dir="", be_dir="",
-                 block_size=512, sector_size=512,
+                 block_size=512, step_size=512, byte_alignment=512,
                  repository_name=""):
         """Args:
           source_dir(str): The directory to import from.
           be_dir(str): The new bulk_extractor directory to create and
                        import into.
           block_size(int): The block size to hash when importing hashes.
-          sector_size(int): The sector size to increment along while importing.
+          step_size(int): The amount to increment along while importing.
+          byte_alignment(int): The largest alignment value divisible by step
+                       size, usually step size.
         """
         # input parameters
         self._source_dir = source_dir
         self._be_dir = be_dir
         self._block_size = block_size
-        self._sector_size = sector_size
+        self._step_size = step_size
+        self._byte_alignment = byte_alignment
         self._repository_name = repository_name
 
         # the queue for import text
@@ -119,18 +122,28 @@ class BEImportWindow():
         self._block_size_entry.grid(row=0, column=1, sticky=tkinter.W, padx=8)
         self._block_size_entry.insert(0, self._block_size)
 
-        # sector size label
-        tkinter.Label(optional_frame, text="Sector Size") \
+        # step size label
+        tkinter.Label(optional_frame, text="Step Size") \
                           .grid(row=1, column=0, sticky=tkinter.W)
 
-        # sector size entry
-        self._sector_size_entry = tkinter.Entry(optional_frame, width=8)
-        self._sector_size_entry.grid(row=1, column=1, sticky=tkinter.W, padx=8)
-        self._sector_size_entry.insert(0, self._sector_size)
+        # step size entry
+        self._step_size_entry = tkinter.Entry(optional_frame, width=8)
+        self._step_size_entry.grid(row=1, column=1, sticky=tkinter.W, padx=8)
+        self._step_size_entry.insert(0, self._step_size)
+
+        # byte alignment label
+        tkinter.Label(optional_frame, text="Byte Alignment") \
+                          .grid(row=2, column=0, sticky=tkinter.W)
+
+        # byte alignment entry
+        self._byte_alignment_entry = tkinter.Entry(optional_frame, width=8)
+        self._byte_alignment_entry.grid(
+                                    row=1, column=1, sticky=tkinter.W, padx=8)
+        self._byte_alignment_entry.insert(0, self._byte_alignment)
 
         # repository name label
         tkinter.Label(optional_frame, text="Repository Name") \
-                          .grid(row=2, column=0, sticky=tkinter.W)
+                          .grid(row=3, column=0, sticky=tkinter.W)
 
         # repository name entry
         self._repository_name_entry = tkinter.Entry(optional_frame, width=40)
@@ -298,12 +311,20 @@ class BEImportWindow():
                                   self._block_size_entry.get())
             return
 
-        # get sector size
+        # get step size
         try:
-            sector_size = int(self._sector_size_entry.get())
+            step_size = int(self._step_size_entry.get())
         except ValueError:
-            self._set_status_text("Error: invalid sector size value: '%s'." %
-                                  self._sector_size_entry.get())
+            self._set_status_text("Error: invalid step size value: '%s'." %
+                                  self._step_size_entry.get())
+            return
+
+        # get byte alignment
+        try:
+            byte_alignment = int(self._byte_alignment_entry.get())
+        except ValueError:
+            self._set_status_text("Error: invalid byte alignmentvalue: '%s'." %
+                                  self._byte_alignment_entry.get())
             return
 
         # get repository name
@@ -317,7 +338,8 @@ class BEImportWindow():
         cmd = ["bulk_extractor", "-E", "hashdb",
                "-S", "hashdb_mode=import",
                "-S", "hashdb_block_size=%s" % block_size,
-               "-S", "hashdb_sector_size=%s" % sector_size,
+               "-S", "hashdb_step_size=%s" % step_size,
+               "-S", "hashdb_byte_alignment=%s" % byte_alignment,
                "-S", "hashdb_repository_name=%s" % repository_name,
                "-o", be_dir,
                "-R", source_dir]

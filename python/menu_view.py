@@ -85,7 +85,7 @@ class MenuView():
                        highlightthickness=0)
         preferences_button.pack(side=tkinter.LEFT)
         Tooltip(preferences_button, "Toggle format preference "
-                                    "between hex, decimal, and sector")
+                 "between hex, decimal, and byte alignment (usually sectors")
 
     def _handle_open(self):
         self._open_manager.open_be_dir("")

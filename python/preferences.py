@@ -10,7 +10,7 @@ class Preferences():
     """Manages preference settings.  Changes call callbacks.
 
     Attributes:
-      offset_format(str): one of "hex", "decimal", or "sector".
+      offset_format(str): one of "hex", "decimal", or "byte alignment".
 
     Requirement:
       Tk must be initialized for tkinter.Variable to work.
@@ -31,8 +31,8 @@ class Preferences():
         if self.offset_format == "hex":
             self.offset_format = "decimal"
         elif self.offset_format == "decimal":
-            self.offset_format = "sector"
-        elif self.offset_format == "sector":
+            self.offset_format = "byte alignment"
+        elif self.offset_format == "byte alignment":
             self.offset_format = "hex"
         else:
             raise RuntimeError("program error")

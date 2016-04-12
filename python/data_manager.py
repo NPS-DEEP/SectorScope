@@ -20,7 +20,7 @@ class DataManager():
     image_size = 0
     image_filename = ""
     hashdb_dir = ""
-    sector_size = 0
+    byte_alignment = 0
     block_size = 0
     forensic_paths = dict()
     hashes = dict()
@@ -52,7 +52,7 @@ class DataManager():
         self.image_size = data_reader.image_size
         self.image_filename = data_reader.image_filename
         self.hashdb_dir = data_reader.hashdb_dir
-        self.sector_size = data_reader.sector_size
+        self.byte_alignment = data_reader.byte_alignment
         self.block_size = data_reader.block_size
         self.forensic_paths = data_reader.forensic_paths
         self.hashes = data_reader.hashes
