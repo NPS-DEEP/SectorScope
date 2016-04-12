@@ -10,9 +10,12 @@ def _run_cmd(cmd):
     except Exception as e:
         raise RuntimeError("failure running cmd: %s: %s" % (cmd, e))
     if p.returncode != 0:
-        print("error with command '", end="")
-        print(*cmd, sep=' ', end="':\n")
-        print(*lines, sep='\n')
+#        print("error with command '", end="")
+#        print(*cmd, sep=' ', end="':\n")
+#        print(*lines, sep='\n')
+        print("error with command:")
+        print(cmd)
+        print(lines)
         print("Aborting.")
         raise RuntimeError("failure running cmd: %s" % cmd)
 
