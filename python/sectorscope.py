@@ -5,7 +5,6 @@ from argparse import ArgumentParser
 import math
 import xml.dom.minidom
 import os
-import json
 try:
     import tkinter
 except ImportError:
