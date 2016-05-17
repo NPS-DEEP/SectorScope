@@ -2,7 +2,7 @@ import colors
 from icon_path import icon_path
 from tooltip import Tooltip
 from be_scan_window import BEScanWindow
-from be_import_window import BEImportWindow
+from ingest_window import IngestWindow
 try:
     import tkinter
 except ImportError:
@@ -100,5 +100,5 @@ class MenuView():
         self._preferences.set_next()
 
     def _handle_import(self):
-        BEImportWindow(self.frame)
+        IngestWindow(self.frame)
 

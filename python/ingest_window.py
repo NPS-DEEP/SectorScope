@@ -1,9 +1,10 @@
-# Use this to import hashes from a directory into a hash database.
+# Use this to ingest hashes from a directory into a hash database.
 # Relative paths are replaced with absolute paths.
 
 import os
 import sys
 import threaded_subprocess
+from subprocess import Popen, PIPE
 
 try:
     import queue
@@ -17,36 +18,35 @@ except ImportError:
     import Tkinter as tkinter
     import tkFileDialog as fd
 
-class BEImportWindow():
-    """Import using a GUI interface.
+class IngestWindow():
+    """Ingest using a GUI interface.
     """
 
-    def __init__(self, master, source_dir="", be_dir="",
+    def __init__(self, master, source_dir="", hashdb_dir="",
                  block_size=512, step_size=512, byte_alignment=512,
                  repository_name=""):
         """Args:
-          source_dir(str): The directory to import from.
-          be_dir(str): The new bulk_extractor directory to create and
-                       import into.
-          block_size(int): The block size to hash when importing hashes.
-          step_size(int): The amount to increment along while importing.
+          source_dir(str): The directory to ingest from.
+          hashdb_dir(str): The new hashdb directory to create and ingest into.
+          block_size(int): The block size to hash when ingesting hashes.
+          step_size(int): The amount to increment along while ingesting.
           byte_alignment(int): The largest alignment value divisible by step
                        size, usually step size.
         """
         # input parameters
         self._source_dir = source_dir
-        self._be_dir = be_dir
+        self._hashdb_dir = hashdb_dir
         self._block_size = block_size
         self._step_size = step_size
         self._byte_alignment = byte_alignment
         self._repository_name = repository_name
 
-        # the queue for import text
+        # the queue for ingest text
         self._queue = queue.Queue()
 
         # toplevel
         self._root_window = tkinter.Toplevel(master)
-        self._root_window.title("SectorScope Import")
+        self._root_window.title("SectorScope Ingest")
 
         # make the control frame
         control_frame = tkinter.Frame(self._root_window, borderwidth=1,
@@ -90,17 +90,17 @@ class BEImportWindow():
                                 command=self._handle_source_directory_chooser)
         source_directory_entry_button.grid(row=0, column=2, sticky=tkinter.W)
 
-        # bulk_extractor output directory label
-        tkinter.Label(required_frame, text="bulk_extractor Output Directory") \
+        # new destination hash database label
+        tkinter.Label(required_frame, text="new destination hash database") \
                           .grid(row=1, column=0, sticky=tkinter.W)
 
-        # bulk_extractor output directory input entry
+        # new destination hash database input entry
         self._output_directory_entry = tkinter.Entry(required_frame, width=40)
         self._output_directory_entry.grid(row=1, column=1, sticky=tkinter.W,
                                           padx=8)
-        self._output_directory_entry.insert(0, self._be_dir)
+        self._output_directory_entry.insert(0, self._hashdb_dir)
 
-        # bulk_extractor output directory chooser button
+        # new destination hash database directory chooser button
         output_directory_entry_button = tkinter.Button(required_frame,
                                 text="...",
                                 command=self._handle_output_directory_chooser)
@@ -260,7 +260,7 @@ class BEImportWindow():
 
     def _handle_output_directory_chooser(self, *args):
         output_directory = fd.askdirectory(
-                               title="Open bulk_extractor output Directory",
+                               title="Open new hash database output Directory",
                                mustexist=False)
         if output_directory:
             self._output_directory_entry.delete(0, tkinter.END)
@@ -296,11 +296,11 @@ class BEImportWindow():
                                     "not exist." % source_dir)
             return
 
-        # get be_dir field
-        be_dir = os.path.abspath(self._output_directory_entry.get())
-        if os.path.exists(be_dir):
-            self._set_status_text("Error: bulk_extractor output directory '%s'"
-                                    "already exists." % be_dir)
+        # get hashdb_dir field
+        hashdb_dir = os.path.abspath(self._output_directory_entry.get())
+        if os.path.exists(hashdb_dir):
+            self._set_status_text("Error: new destination hash database directory '%s'"
+                                    "already exists." % hashdb_dir)
             return
 
         # get block size
@@ -334,15 +334,22 @@ class BEImportWindow():
             self._repository_name_entry.delete(0, tkinter.END)
             self._repository_name_entry.insert(0, repository_name)
 
-        # compose the bulk_extractor import command
-        cmd = ["bulk_extractor", "-E", "hashdb",
-               "-S", "hashdb_mode=import",
-               "-S", "hashdb_block_size=%s" % block_size,
-               "-S", "hashdb_step_size=%s" % step_size,
-               "-S", "hashdb_byte_alignment=%s" % byte_alignment,
-               "-S", "hashdb_repository_name=%s" % repository_name,
-               "-o", be_dir,
-               "-R", source_dir]
+        # create the new hashdb_dir
+        cmd = ["hashdb", "create", "-b", "%s"%block_size, "-a", "%s"%byte_alignment,
+               hashdb_dir]
+        p = Popen(cmd, stdout=PIPE)
+        lines = p.communicate()[0].decode('utf-8').split("\n")
+        if p.returncode != 0:
+            self._queue.put("error creating hash database in: %s" %
+                                                            ' '.join(cmd))
+            for line in lines:
+                self._queue.put("error: %s" % line)
+            self._queue.put("Aborting.")
+            return
+
+        # compose the hashdb ingest command
+        cmd = ["hashdb", "ingest", "-r", repository_name,
+               "-s", "%s"%step_size, hashdb_dir, source_dir]
 
         # start the import
         self._threaded_subprocess = threaded_subprocess.ThreadedSubprocess(
