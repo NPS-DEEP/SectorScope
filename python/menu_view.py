@@ -1,7 +1,7 @@
 import colors
 from icon_path import icon_path
 from tooltip import Tooltip
-from be_scan_window import BEScanWindow
+from scan_image_window import ScanImageWindow
 from ingest_window import IngestWindow
 try:
     import tkinter
@@ -88,13 +88,14 @@ class MenuView():
                  "between hex, decimal, and byte alignment (usually sectors")
 
     def _handle_open(self):
-        self._open_manager.open_be_dir("")
+        self._open_manager.open_match_file("")
 
     def _handle_project_window(self):
         self._project_window.show()
 
     def _handle_scan(self):
-        BEScanWindow(self.frame)
+#zz        ScanImageWindow(self.frame)
+        ScanImageWindow(self.frame, image='/home/bdallen/Kitty/jo-favorites-usb-2009-12-11.E01', hashdb_dir='/home/bdallen/zzz5', output_file='/home/bdallen/zzzout5.json')
 
     def _handle_preferences(self):
         self._preferences.set_next()

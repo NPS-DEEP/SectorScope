@@ -1,6 +1,5 @@
 from icon_path import icon_path
 from tooltip import Tooltip
-from be_scan_window import BEScanWindow
 import colors
 try:
     import tkinter

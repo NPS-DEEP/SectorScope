@@ -104,6 +104,7 @@ def _read_json(annotations_file, annotations):
        d = json.loads(line)
        annotations.append((d["type"], d["offset"], d["length"], d["text"]))
 
+# zzzzzzzzz need alternate to be_dir
 def read_annotations(image_filename, project_dir):
     """Read image annotations from project_dir/image_annotations/ creating
       and importing if necessary.

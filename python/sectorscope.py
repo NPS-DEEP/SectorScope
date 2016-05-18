@@ -67,13 +67,12 @@ def build_gui(root_window, data_manager, annotation_filter,
 # main
 if __name__=="__main__":
 
-    # parse be_dir from input
+    # parse match_file from input
     parser = ArgumentParser(prog='sectorscope.py',
-               description="View associations between scanned hashes "
-                           "and their sources for the bulk_extractor "
-                           "directory at path 'be_dir'.")
-    parser.add_argument('-i', '--be_dir',
-                        help= 'path to the bulk_extractor directory',
+               description="View associations between media iamges and "
+                           "blacklist sources.")
+    parser.add_argument('-i', '--match_file',
+                        help= 'path to a block hash match file',
                         default='')
     args = parser.parse_args()
 
@@ -103,8 +102,8 @@ if __name__=="__main__":
     build_gui(root_window, data_manager, annotation_filter,
                              histogram_control, open_manager, project_window)
 
-    # now open the be_dir
-    open_manager.open_be_dir(args.be_dir)
+    # now open the match_file
+    open_manager.open_match_file(args.match_file)
 
     # keep Tk alive
     root_window.mainloop()

@@ -5,6 +5,7 @@ except ImportError:
 
 class ErrorWindow:
     def __init__(self, master, title, text):
+        raise RuntimeError(text) # zzzzzzzzz
         # make toplevel window
         self._root_window = tkinter.Toplevel(master)
         self._root_window.title(title)

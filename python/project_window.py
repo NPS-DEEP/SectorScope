@@ -33,8 +33,8 @@ class ProjectWindow():
                                              side=tkinter.TOP, pady=(0,4))
 
         # scan path
-        self._scan_path_text = tkinter.Label(f, bg=colors.BACKGROUND)
-        self._scan_path_text.pack(side=tkinter.TOP, anchor="w")
+        self._match_file_text = tkinter.Label(f, bg=colors.BACKGROUND)
+        self._match_file_text.pack(side=tkinter.TOP, anchor="w")
 
         # media image
         self._image_text = tkinter.Label(f, bg=colors.BACKGROUND)
@@ -74,8 +74,8 @@ class ProjectWindow():
     def _handle_data_manager_change(self, *args):
         if self._data_manager.image_filename:
             # data_manager opened
-            self._scan_path_text["text"] = 'Scan path: %s' % \
-                               self._data_manager.be_dir
+            self._match_file_text["text"] = 'Match file: %s' % \
+                               self._data_manager.match_file
             self._image_text["text"] = 'Image: %s' % \
                                self._data_manager.image_filename
             self._image_size_text["text"] = 'Image size: %s  (%s)' % (
@@ -97,7 +97,7 @@ class ProjectWindow():
 
         else:
             # data_manager not opened
-            self._scan_path_text["text"] = 'Scan path: Not opened'
+            self._match_file_text["text"] = 'Match file: Not opened'
             self._image_text["text"] = 'Image: Not opened'
             self._image_size_text["text"] = 'Image size: Not opened'
             self._database_text["text"] = 'Database: Not opened'

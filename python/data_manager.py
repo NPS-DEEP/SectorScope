@@ -16,7 +16,7 @@ class DataManager():
     change_type = ""
 
     # project attributes
-    be_dir = ""
+    match_file = ""
     image_size = 0
     image_filename = ""
     hashdb_dir = ""
@@ -48,7 +48,7 @@ class DataManager():
 
     def set_data(self, data_reader):
         # copy project attributes from data reader
-        self.be_dir = data_reader.be_dir
+        self.match_file = data_reader.match_file
         self.image_size = data_reader.image_size
         self.image_filename = data_reader.image_filename
         self.hashdb_dir = data_reader.hashdb_dir

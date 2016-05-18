@@ -5,6 +5,7 @@ import os
 import sys
 import threaded_subprocess
 from subprocess import Popen, PIPE
+import helpers
 
 try:
     import queue
@@ -75,7 +76,7 @@ class IngestWindow():
                                             padx=8, pady=8)
 
         # source directory label
-        tkinter.Label(required_frame, text="Input Source Directory") \
+        tkinter.Label(required_frame, text="Source Directory") \
                           .grid(row=0, column=0, sticky=tkinter.W)
 
         # source directory entry
@@ -91,7 +92,7 @@ class IngestWindow():
         source_directory_entry_button.grid(row=0, column=2, sticky=tkinter.W)
 
         # new destination hash database label
-        tkinter.Label(required_frame, text="new destination hash database") \
+        tkinter.Label(required_frame, text="New Hash Database") \
                           .grid(row=1, column=0, sticky=tkinter.W)
 
         # new destination hash database input entry
@@ -337,11 +338,9 @@ class IngestWindow():
         # create the new hashdb_dir
         cmd = ["hashdb", "create", "-b", "%s"%block_size, "-a", "%s"%byte_alignment,
                hashdb_dir]
-        p = Popen(cmd, stdout=PIPE)
-        lines = p.communicate()[0].decode('utf-8').split("\n")
-        if p.returncode != 0:
-            self._queue.put("error creating hash database in: %s" %
-                                                            ' '.join(cmd))
+        error_message, lines = helpers.run_short_command(cmd)
+        if error_message:
+            self._queue.put(error_message)
             for line in lines:
                 self._queue.put("error: %s" % line)
             self._queue.put("Aborting.")

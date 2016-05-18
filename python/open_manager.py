@@ -34,25 +34,27 @@ class OpenManager():
 
         self._data_reader = DataReader()
 
-    """Open be_dir or if not be_dir open be_dir from chooser."""
-    def open_be_dir(self, be_dir):
-        if not be_dir:
-            # get be_dir from chooser
-            be_dir = fd.askdirectory(
-                     title="Open bulk_extractor directory",
-                     mustexist=True, initialdir=self._data_manager.be_dir)
+    """Open match_file or if "" then open match_file from chooser."""
+    def open_match_file(self, match_file):
+        if not match_file:
+            # get match_file from chooser
+            match_file = fd.askopenfilename(
+                     title="Open Scan Match File",
+                     defaultextension=".json",
+                     initialdir=self._data_manager.match_file)
 
-        if not be_dir:
+        if not match_file:
             # user did not choose, so abort
             return
 
-        # read be_dir else show error window
-        try:
-            self._data_reader.read(be_dir)
-
-        except Exception as e:
-            ErrorWindow(self._master, "Open Error", e)
-            return
+        # read match_file else show error window
+        self._data_reader.read(match_file)
+#        try:
+#            self._data_reader.read(match_file)
+#
+#        except Exception as e:
+#            ErrorWindow(self._master, "Open Error", e)
+#            return
 
         # the read worked so accept the the project
 

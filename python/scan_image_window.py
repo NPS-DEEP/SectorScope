@@ -3,7 +3,8 @@
 
 import os
 import sys
-import threaded_subprocess
+import threaded_scan_image
+import helpers
 try:
     import queue
 except ImportError:
@@ -15,38 +16,31 @@ except ImportError:
     import Tkinter as tkinter
     import tkFileDialog as fd
 
-class BEScanWindow():
-    """Scan using a GUI interface.
+class ScanImageWindow():
+    """Scan a media image for matching hashes using a GUI interface.
     """
 
-    def __init__(self, master, image="", hashdb_dir="", be_dir="",
-                 block_size=512, step_size=512, byte_alignment=512):
+    def __init__(self, master, image="", hashdb_dir="", output_file="",
+                 step_size=512):
 
         """Args:
           image(str): The media image to scan.
           hashdb_dir(str): Path to the hashdb directory to scan against.
-          be_dir(str): The new bulk_extractor directory to create during the
-                       scan.  It will contain identified_blocks.txt.
-          block_size(int): The block size to hash when scanning hashes.
+          output_file(str): The new output file to create during the scan.
           step_size(int): The step size to increment along while scanning.
-          byte_alignment(int): The largest alignment value divisible by step
-                       size, usually step size.
-
         """
         # input parameters
         self._image = image
         self._hashdb_dir = hashdb_dir
-        self._be_dir = be_dir
-        self._block_size = block_size
+        self._output_file = output_file
         self._step_size = step_size
-        self._byte_alignment = byte_alignment
 
         # the queue for import text
         self._queue = queue.Queue()
 
         # toplevel
         self._root_window = tkinter.Toplevel(master)
-        self._root_window.title("SectorScope Scan")
+        self._root_window.title("SectorScope Scan Image")
 
         # make the control frame
         control_frame = tkinter.Frame(self._root_window, borderwidth=1,
@@ -90,8 +84,8 @@ class BEScanWindow():
                                 command=self._handle_image_chooser)
         image_entry_button.grid(row=0, column=2, sticky=tkinter.W)
 
-        # hashdb input database directory label
-        tkinter.Label(required_frame, text="hashdb database Directory") \
+        # hashdb database directory label
+        tkinter.Label(required_frame, text="Hash Database") \
                           .grid(row=1, column=0, sticky=tkinter.W)
 
         # hashdb directory input entry
@@ -106,21 +100,21 @@ class BEScanWindow():
                                 command=self._handle_hashdb_directory_chooser)
         hashdb_directory_entry_button.grid(row=1, column=2, sticky=tkinter.W)
 
-        # bulk_extractor output directory label
-        tkinter.Label(required_frame, text="bulk_extractor Output Directory") \
+        # output_file label
+        tkinter.Label(required_frame, text="Output File") \
                           .grid(row=2, column=0, sticky=tkinter.W)
 
-        # bulk_extractor output directory input entry
-        self._output_directory_entry = tkinter.Entry(required_frame, width=40)
-        self._output_directory_entry.grid(row=2, column=1, sticky=tkinter.W,
+        # output_file input entry
+        self._output_file_entry = tkinter.Entry(required_frame, width=40)
+        self._output_file_entry.grid(row=2, column=1, sticky=tkinter.W,
                                           padx=8)
-        self._output_directory_entry.insert(0, self._be_dir)
+        self._output_file_entry.insert(0, self._output_file)
 
-        # bulk_extractor output directory chooser button
-        output_directory_entry_button = tkinter.Button(required_frame,
+        # output_file chooser button
+        output_file_entry_button = tkinter.Button(required_frame,
                                 text="...",
-                                command=self._handle_output_directory_chooser)
-        output_directory_entry_button.grid(row=2, column=2, sticky=tkinter.W)
+                                command=self._handle_output_file_chooser)
+        output_file_entry_button.grid(row=2, column=2, sticky=tkinter.W)
 
         return required_frame
 
@@ -129,22 +123,13 @@ class BEScanWindow():
                                             text="Options",
                                             padx=8, pady=8)
 
-        # block size label
-        tkinter.Label(optional_frame, text="Block Size") \
-                          .grid(row=0, column=0, sticky=tkinter.W)
-
-        # block size entry
-        self._block_size_entry = tkinter.Entry(optional_frame, width=8)
-        self._block_size_entry.grid(row=0, column=1, sticky=tkinter.W, padx=8)
-        self._block_size_entry.insert(0, self._block_size)
-
         # step size label
         tkinter.Label(optional_frame, text="Step Size") \
-                          .grid(row=1, column=0, sticky=tkinter.W)
+                          .grid(row=0, column=0, sticky=tkinter.W)
 
         # step size entry
         self._step_size_entry = tkinter.Entry(optional_frame, width=8)
-        self._step_size_entry.grid(row=1, column=1, sticky=tkinter.W, padx=8)
+        self._step_size_entry.grid(row=0, column=1, sticky=tkinter.W, padx=8)
         self._step_size_entry.insert(0, self._step_size)
 
         return optional_frame
@@ -260,13 +245,12 @@ class BEScanWindow():
             self._hashdb_directory_entry.delete(0, tkinter.END)
             self._hashdb_directory_entry.insert(0, hashdb_directory)
 
-    def _handle_output_directory_chooser(self, *args):
-        output_directory = fd.askdirectory(
-                               title="Open bulk_extractor output Directory",
-                               mustexist=False)
-        if output_directory:
-            self._output_directory_entry.delete(0, tkinter.END)
-            self._output_directory_entry.insert(0, output_directory)
+    def _handle_output_file_chooser(self, *args):
+        file_opt={"title":"Open Output File", "defaultextension":".json"}
+        output_file = fd.asksaveasfilename(**file_opt)
+        if output_file:
+            self._output_file_entry.delete(0, tkinter.END)
+            self._output_file_entry.insert(0, output_file)
 
     def _handle_consume_queue(self):
         # consume the queue
@@ -275,12 +259,12 @@ class BEScanWindow():
             self._progress_text.see(tkinter.END)
 
         # more or done
-        if self._threaded_subprocess.is_alive():
+        if self._threaded_scan_image.is_alive():
             # keep progress_text consuming queue
             self._progress_text.after(200, self._handle_consume_queue)
         else:
             # done, successful or not
-            if self._threaded_subprocess.subprocess_returncode == 0:
+            if self._threaded_scan_image.subprocess_returncode == 0:
                 # good
                 self._set_done()
             else:
@@ -305,19 +289,11 @@ class BEScanWindow():
                                     "does not exist." % hashdb_dir)
             return
 
-        # get be_dir field
-        be_dir = os.path.abspath(self._output_directory_entry.get())
-        if os.path.exists(be_dir):
-            self._set_status_text("Error: bulk_extractor output directory '%s'"
-                                    "already exists." % be_dir)
-            return
-
-        # get block size
-        try:
-            block_size = int(self._block_size_entry.get())
-        except ValueError:
-            self._set_status_text("Error: invalid block size value: '%s'." %
-                                  self._block_size_entry.get())
+        # get output_file field
+        output_file = os.path.abspath(self._output_file_entry.get())
+        if os.path.exists(output_file):
+            self._set_status_text("Error: output file '%s'"
+                                    "already exists." % output_file)
             return
 
         # get step size
@@ -328,19 +304,21 @@ class BEScanWindow():
                                   self._step_size_entry.get())
             return
 
-        # compose the bulk_extractor scan command
-        cmd = ["bulk_extractor", "-E", "hashdb",
-               "-S", "hashdb_mode=scan",
-               "-S", "hashdb_block_size=%s" % block_size,
-               "-S", "hashdb_step_size=%s" % step_size,
-               "-S", "hashdb_scan_path=%s" % hashdb_dir,
-               "-o", be_dir,
-               image]
+        # get block_size used in hashdb
+        try:
+            _, block_size = helpers.get_byte_alignment_and_block_size(
+                                                                 hashdb_dir)
+        except Exception as e:
+            self._set_status_text("Error: %s." % e)
+            return
+
+        # compose the scan_image command
+        cmd = ["hashdb", "scan_image", "-s", "%s"%step_size, hashdb_dir, image]
 
         # start the scan
-        self._threaded_subprocess = threaded_subprocess.ThreadedSubprocess(
-                                                           cmd, self._queue)
-        self._threaded_subprocess.start()
+        self._threaded_scan_image = threaded_scan_image.ThreadedScanImage(
+                                         cmd, self._queue, output_file)
+        self._threaded_scan_image.start()
 
         # start the consumer
         self._progress_text.after(200, self._handle_consume_queue)
@@ -348,7 +326,7 @@ class BEScanWindow():
         self._set_running()
 
     def _handle_cancel(self):
-        self._threaded_subprocess.kill()
+        self._threaded_scan_image.kill()
 
     def _handle_close(self):
         self._root_window.destroy()
