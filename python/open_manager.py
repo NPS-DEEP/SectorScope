@@ -48,23 +48,22 @@ class OpenManager():
             return
 
         # read match_file else show error window
-        self._data_reader.read(match_file)
-#        try:
-#            self._data_reader.read(match_file)
-#
-#        except Exception as e:
-#            ErrorWindow(self._master, "Open Error", e)
-#            return
+        try:
+            self._data_reader.read(match_file)
+
+        except Exception as e:
+            ErrorWindow(self._master, "Open Error", e)
+            return
 
         # the read worked so accept the the project
 
         # report if annotation reader failed
-        if self._data_manager.annotation_load_status:
+        if self._data_reader.annotation_load_status:
             ErrorWindow(self._master, "Annotation Read Error",
                               "Unable to read media image annotations.\n"
                               "Please check that TSK is installed "
                               "and that PATH is set.\n%s" %
-                              self._data_manager.annotation_load_status)
+                              self._data_reader.annotation_load_status)
 
         # clear annotation filter settings
         self._annotation_filter.set([])

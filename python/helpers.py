@@ -38,9 +38,10 @@ def get_match_file_metadata(match_file):
     with open(match_file, 'r') as settings_file:
 
         # get hashdb_dir and media_image from first line
-        line = settings_file.readline()
+        line = settings_file.readline().strip()   # line without newline
         if line[:12] == '# Command: "':
-            parts = line.split(' ')
+            command = line[12:-1]     # part inside outer quotes
+            parts = command.split(' ')# may need to harden for quoted parameters
             hashdb_dir = parts[-2]
             media_image = parts[-1]
         else:

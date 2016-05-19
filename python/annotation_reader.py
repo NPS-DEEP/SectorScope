@@ -21,12 +21,12 @@ def _run_cmd(cmd):
 
     return lines
 
-def _import_mmls(image_filename, annotations_dir):
+def _import_mmls(image_filename, annotation_dir):
     # mmls for volume allocation table
     cmd = ["mmls", image_filename]
     lines = _run_cmd(cmd)
 
-    outfile = os.path.join(annotations_dir, "mmls.json")
+    outfile = os.path.join(annotation_dir, "mmls.json")
     f = open(outfile, "w")
     for line in lines:
         # accept any line where fields parse in a valid way
@@ -42,7 +42,7 @@ def _import_mmls(image_filename, annotations_dir):
             # don't use this line
             pass
 
-def _import_fsstat(image_filename, annotations_dir):
+def _import_fsstat(image_filename, annotation_dir):
     # fsstat file system statistics, specifically, allocated sectors
 
     # first, get partition information
@@ -62,7 +62,7 @@ def _import_fsstat(image_filename, annotations_dir):
 
 
     # now run fsstat on each partition start
-    outfile = os.path.join(annotations_dir, "fsstat.json")
+    outfile = os.path.join(annotation_dir, "fsstat.json")
     f = open(outfile, "w")
     for sector_offset in partition_starts:
         try:
@@ -94,9 +94,14 @@ def _import_fsstat(image_filename, annotations_dir):
                 # don't use this line
                 pass
 
-def _import_annotations(image_filename, annotations_dir):
-    _import_mmls(image_filename, annotations_dir)
-    _import_fsstat(image_filename, annotations_dir)
+def _import_annotations(image_filename, annotation_dir):
+    _import_mmls(image_filename, annotation_dir)
+    _import_fsstat(image_filename, annotation_dir)
+
+    # record image_filename in annotation_dir
+    image_filename_path = os.path.join(annotation_dir, "image_filename")
+    f = open(image_filename_path, "w")
+    f.write("%s\n" % image_filename)
 
 def _read_json(annotations_file, annotations):
     f = open(annotations_file, "r")
@@ -104,10 +109,9 @@ def _read_json(annotations_file, annotations):
        d = json.loads(line)
        annotations.append((d["type"], d["offset"], d["length"], d["text"]))
 
-# zzzzzzzzz need alternate to be_dir
-def read_annotations(image_filename, project_dir):
-    """Read image annotations from project_dir/image_annotations/ creating
-      and importing if necessary.
+def read_annotations(image_filename, annotation_dir):
+    """Read image annotations from annotation_dir, creating them if necessary.
+    Throws on failure.
 
     Returns:
       annotation_types(list<(type, description, is_active)>): Tuple of
@@ -116,12 +120,19 @@ def read_annotations(image_filename, project_dir):
         defined by annotation type, image offset, length, and text.
     """
 
-    annotations_dir = os.path.join(project_dir, "image_annotations")
-
-    # create and import annotations, if necessary
-    if not os.path.exists(annotations_dir):
-        os.makedirs(annotations_dir)
-        _import_annotations(image_filename, annotations_dir)
+    # check status of annotation_dir
+    if not os.path.exists(annotation_dir):
+        # create annotation_dir and import annotations
+        os.makedirs(annotation_dir)
+        _import_annotations(image_filename, annotation_dir)
+    else:
+        # make sure annotation_dir is right for this media image
+        image_filename_path = os.path.join(annotation_dir, "image_filename")
+        with open(image_filename_path, 'r') as f:
+            line = f.readline().strip()
+            if line != image_filename:
+                raise ValueError("Incorrect annotation directory, expected %s"
+                                 " but found %s" % (image_filename, line))
 
     # read annotations
     annotation_types = list()
@@ -129,12 +140,12 @@ def read_annotations(image_filename, project_dir):
 
     # mmls
     annotation_types.append(("mmls", "Disk partitions (from TSK mmls)", True))
-    _read_json(os.path.join(annotations_dir, "mmls.json"), annotations)
+    _read_json(os.path.join(annotation_dir, "mmls.json"), annotations)
 
     # fsstat
     annotation_types.append(("fsstat", "File system sectors (from TSK fsstat)",
                                                                         True))
-    _read_json(os.path.join(annotations_dir, "fsstat.json"), annotations)
+    _read_json(os.path.join(annotation_dir, "fsstat.json"), annotations)
 
     # return
     return (annotation_types, annotations)

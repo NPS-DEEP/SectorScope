@@ -4,7 +4,6 @@ import json
 import subprocess
 from collections import defaultdict
 from annotation_reader import read_annotations
-from error_window import ErrorWindow
 from timestamp import ts0, ts
 import helpers
 try:
@@ -20,7 +19,7 @@ class DataReader():
 
     The following resources are accessed:
       The match file created using the hashdb scan_image command.
-      The hashdb settings.json file for zzzz
+      The hashdb settings.json file for byte_alignment and block_size.
 
     Attributes:
       match_file (str): The .json scan match file.
@@ -80,22 +79,20 @@ class DataReader():
 
         # read match file
         (forensic_paths, hashes, sources) = \
-                               self._read_match_file(match_file)
+                               self._read_hash_match_file(match_file)
         t1 = ts("data_reader.read finished read identified_blocks", t0)
 
         # read image annotations
-#        try:
-#            annotation_types, annotations = read_annotations(
-#                                                     image_filename, be_dir)
-#            annotation_load_status = ""
-#
-#        except Exception as e:
-#            annotation_load_status = e
-#            annotation_types = list()
-#            annotations = list()
-        annotation_load_status = "Not implemented zz"
-        annotation_types = list()
-        annotations = list()
+
+        try:
+            annotation_types, annotations = read_annotations(
+                                image_filename, "temp_image_annotations_dir")
+            annotation_load_status = ""
+
+        except Exception as e:
+            annotation_load_status = e
+            annotation_types = list()
+            annotations = list()
 
         t4 = ts("data_reader.read finished read annotations.  Done.", t1)
         # everything worked so accept the data
@@ -134,10 +131,10 @@ class DataReader():
                         len(self.annotations),
               ))
 
-    def _read_match_file(self, match_file):
+    def _read_hash_match_file(self, match_file):
 
-        """Read match file into forensic_paths, hashes,
-        and sources dictionaries.  Also add source_hashes set.
+        """Read hash match file into forensic_paths, hashes, and sources
+        dictionaries.  Also add source_hashes set into hashes dictionary.
         """
 
         # read each line

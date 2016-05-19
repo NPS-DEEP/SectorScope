@@ -12,6 +12,9 @@ sectorscope_um.out
 sectorscope_um.pdf
 structure.aux
 
+# created content
+temp_image_annotations_dir
+
 # generated installer and zip
 install/NPS-SectorScope*.exe
 install/NPS-SectorScope*.zip

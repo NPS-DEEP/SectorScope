@@ -94,8 +94,8 @@ class MenuView():
         self._project_window.show()
 
     def _handle_scan(self):
-#zz        ScanImageWindow(self.frame)
-        ScanImageWindow(self.frame, image='/home/bdallen/Kitty/jo-favorites-usb-2009-12-11.E01', hashdb_dir='/home/bdallen/zzz5', output_file='/home/bdallen/zzzout5.json')
+        ScanImageWindow(self.frame)
+    #        ScanImageWindow(self.frame, image='/home/bdallen/Kitty/jo-favorites-usb-2009-12-11.E01', hashdb_dir='/home/bdallen/zzz5', output_file='/home/bdallen/zzzout5.json')
 
     def _handle_preferences(self):
         self._preferences.set_next()

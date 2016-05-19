@@ -73,6 +73,7 @@ class DataManager():
         self.annotation_types = data_reader.annotation_types
         self.annotations = data_reader.annotations
         self.annotation_load_status = data_reader.annotation_load_status
+        print("annotation load status:", self.annotation_load_status)
 
         self._fire_change("data_changed")
 
