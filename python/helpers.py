@@ -6,17 +6,24 @@ from subprocess import Popen, PIPE
 import os
 import shutil
 import json
+from compatible_popen import CompatiblePopen
 
 """Run command and return error_message and lines, "" on success."""
 def run_short_command(cmd):
 
     # run command
-    p = Popen(cmd, stdout=PIPE)
-    lines = p.communicate()[0].decode('utf-8').split("\n")
-    if p.returncode != 0:
-        return "Error with command %s"%" ".join(cmd), lines
-    else:
-        return "", lines
+    with CompatiblePopen(cmd, stdout=PIPE, stderr=PIPE) as p:
+
+        stdoutdata, stderrdata = p.communicate()
+        stdout_lines = stdoutdata.decode('utf-8').split("\n")
+        stderr_text = stderrdata.decode('utf-8')
+
+        if p.returncode != 0:
+            error_message = "Error with" \
+                            " command %s: %s" % (" ".join(cmd), stderr_text)
+            return error_message, stdout_lines
+        else:
+            return "", stdout_lines
 
 """Read settings.json and return byte_alignment and block_size.
    Raises exception on error."""
@@ -58,4 +65,21 @@ def get_match_file_metadata(match_file):
                              " file %s" % match_file)
 
         return hashdb_dir, media_image, image_size
+
+"""Read bytes from an image file, return error_message, image_bytes."""
+def read_image_bytes(media_image_file, offset, count):
+
+    cmd = ["hashdb", "read_bytes", media_image_file, str(offset), str(count)]
+    with CompatiblePopen(cmd, stdout=PIPE, stderr=PIPE) as p:
+
+        stdout_data, stderr_data = p.communicate()
+        stdout_bytearray = bytearray(stdout_data)
+        stderr_text = stderr_data.decode('utf-8')
+
+        if p.returncode != 0:
+            error_message = "Error reading image bytes, " \
+                            "command %s: %s" % (" ".join(cmd), stderr_text)
+            return error_message, stdout_bytearray
+        else:
+            return "", stdout_bytearray
 

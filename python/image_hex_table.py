@@ -1,4 +1,3 @@
-import be_image_reader
 from scrolled_text import ScrolledText
 import colors
 try:

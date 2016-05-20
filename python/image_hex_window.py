@@ -1,6 +1,6 @@
 from image_hex_table import ImageHexTable
-from be_image_reader import read
 import hashlib
+from helpers import read_image_bytes
 from error_window import ErrorWindow
 try:
     import tkinter
@@ -62,11 +62,12 @@ class ImageHexWindow():
     def _set_view(self):
         # read page of image bytes starting at offset else warn and clear
         block_hash_offset = self._histogram_control.cursor_offset
-        try:
-            buf = read(self._data_manager.image_filename,
-                         self._histogram_control.cursor_offset, self.BUFSIZE)
-        except Exception as e:
-            ErrorWindow(self._root_window, "Open Error", e)
+        error_message, buf = read_image_bytes(
+                                     self._data_manager.image_filename,
+                                     self._histogram_control.cursor_offset,
+                                     self.BUFSIZE)
+        if (error_message):
+            ErrorWindow(self._root_window, "Open Error", error_message)
             self._clear_view()
             raise RuntimeError("bad: %s" % e)
             return
