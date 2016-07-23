@@ -69,15 +69,15 @@ class ImageHexWindow():
         if (error_message):
             ErrorWindow(self._root_window, "Open Error", error_message)
             self._clear_view()
-            raise RuntimeError("bad: %s" % e)
+            raise RuntimeError("bad: %s" % error_message)
             return
 
         # calculate the MD5 from the block of data in buf
         m = hashlib.md5()
-        m.update(buf[:self._data_manager.block_size])
-        if len(buf) < self._data_manager.block_size:
+        m.update(buf[:self._data_manager.hash_block_size])
+        if len(buf) < self._data_manager.hash_block_size:
             # zero-extend the short block
-            m.update(bytearray(self._data_manager.block_size - len(buf)))
+            m.update(bytearray(self._data_manager.hash_block_size - len(buf)))
         block_hash = m.hexdigest()
 
         # generate annotation text about the selection

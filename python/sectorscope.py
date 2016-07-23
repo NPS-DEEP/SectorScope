@@ -67,12 +67,18 @@ def build_gui(root_window, data_manager, annotation_filter,
 # main
 if __name__=="__main__":
 
-    # parse match_file from input
+    # parse scan_file from input
     parser = ArgumentParser(prog='sectorscope.py',
                description="View associations between media iamges and "
                            "blacklist sources.")
-    parser.add_argument('-i', '--match_file',
-                        help= 'path to a block hash match file',
+    parser.add_argument('-i', '--scan_file',
+                        help= 'path to a block hash match scan file',
+                        default='')
+    parser.add_argument('-s', '--sector_size',
+                        help= 'sector size for byte alignment granularity',
+                        default=512)
+    parser.add_argument('-m', '--media_image',
+                        help= 'path to the associated media image file',
                         default='')
     args = parser.parse_args()
 
@@ -102,8 +108,10 @@ if __name__=="__main__":
     build_gui(root_window, data_manager, annotation_filter,
                              histogram_control, open_manager, project_window)
 
-    # now open the match_file
-    open_manager.open_match_file(args.match_file)
+    # now open the scan_file
+    if args.scan_file != "":
+        open_manager.open_scan_file(args.scan_file, args.sector_size,
+                                    args.media_image)
 
     # keep Tk alive
     root_window.mainloop()

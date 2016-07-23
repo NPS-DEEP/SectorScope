@@ -3,6 +3,7 @@ from icon_path import icon_path
 from tooltip import Tooltip
 from scan_image_window import ScanImageWindow
 from ingest_window import IngestWindow
+from open_window import OpenWindow
 try:
     import tkinter
 except ImportError:
@@ -88,7 +89,7 @@ class MenuView():
                  "between hex, decimal, and byte alignment (usually sectors")
 
     def _handle_open(self):
-        self._open_manager.open_match_file("")
+        OpenWindow(self.frame, self._open_manager)
 
     def _handle_project_window(self):
         self._project_window.show()

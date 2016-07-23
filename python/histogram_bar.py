@@ -293,7 +293,7 @@ class HistogramBar():
                                      self._histogram_control.bound_offset(
                                      self._histogram_control.cursor_offset),
                                   self._preferences.offset_format,
-                                  self._data_manager.byte_alignment))
+                                  self._data_manager.sector_size))
 
         else:
             # clear
@@ -329,12 +329,12 @@ class HistogramBar():
                            offset_string(self._histogram_control.bound_offset(
                                          self._histogram_control.range_start),
                                          self._preferences.offset_format,
-                                         self._data_manager.byte_alignment),
+                                         self._data_manager.sector_size),
                            # stop_offset
                            offset_string(self._histogram_control.bound_offset(
                                          self._histogram_control.range_stop-1),
                                          self._preferences.offset_format,
-                                         self._data_manager.byte_alignment),
+                                         self._data_manager.sector_size),
                            # range
                            size_string(self._histogram_control.bound_offset(
                                        self._histogram_control.range_stop) -
@@ -355,21 +355,21 @@ class HistogramBar():
             self._bucket_width_label["text"] = "Bar width: %s" % \
                     offset_string(self._histogram_control.bytes_per_bucket,
                                   self._preferences.offset_format,
-                                  self._data_manager.byte_alignment)
+                                  self._data_manager.sector_size)
 
         # histogram start and stop text
         self._c.itemconfigure(self._start_offset_id, text=offset_string(
                   self._histogram_control.bound_offset(
                                   self._histogram_control.start_offset),
                                   self._preferences.offset_format,
-                                  self._data_manager.byte_alignment))
+                                  self._data_manager.sector_size))
         stop_offset = self._histogram_control.start_offset + (
                                self._histogram_control.bytes_per_bucket *
                                self._histogram_control.num_buckets) - 1
         self._c.itemconfigure(self._stop_offset_id, text=offset_string(
                   self._histogram_control.bound_offset(stop_offset),
                                   self._preferences.offset_format,
-                                  self._data_manager.byte_alignment))
+                                  self._data_manager.sector_size))
 
         # Y scale marker text
         self._c.itemconfigure(self._marker1_id, text=int_string(

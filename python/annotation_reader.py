@@ -130,9 +130,11 @@ def read_annotations(image_filename, annotation_dir):
         image_filename_path = os.path.join(annotation_dir, "image_filename")
         with open(image_filename_path, 'r') as f:
             line = f.readline().strip()
-            if line != image_filename:
-                raise ValueError("Incorrect annotation directory, expected %s"
-                                 " but found %s" % (image_filename, line))
+            if os.path.abspath(line) != os.path.abspath(image_filename):
+                raise ValueError("Incorrect image filename in pre-built"
+                        " annotation directory.  Expected %s"
+                        " but found %s" % (os.path.abspath(image_filename),
+                        os.path.abspath(line)))
 
     # read annotations
     annotation_types = list()

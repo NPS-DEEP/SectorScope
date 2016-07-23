@@ -19,7 +19,7 @@ class HistogramControl():
     Attributes:
       change_type(str): plot_region_changed, cursor_moved, range_changed.
       image_size(int): Image size to bind motion events within.
-      block_size(int): Size of the block used by the project.
+      sector_size(int): Sector size of view.
       num_buckets(int): Number of buckets shown in the histogram.
       _histogram_mouse_changed is used as a signal.  Its value is always true.
     """
@@ -34,7 +34,7 @@ class HistogramControl():
 
     # sizes
     image_size = 0
-    block_size = 0
+    sector_size = 0
 
     # plot region
     start_offset = 0
@@ -67,13 +67,13 @@ class HistogramControl():
 
     def __repr__(self):
         return "HistogramControl(change_type=%s, image_size=%d, " \
-               "block_size=%d, num_buckets=%d, " \
+               "sector_size=%d, num_buckets=%d, " \
                "histogram_bar_width=%d, canvas_width=%d, "\
                "start_offset=%d, " \
                "bytes_per_bucket=%d, is_valid_cursor=%s, " \
                "cursor_offset=%d, is_valid_range=%s, " \
                "range_start=%d, range_stop=%d)" % (self.change_type,
-                self.image_size, self.block_size, self.num_buckets,
+                self.image_size, self.sector_size, self.num_buckets,
                 self.histogram_bar_width, self.canvas_width,
                 self.start_offset, self.bytes_per_bucket,
                 self.is_valid_cursor, self.cursor_offset,
@@ -87,12 +87,12 @@ class HistogramControl():
                                    histogram_constants.HISTOGRAM_X_OFFSET + 1
         self._fire_change("width_changed")
 
-    def set_project(self, image_size, block_size):
+    def set_project(self, image_size, sector_size):
         """Establish starting bounds, zoom fully out, and clear any range
           without firing any events."""
         # set constants given a project dataset
         self.image_size = image_size
-        self.block_size = block_size
+        self.sector_size = sector_size
 
         # zoom fully out
         self.start_offset = 0
@@ -267,20 +267,20 @@ class HistogramControl():
     # round up to aligned block
     def _round_up_to_block(self, size):
         # not initialized
-        if self.block_size == 0:
+        if self.sector_size == 0:
             return 0
 
         # fix decimal limitation and get as int
         size = int(floor(round(size, 5)))
 
         # align
-        if size % self.block_size == 0:
+        if size % self.sector_size == 0:
             # already aligned
             return size
 
         else:
             # round up
-            size += self.block_size - (size % self.block_size)
+            size += self.sector_size - (size % self.sector_size)
             return size
 
     # round down to aligned block
@@ -290,13 +290,13 @@ class HistogramControl():
         size = int(floor(round(size, 5)))
 
         # align
-        if size % self.block_size == 0:
+        if size % self.sector_size == 0:
             # already aligned
             return size
 
         else:
             # round down
-            size -= size % self.block_size
+            size -= size % self.sector_size
             return size
 
     def _inside_graph(self, proposed_start_offset, proposed_bytes_per_bucket):
@@ -408,7 +408,7 @@ class HistogramControl():
 
         # do not let bytes per bucket reach zero
         if new_bytes_per_bucket == 0:
-            new_bytes_per_bucket = self.block_size
+            new_bytes_per_bucket = self.sector_size
 
         # calculate the new start offset
         new_start_offset = (self._round_down_to_block(self.cursor_offset -

@@ -12,26 +12,23 @@ except ImportError:
     import Tkinter as tkinter
 
 class DataReader():
-    """Read project data from a scan match file to provide hash,
+    """Read identified blocks from a scan file to provide hash,
       source, and image data related to a block hash scan.
 
     This is a helper class to be used only by the data manager.
 
-    The following resources are accessed:
-      The match file created using the hashdb scan_image command.
-      The hashdb settings.json file for byte_alignment and block_size.
-
     Attributes:
-      match_file (str): The .json scan match file.
+      scan_file (str): The .json block hash scan file.
       image_size (int): Size in bytes of the media image.
       image_filename (str): Full path of the media image filename.
       hashdb_dir (str): Full path to the hash database directory.
-      byte_alignment(int): The largest alignment value divisible by step
-        size, usually step size.
-      block_size (int): Block size used by the hashdb database.
-      forensic_paths (dict<forensic path int, hash hexcode str>):
-      hashes (dict<hash hexcode str, whole json data plus source_hashes>
-        where source_hashes is set of source hexcodes associated with the hash)
+      sector_size(int): The sector size to view.
+      hash_block_size(int): The size of the hashed blocks.
+      forensic_paths (list<forensic path int, hash hexcode str>): List
+        of int forensic paths and their hash hexcode.
+      hashes (dict<hash hexcode str, whole json data plus source_hashes>)
+        where source_hashes is the set of source hexcodes associated with
+        the hash, composed from every third source_offset.
       sources (dict<source hash, the json data under sources[i]>).
       annotation_types (list<(type, description, is_active)>): List
         of annotation types available.
@@ -40,46 +37,54 @@ class DataReader():
       annotation_load_status (str): status of the annotation load or none
         if okay.
 
-    Note: this may be used to access source, offset pairs:
-      for src, off in zip(pairs[0::2], pairs[1::2]):
+    Note: this may be used to access source_offsets:
+      for src, sub_count, off in zip(source_offsets[0::3],
+                            source_offsets[1::3], source_offsets[2::3]):
     """
 
     def __init__(self):
         # set initial state
-        self.match_file = ""
+        self.scan_file = ""
         self.image_size = 0
         self.image_filename = ""
         self.hashdb_dir = ""
-        self.byte_alignment = -1
-        self.block_size = -1
-        self.forensic_paths = dict()
+        self.sector_size = 0
+        self.hash_block_size = 0
+        self.forensic_paths = list()
         self.hashes = dict()
         self.sources = dict()
         self.annotation_types = list()
         self.annotations = list()
         self.annotation_load_status = ""
 
-    def read(self, match_file):
+    def read(self, scan_file, sector_size, alternate_image_filename):
         """
         Reads and sets data else raises an exception and leaves data alone.
         Args:
-          match_file (str): The scan match file.
-
+          scan_file(str): The block hash scan file containing the identified
+                          blocks.
+          sector_size(int): The minimum resolution to zoom down to.
+          alternate_image_filename(str): An alternate path to read the media
+                          image from, or blank to read and use the default.
+ 
         Raises read related exceptions.
         """
-        # get match file metadata
-        (hashdb_dir, image_filename, image_size) = \
-                                 helpers.get_match_file_metadata(match_file)
+        # read scan file attributes
+        image_filename, image_size, hashdb_dir = \
+                                 helpers.get_scan_file_attributes(scan_file)
 
-        # get attributes from hashdb settings.json
-        (byte_alignment, block_size) = \
-                         helpers.get_byte_alignment_and_block_size(hashdb_dir)
+        # use the alternate media image if it is defined
+        if alternate_image_filename:
+            image_filename = alternate_image_filename
+
+        # read hash_block_size used for calculating block hashes
+        hash_block_size = helpers.get_hash_block_size(hashdb_dir)
 
         t0 = ts0("data_reader.read start")
 
-        # read match file
+        # read scan file
         (forensic_paths, hashes, sources) = \
-                               self._read_hash_match_file(match_file)
+                               self._read_hash_scan_file(scan_file)
         t1 = ts("data_reader.read finished read identified_blocks", t0)
 
         # read image annotations
@@ -96,12 +101,12 @@ class DataReader():
 
         t4 = ts("data_reader.read finished read annotations.  Done.", t1)
         # everything worked so accept the data
-        self.match_file = match_file
+        self.scan_file = scan_file
         self.image_size = image_size
         self.image_filename = image_filename
         self.hashdb_dir = hashdb_dir
-        self.byte_alignment = byte_alignment
-        self.block_size = block_size
+        self.sector_size = sector_size
+        self.hash_block_size = hash_block_size
         self.forensic_paths = forensic_paths
         self.hashes = hashes
         self.sources = sources
@@ -111,19 +116,19 @@ class DataReader():
 
     def __repr__(self):
         return("DataReader("
-              "match_file: '%s', Image size: %d, Image filename: '%s', "
-              "hashdb directory: '%s', Sector size: %d, Block size: %d, "
+              "scan_file: '%s', Image size: %d, Image filename: '%s', "
+              "hashdb directory: '%s', Sector size: %d, Block size: %d "
               "Number of forensic paths: %d, Number of hashes: %d, "
               "Number of sources: %d, "
               "Number of image annotation types: %d, "
               "Number of image annotations: %d)"
               "" % (
-                        self.match_file,
+                        self.scan_file,
                         self.image_size,
                         self.image_filename,
                         self.hashdb_dir,
-                        self.byte_alignment,
-                        self.block_size,
+                        self.sector_size,
+                        self.hash_block_size,
                         len(self.forensic_paths),
                         len(self.hashes),
                         len(self.sources),
@@ -131,17 +136,17 @@ class DataReader():
                         len(self.annotations),
               ))
 
-    def _read_hash_match_file(self, match_file):
+    def _read_hash_scan_file(self, scan_file):
 
-        """Read hash match file into forensic_paths, hashes, and sources
-        dictionaries.  Also add source_hashes set into hashes dictionary.
+        """Read hash scan file into forensic_paths, hashes, and sources
+        data structures.  Also add source_hashes set into hashes dictionary.
         """
 
         # read each line
-        forensic_paths=dict()
+        forensic_paths = dict()
         hashes = dict()
-        sources=dict()
-        with open(match_file, 'r') as f:
+        sources = dict()
+        with open(scan_file, 'r') as f:
             i = 0
             for line in f:
                 line = line.strip()
@@ -161,14 +166,14 @@ class DataReader():
                     # get json data
                     json_data = json.loads(json_string)
 
-                    if len(json_data) > 1:
+                    if "source_offsets" in json_data:
                         # take data for hash
                         hashes[block_hash] = json_data
 
                         # calculate source_hashes
                         source_hashes = set()
-                        pairs = json_data["source_offset_pairs"]
-                        for file_hash in pairs[0::2]:
+                        source_offsets = json_data["source_offsets"]
+                        for file_hash in source_offsets[0::3]:
                             source_hashes.add(file_hash)
 
                         # add additional source_hashes field
@@ -182,7 +187,7 @@ class DataReader():
                     raise ValueError("Error reading file '%s' "
                              "line %d:'%s':%s\nPlease check that "
                              "this file was made using the hashdb "
-                             "scan_image command." % (match_file, i, line, e))
+                             "scan_image command." % (scan_file, i, line, e))
 
         return (forensic_paths, hashes, sources)
 

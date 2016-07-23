@@ -16,12 +16,12 @@ class DataManager():
     change_type = ""
 
     # project attributes
-    match_file = ""
+    scan_file = ""
     image_size = 0
     image_filename = ""
     hashdb_dir = ""
-    byte_alignment = 0
-    block_size = 0
+    sector_size = 0
+    hash_block_size = 0
     forensic_paths = dict()
     hashes = dict()
     sources = dict()
@@ -48,12 +48,12 @@ class DataManager():
 
     def set_data(self, data_reader):
         # copy project attributes from data reader
-        self.match_file = data_reader.match_file
+        self.scan_file = data_reader.scan_file
         self.image_size = data_reader.image_size
         self.image_filename = data_reader.image_filename
         self.hashdb_dir = data_reader.hashdb_dir
-        self.byte_alignment = data_reader.byte_alignment
-        self.block_size = data_reader.block_size
+        self.sector_size = data_reader.sector_size
+        self.hash_block_size = data_reader.hash_block_size
         self.forensic_paths = data_reader.forensic_paths
         self.hashes = data_reader.hashes
         self.sources = data_reader.sources
@@ -117,7 +117,7 @@ class DataManager():
 
             hash_counts[block_hash] = (
                     # count
-                    len(hash_data["source_offset_pairs"]) // 2,
+                    hash_data["count"],
 
                     # is_ignored
                     ignore_max_hashes != 0 and count > ignore_max_hashes or
@@ -352,8 +352,8 @@ class DataManager():
         highlighted_hashes = self.highlighted_hashes
 
         # data to calculate
-        sources_offsets = defaultdict(set)
-        highlighted_sources_offsets = defaultdict(set)
+        sources_offsets = defaultdict(int)
+        highlighted_sources_offsets = defaultdict(int)
 
         # calculate the data
         for block_hash, hash_data in self.hashes.items():
@@ -361,8 +361,8 @@ class DataManager():
             # skip ignored hashes
 
             # hash count exceeds ignore_max_hashes
-            count = len(hash_data["source_offset_pairs"]) // 2
-            if ignore_max_hashes != 0 and count > ignore_max_hashes:
+            if ignore_max_hashes != 0 and \
+                               hash_data["count"] > ignore_max_hashes:
                 continue
 
             # hash has entropy label flag
@@ -374,37 +374,38 @@ class DataManager():
                 continue
 
             # track sources
-            pairs = hash_data["source_offset_pairs"]
-            for source_hash, file_offset in zip(pairs[0::2], pairs[1::2]):
+            source_offsets = hash_data["source_offsets"]
+            for source_hash, sub_count in zip(source_offsets[0::3],
+                                              source_offsets[1::3]):
 
                 # track sources not in ignored sources
                 if source_hash not in ignored_sources:
-                    sources_offsets[source_hash].add(file_offset)
+                    sources_offsets[source_hash] += sub_count
 
                 # track highlighted sources
                 if block_hash in highlighted_hashes or \
                                      source_hash in highlighted_sources:
-                    highlighted_sources_offsets[source_hash].add(file_offset)
+                    highlighted_sources_offsets[source_hash] += sub_count
 
         # now calculte the tuple of source table information
 
         # create a list of source information to make the sorted list from
         sources_list = list()
-        temp_block_size = self.block_size
+        temp_sector_size = self.sector_size
         for source_hash, source in self.sources.items():
 
             # compose the source text
 
             # calculate percent of this source file found
-            percent_found = len(sources_offsets[source_hash]) / \
-                           (int((source["filesize"] + temp_block_size -1)
-                           / temp_block_size)) * 100
-#                print ("len source: ", len(sources_offsets[sources]), source["filesize"], int(source["filesize"]), temp_block_size)
+            percent_found = sources_offsets[source_hash] / \
+                           (int((source["filesize"] + temp_sector_size -1)
+                           / temp_sector_size)) * 100
+#                print ("len source: ", sources_offsets[sources], source["filesize"], int(source["filesize"]), temp_sector_size)
 
             text = '\t%.1f%%\t%d\t%d\t%s\t%s\t%s\n' \
                             %(percent_found,
-                              len(sources_offsets[source_hash]),
-                              len(highlighted_sources_offsets[source_hash]),
+                              sources_offsets[source_hash],
+                              highlighted_sources_offsets[source_hash],
                               size_string(source["filesize"]),
                               source["name_pairs"][0], # just show first source
                               source["name_pairs"][1])

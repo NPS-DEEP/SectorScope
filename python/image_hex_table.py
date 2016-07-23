@@ -52,7 +52,7 @@ class ImageHexTable():
 
     def _get_line_tag(self, i, is_in):
         # return the line tag associated with the match and line state
-        if i >= self._data_manager.block_size:
+        if i >= self._data_manager.hash_block_size:
             # index is outside of block range
             return "outside_block"
         elif is_in:

@@ -1,5 +1,6 @@
 from forensic_path import size_string, offset_string
 import colors
+import helpers
 try:
     import tkinter
 except ImportError:
@@ -33,8 +34,8 @@ class ProjectWindow():
                                              side=tkinter.TOP, pady=(0,4))
 
         # scan path
-        self._match_file_text = tkinter.Label(f, bg=colors.BACKGROUND)
-        self._match_file_text.pack(side=tkinter.TOP, anchor="w")
+        self._scan_file_text = tkinter.Label(f, bg=colors.BACKGROUND)
+        self._scan_file_text.pack(side=tkinter.TOP, anchor="w")
 
         # media image
         self._image_text = tkinter.Label(f, bg=colors.BACKGROUND)
@@ -48,11 +49,9 @@ class ProjectWindow():
         self._database_text = tkinter.Label(f, bg=colors.BACKGROUND)
         self._database_text.pack(side=tkinter.TOP, anchor="w")
 
-        # byte_alignment and block size
-        self._byte_alignment_and_block_size_text = tkinter.Label(f,
-                                                       bg=colors.BACKGROUND)
-        self._byte_alignment_and_block_size_text .pack(
-                                               side=tkinter.TOP, anchor="w")
+        # block size
+        self._block_size_text = tkinter.Label(f, bg=colors.BACKGROUND)
+        self._block_size_text .pack(side=tkinter.TOP, anchor="w")
 
         # size statistics
         self._sizes_text = tkinter.Label(f, bg=colors.BACKGROUND)
@@ -74,22 +73,19 @@ class ProjectWindow():
     def _handle_data_manager_change(self, *args):
         if self._data_manager.image_filename:
             # data_manager opened
-            self._match_file_text["text"] = 'Match file: %s' % \
-                               self._data_manager.match_file
+            self._scan_file_text["text"] = 'Match file: %s' % \
+                               self._data_manager.scan_file
             self._image_text["text"] = 'Image: %s' % \
                                self._data_manager.image_filename
             self._image_size_text["text"] = 'Image size: %s  (%s)' % (
                                size_string(self._data_manager.image_size),
                                offset_string(self._data_manager.image_size,
-                                      self._preferences.offset_format,
-                                      self._data_manager.byte_alignment))
+                                      self._preferences.offset_format))
             self._database_text["text"] = 'Database: %s' % \
                                self._data_manager.hashdb_dir
-            self._byte_alignment_and_block_size_text["text"] = \
-                             'Sector size: %s        Block size: %s' % (
-                                      self._data_manager.byte_alignment,
-                                      self._data_manager.block_size)
-            self._sizes_text["text"] = 'Matches: Paths: %s        ' \
+            self._block_size_text["text"] = 'Block size: %s' % (
+                                      self._data_manager.image_block_size)
+            self._sizes_text["text"] = 'Scan matches: Paths: %s        ' \
                                   'Hashes: %s        Sources: %s' % (
                              self._data_manager.len_forensic_paths,
                              self._data_manager.len_hashes,
@@ -97,14 +93,12 @@ class ProjectWindow():
 
         else:
             # data_manager not opened
-            self._match_file_text["text"] = 'Match file: Not opened'
+            self._scan_file_text["text"] = 'Scan file: Not opened'
             self._image_text["text"] = 'Image: Not opened'
             self._image_size_text["text"] = 'Image size: Not opened'
             self._database_text["text"] = 'Database: Not opened'
-            self._byte_alignment_and_block_size_text["text"] = \
-                                           'Image size: Not opened        ' \
-                                           'Sector size: Not opened'
-            self._database_text["text"] = 'Matches: Not opened'
+            self._block_size_text["text"] = 'Block size: Not opened'
+            self._sizes_text["text"] = 'Scan matches: Not opened'
 
     def show(self):
         self._root_window.deiconify()
