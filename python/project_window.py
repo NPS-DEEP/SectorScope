@@ -33,7 +33,7 @@ class ProjectWindow():
         tkinter.Label(f, text="Project", bg=colors.BACKGROUND).pack(
                                              side=tkinter.TOP, pady=(0,4))
 
-        # scan path
+        # scan file path
         self._scan_file_text = tkinter.Label(f, bg=colors.BACKGROUND)
         self._scan_file_text.pack(side=tkinter.TOP, anchor="w")
 
@@ -52,6 +52,25 @@ class ProjectWindow():
         # block size
         self._block_size_text = tkinter.Label(f, bg=colors.BACKGROUND)
         self._block_size_text .pack(side=tkinter.TOP, anchor="w")
+
+        # matched paths
+        self._matched_paths_text = tkinter.Label(f, bg=colors.BACKGROUND)
+        self._matched_paths_text .pack(side=tkinter.TOP, anchor="w")
+
+        # matched hashes
+        self._matched_hashes_text = tkinter.Label(f, bg=colors.BACKGROUND)
+        self._matched_hashes_text .pack(side=tkinter.TOP, anchor="w")
+
+        # matched sources
+        self._matched_sources_text = tkinter.Label(f, bg=colors.BACKGROUND)
+        self._matched_sources_text .pack(side=tkinter.TOP, anchor="w")
+
+
+
+
+
+
+
 
         # size statistics
         self._sizes_text = tkinter.Label(f, bg=colors.BACKGROUND)
@@ -73,23 +92,25 @@ class ProjectWindow():
     def _handle_data_manager_change(self, *args):
         if self._data_manager.image_filename:
             # data_manager opened
-            self._scan_file_text["text"] = 'Match file: %s' % \
+            self._scan_file_text["text"] = 'Scan file: %s' % \
                                self._data_manager.scan_file
             self._image_text["text"] = 'Image: %s' % \
                                self._data_manager.image_filename
             self._image_size_text["text"] = 'Image size: %s  (%s)' % (
                                size_string(self._data_manager.image_size),
                                offset_string(self._data_manager.image_size,
-                                      self._preferences.offset_format))
+                                      self._preferences.offset_format,
+                                      self._data_manager.sector_size))
             self._database_text["text"] = 'Database: %s' % \
                                self._data_manager.hashdb_dir
             self._block_size_text["text"] = 'Block size: %s' % (
-                                      self._data_manager.image_block_size)
-            self._sizes_text["text"] = 'Scan matches: Paths: %s        ' \
-                                  'Hashes: %s        Sources: %s' % (
-                             self._data_manager.len_forensic_paths,
-                             self._data_manager.len_hashes,
-                             self._data_manager.len_sources)
+                                      self._data_manager.hash_block_size)
+            self._matched_paths_text["text"] = 'Matched paths: %s' % (
+                                      self._data_manager.len_forensic_paths)
+            self._matched_hashes_text["text"] = 'Matched hashes: %s' % (
+                                      self._data_manager.len_hashes)
+            self._matched_sources_text["text"] = 'Matched sources: %s' % (
+                                      self._data_manager.len_sources)
 
         else:
             # data_manager not opened
@@ -98,7 +119,9 @@ class ProjectWindow():
             self._image_size_text["text"] = 'Image size: Not opened'
             self._database_text["text"] = 'Database: Not opened'
             self._block_size_text["text"] = 'Block size: Not opened'
-            self._sizes_text["text"] = 'Scan matches: Not opened'
+            self._matched_paths_text["text"] = 'Matched paths: Not opened'
+            self._matched_hashes_text["text"] = 'Matched hashes: Not opened'
+            self._matched_sources_text["text"] = 'Matched sources: Not opened'
 
     def show(self):
         self._root_window.deiconify()

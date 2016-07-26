@@ -50,10 +50,10 @@ class OpenManager():
         # report if annotation reader failed
         if self._data_reader.annotation_load_status:
             ErrorWindow(self._master, "Annotation Read Error",
-                              "Unable to read media image annotations.\n"
-                              "Please check that TSK is installed "
-                              "and that PATH is set.\n%s" %
-                              self._data_reader.annotation_load_status)
+                       "Unable to read media image annotations.\n"
+                       "Please check that TSK is installed and that "
+                       "PATH is set, if needed, to find TSK tools.\n%s" %
+                       self._data_reader.annotation_load_status)
 
         # clear annotation filter settings
         self._annotation_filter.set([])

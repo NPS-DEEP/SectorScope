@@ -101,7 +101,7 @@ class ScanImageWindow():
         hashdb_directory_entry_button.grid(row=1, column=2, sticky=tkinter.W)
 
         # output_file label
-        tkinter.Label(required_frame, text="Output File") \
+        tkinter.Label(required_frame, text="Scan Output File") \
                           .grid(row=2, column=0, sticky=tkinter.W)
 
         # output_file input entry
@@ -302,14 +302,6 @@ class ScanImageWindow():
         except ValueError:
             self._set_status_text("Error: invalid step size value: '%s'." %
                                   self._step_size_entry.get())
-            return
-
-        # get block_size used in hashdb
-        try:
-            _, block_size = helpers.get_byte_alignment_and_block_size(
-                                                                 hashdb_dir)
-        except Exception as e:
-            self._set_status_text("Error: %s." % e)
             return
 
         # compose the scan_image command

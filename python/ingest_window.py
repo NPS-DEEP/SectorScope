@@ -72,7 +72,7 @@ class IngestWindow():
 
     def _make_required_frame(self, master):
         required_frame = tkinter.LabelFrame(master,
-                                            text="Required Parameters",
+                                            text="Ingest",
                                             padx=8, pady=8)
 
         # source directory label
@@ -91,46 +91,65 @@ class IngestWindow():
                                 command=self._handle_source_directory_chooser)
         source_directory_entry_button.grid(row=0, column=2, sticky=tkinter.W)
 
-        # new destination hash database label
-        tkinter.Label(required_frame, text="New Hash Database") \
+        # destination hash database label
+        tkinter.Label(required_frame, text="Hash Database") \
                           .grid(row=1, column=0, sticky=tkinter.W)
 
-        # new destination hash database input entry
+        # destination hash database input entry
         self._output_directory_entry = tkinter.Entry(required_frame, width=40)
         self._output_directory_entry.grid(row=1, column=1, sticky=tkinter.W,
                                           padx=8)
         self._output_directory_entry.insert(0, self._hashdb_dir)
 
-        # new destination hash database directory chooser button
+        # destination hash database directory chooser button
         output_directory_entry_button = tkinter.Button(required_frame,
                                 text="...",
                                 command=self._handle_output_directory_chooser)
         output_directory_entry_button.grid(row=1, column=2, sticky=tkinter.W)
 
+        # repository name label
+        tkinter.Label(required_frame, text="Repository Name") \
+                          .grid(row=2, column=0, sticky=tkinter.W)
+
+        # repository name entry
+        self._repository_name_entry = tkinter.Entry(required_frame, width=40)
+        self._repository_name_entry.grid(row=2, column=1, sticky=tkinter.W,
+                                         padx=(8,0))
+        self._repository_name_entry.insert(0, self._repository_name)
+
+        # step size label
+        tkinter.Label(required_frame, text="Step Size") \
+                          .grid(row=3, column=0, sticky=tkinter.W, pady=4)
+
+        # step size entry
+        self._step_size_entry = tkinter.Entry(required_frame, width=8)
+        self._step_size_entry.grid(row=3, column=1, sticky=tkinter.W, padx=8)
+        self._step_size_entry.insert(0, self._step_size)
+
         return required_frame
 
     def _make_optional_frame(self, master):
         optional_frame = tkinter.LabelFrame(master,
-                                            text="Options",
+                                            text="New Database",
                                             padx=8, pady=8)
+
+        # make new database checkbutton
+        self._is_new_int_var = tkinter.IntVar()
+        self._is_new_int_var.set(True)
+        self._is_new_checkbutton = tkinter.Checkbutton(optional_frame,
+                    text="Make new database", variable = self._is_new_int_var,
+                    command = self._handle_is_new_checkbutton_press,
+                    bd=0, pady=4, highlightthickness=0)
+        self._is_new_checkbutton.grid(row=0, column=0)
 
         # block size label
         tkinter.Label(optional_frame, text="Block Size") \
-                          .grid(row=0, column=0, sticky=tkinter.W)
+                          .grid(row=1, column=0, sticky=tkinter.W)
 
         # block size entry
         self._block_size_entry = tkinter.Entry(optional_frame, width=8)
-        self._block_size_entry.grid(row=0, column=1, sticky=tkinter.W, padx=8)
+        self._block_size_entry.grid(row=1, column=1, sticky=tkinter.W, padx=8)
         self._block_size_entry.insert(0, self._block_size)
-
-        # step size label
-        tkinter.Label(optional_frame, text="Step Size") \
-                          .grid(row=1, column=0, sticky=tkinter.W)
-
-        # step size entry
-        self._step_size_entry = tkinter.Entry(optional_frame, width=8)
-        self._step_size_entry.grid(row=1, column=1, sticky=tkinter.W, padx=8)
-        self._step_size_entry.insert(0, self._step_size)
 
         # byte alignment label
         tkinter.Label(optional_frame, text="Byte Alignment") \
@@ -141,16 +160,6 @@ class IngestWindow():
         self._byte_alignment_entry.grid(
                                     row=2, column=1, sticky=tkinter.W, padx=8)
         self._byte_alignment_entry.insert(0, self._byte_alignment)
-
-        # repository name label
-        tkinter.Label(optional_frame, text="Repository Name") \
-                          .grid(row=3, column=0, sticky=tkinter.W)
-
-        # repository name entry
-        self._repository_name_entry = tkinter.Entry(optional_frame, width=40)
-        self._repository_name_entry.grid(row=3, column=1, sticky=tkinter.W,
-                                         padx=(8,0))
-        self._repository_name_entry.insert(0, self._repository_name)
 
         return optional_frame
 
@@ -261,11 +270,21 @@ class IngestWindow():
 
     def _handle_output_directory_chooser(self, *args):
         output_directory = fd.askdirectory(
-                               title="Open new hash database output Directory",
-                               mustexist=False)
+                               title="Open hash database output Directory",
+                               mustexist=True)
         if output_directory:
             self._output_directory_entry.delete(0, tkinter.END)
             self._output_directory_entry.insert(0, output_directory)
+
+    def _handle_is_new_checkbutton_press(self, *args):
+        if self._is_new_int_var.get():
+            # enable New DB fields
+            self._block_size_entry.config(state=tkinter.NORMAL)
+            self._byte_alignment_entry.config(state=tkinter.NORMAL)
+        else:
+            # disable New DB fields
+            self._block_size_entry.config(state=tkinter.DISABLED)
+            self._byte_alignment_entry.config(state=tkinter.DISABLED)
 
     def _handle_consume_queue(self):
         # consume the queue
@@ -289,6 +308,7 @@ class IngestWindow():
     def _handle_start(self):
         # clear any existing progress text
         self._progress_text.delete(1.0, tkinter.END)
+        self._set_status_text("")
 
         # get source_dir field
         source_dir = os.path.abspath(self._source_directory_entry.get())
@@ -299,18 +319,13 @@ class IngestWindow():
 
         # get hashdb_dir field
         hashdb_dir = os.path.abspath(self._output_directory_entry.get())
-        if os.path.exists(hashdb_dir):
-            self._set_status_text("Error: new destination hash database directory '%s'"
-                                    "already exists." % hashdb_dir)
-            return
 
-        # get block size
-        try:
-            block_size = int(self._block_size_entry.get())
-        except ValueError:
-            self._set_status_text("Error: invalid block size value: '%s'." %
-                                  self._block_size_entry.get())
-            return
+        # get repository name
+        repository_name = self._repository_name_entry.get()
+        if not repository_name:
+            repository_name = source_dir
+            self._repository_name_entry.delete(0, tkinter.END)
+            self._repository_name_entry.insert(0, repository_name)
 
         # get step size
         try:
@@ -320,31 +335,50 @@ class IngestWindow():
                                   self._step_size_entry.get())
             return
 
-        # get byte alignment
-        try:
-            byte_alignment = int(self._byte_alignment_entry.get())
-        except ValueError:
-            self._set_status_text("Error: invalid byte alignmentvalue: '%s'." %
-                                  self._byte_alignment_entry.get())
-            return
+        # maybe create DB first
+        if self._is_new_int_var.get():
 
-        # get repository name
-        repository_name = self._repository_name_entry.get()
-        if not repository_name:
-            repository_name = source_dir
-            self._repository_name_entry.delete(0, tkinter.END)
-            self._repository_name_entry.insert(0, repository_name)
+            if os.path.exists(hashdb_dir):
+                self._set_status_text("Error: hash database '%s' "
+                                      "already exists." % hashdb_dir)
+                return
 
-        # create the new hashdb_dir
-        cmd = ["hashdb", "create", "-b", "%s"%block_size, "-a", "%s"%byte_alignment,
-               hashdb_dir]
-        error_message, lines = helpers.run_short_command(cmd)
-        if error_message:
-            self._queue.put(error_message)
-            for line in lines:
-                self._queue.put("error: %s" % line)
-            self._queue.put("Aborting.")
-            return
+            # get block size
+            try:
+                block_size = int(self._block_size_entry.get())
+            except ValueError:
+                self._set_status_text("Error: invalid block size value: '%s'." %
+                                      self._block_size_entry.get())
+                return
+
+            # get byte alignment
+            try:
+                byte_alignment = int(self._byte_alignment_entry.get())
+            except ValueError:
+                self._set_status_text(
+                                 "Error: invalid byte alignmentvalue: '%s'." %
+                                      self._byte_alignment_entry.get())
+                return
+
+            # create the new hashdb_dir
+            cmd = ["hashdb", "create", "-b", "%s"%block_size,
+                   "-a", "%s"%byte_alignment, hashdb_dir]
+            error_message, lines = helpers.run_short_command(cmd)
+            if error_message:
+                self._set_status_text("Error with command issued to hashdb")
+                self._progress_text.insert(tkinter.END, error_message)
+                self._progress_text.insert(tkinter.END, "Lines returned: %s"%
+                                                                  lines)
+                self._progress_text.insert(tkinter.END, "\nAborting.")
+                return
+
+        else:
+            # hashdb_dir needs to already exist
+            if not os.path.exists(hashdb_dir):
+                self._set_status_text(
+                     "Error: hash database directory '%s' "
+                                    "does not exist." % hashdb_dir)
+                return
 
         # compose the hashdb ingest command
         cmd = ["hashdb", "ingest", "-r", repository_name,

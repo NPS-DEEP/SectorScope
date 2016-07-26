@@ -20,9 +20,11 @@ def offset_string(offset, offset_format, sector_size):
         if offset / sector_size != offset // sector_size and \
                    (offset+1) / sector_size != (offset+1) // sector_size:
 
+            print("offset: %d, sector_size: %d" %(offset, sector_size))
             raise RuntimeError("program error")
         return "%d s" % (offset // sector_size)
     else:
+        print("offset format: '%s'" % offset_format)
         raise RuntimeError("program error")
 
 def int_string(value):

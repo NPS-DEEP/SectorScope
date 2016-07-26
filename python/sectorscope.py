@@ -75,7 +75,7 @@ if __name__=="__main__":
                         help= 'path to a block hash match scan file',
                         default='')
     parser.add_argument('-s', '--sector_size',
-                        help= 'sector size for byte alignment granularity',
+                        help= 'sector size for sectors',
                         default=512)
     parser.add_argument('-m', '--media_image',
                         help= 'path to the associated media image file',

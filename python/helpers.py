@@ -25,7 +25,7 @@ def run_short_command(cmd):
         else:
             return "", stdout_lines
 
-"""Read settings.json and return byte_alignment and block_size.
+"""Read settings.json and return block_size.
    Raises exception on error."""
 def get_hash_block_size(hashdb_dir):
 

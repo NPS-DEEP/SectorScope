@@ -95,8 +95,7 @@ class DataManager():
 
         Returns:
           hash_counts(map<hash, (count, is_ignored, is_highlighted)>):
-            Data in this hash counts map is used to calculate bucket
-            data plotted in the frequency histogram.
+            Count information keyed by hash.
         """
 
         t0 = ts0("data_manager.calculate_hash_counts start")
@@ -115,9 +114,10 @@ class DataManager():
         # calculate hash_counts based on identified data
         for block_hash, hash_data in self.hashes.items():
 
+            count = hash_data["count"]
             hash_counts[block_hash] = (
                     # count
-                    hash_data["count"],
+                    count,
 
                     # is_ignored
                     ignore_max_hashes != 0 and count > ignore_max_hashes or

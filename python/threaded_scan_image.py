@@ -44,6 +44,9 @@ class ThreadedScanImage(threading.Thread):
 
         # run the command
         try:
+
+            # note that leaving the "with" block will close the pipes
+            # that the readers need
             with CompatiblePopen(self._cmd,
                                  stdout=subprocess.PIPE,
                                  stderr=subprocess.PIPE,
@@ -57,8 +60,7 @@ class ThreadedScanImage(threading.Thread):
                                                    self._queue)
                 stderr_reader.start()
 
-                # wait for readers to finish since leaving the "with" block
-                # will close the pipes that the readers need
+                # wait for readers to finish
                 stdout_reader.join()
                 stderr_reader.join()
 
@@ -105,6 +107,9 @@ class StderrReaderThread(threading.Thread):
     def run(self):
         # read pipe until pipe closes
         for line in self._pipe:
-            self._queue.put("%s: %s" %(self._name, self._tcl_hack(line.decode(
-                            encoding=sys.stderr.encoding, errors='replace'))))
+            line_string = line.decode(
+                             encoding=sys.stderr.encoding, errors='replace')
+            print("zz stderr:",line_string)
+            # write stderr line to queue
+            self._queue.put("%s: %s" %(self._name, line_string))
 

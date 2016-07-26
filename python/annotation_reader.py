@@ -10,14 +10,8 @@ def _run_cmd(cmd):
     except Exception as e:
         raise RuntimeError("failure running cmd: %s: %s" % (cmd, e))
     if p.returncode != 0:
-#        print("error with command '", end="")
-#        print(*cmd, sep=' ', end="':\n")
-#        print(*lines, sep='\n')
-        print("error with command:")
-        print(cmd)
-        print(lines)
-        print("Aborting.")
-        raise RuntimeError("failure running cmd: %s" % cmd)
+        raise RuntimeError("failure running cmd: %s: lines:\n%s\nAborting." %
+                           (cmd, lines))
 
     return lines
 
@@ -60,54 +54,60 @@ def _import_fsstat(image_filename, annotation_dir):
             # don't use this line
             pass
 
-
     # now run fsstat on each partition start
     outfile = os.path.join(annotation_dir, "fsstat.json")
-    f = open(outfile, "w")
-    for sector_offset in partition_starts:
-        try:
-            cmd = ["fsstat", "-o", "%s"%sector_offset, image_filename]
-            lines = _run_cmd(cmd)
-        except RuntimeError:
-            # skip partition if it has no file system
-            continue
-        for line in lines:
+    with open(outfile, "w") as f:
+        for sector_offset in partition_starts:
             try:
-#                print("line.a:", line)
-                p1 = line.index('-')
-                p2 = line.index(' (')
-                p3 = line.index(')')
-#                print("line:", line, p1, p2, p3)
-#                print("o:'%s', l:'%s'" % (line[0:p1], line[p2+2:p3]))
+                cmd = ["fsstat", "-o", "%s"%sector_offset, image_filename]
+                lines = _run_cmd(cmd)
+            except RuntimeError as e:
+                # skip partition if it has no file system
+                print("Annotation reader: Skipping fsstat offset %s" %
+                                                            sector_offset)
+                continue
+            print("Annotation reader: Importing fsstat offset %s" %
+                                                            sector_offset)
+            for line in lines:
+                try:
+#                    print("line.a:", line)
+                    p1 = line.index('-')
+                    p2 = line.index(' (')
+                    p3 = line.index(')')
+#                    print("line:", line, p1, p2, p3)
+#                    print("o:'%s', l:'%s'" % (line[0:p1], line[p2+2:p3]))
 
-                # create dictionary entry for this line
-                d = dict()
-                d["type"] = "fsstat"
-                d["offset"] = int(line[0:p1]) * 512
-#                print("off", d["offset"])
-                d["length"] = int(line[p2+2:p3]) * 512
-#                print("len", d["length"])
-                d["text"] = line
-                f.write("%s\n" % json.dumps(d))
+                    # create dictionary entry for this line
+                    d = dict()
+                    d["type"] = "fsstat"
+                    d["offset"] = int(line[0:p1]) * 512
+#                    print("off", d["offset"])
+                    d["length"] = int(line[p2+2:p3]) * 512
+#                    print("len", d["length"])
+                    d["text"] = line
+                    f.write("%s\n" % json.dumps(d))
 
-            except Exception:
-                # don't use this line
-                pass
+                except Exception:
+                    # don't use this line
+                    pass
 
 def _import_annotations(image_filename, annotation_dir):
+    print("Annotation reader: importing mmls annotations...")
     _import_mmls(image_filename, annotation_dir)
+    print("Annotation reader: importing fsstat annotations...")
     _import_fsstat(image_filename, annotation_dir)
 
     # record image_filename in annotation_dir
+    print("Annotation reader: recording image filename...")
     image_filename_path = os.path.join(annotation_dir, "image_filename")
-    f = open(image_filename_path, "w")
-    f.write("%s\n" % image_filename)
+    with open(image_filename_path, "w") as f:
+        f.write("%s\n" % image_filename)
 
 def _read_json(annotations_file, annotations):
-    f = open(annotations_file, "r")
-    for line in f:
-       d = json.loads(line)
-       annotations.append((d["type"], d["offset"], d["length"], d["text"]))
+    with open(annotations_file, "r") as f:
+        for line in f:
+            d = json.loads(line)
+            annotations.append((d["type"], d["offset"], d["length"], d["text"]))
 
 def read_annotations(image_filename, annotation_dir):
     """Read image annotations from annotation_dir, creating them if necessary.
@@ -141,10 +141,12 @@ def read_annotations(image_filename, annotation_dir):
     annotations = list()
 
     # mmls
+    print("Annotation reader: reading mmls annotations...")
     annotation_types.append(("mmls", "Disk partitions (from TSK mmls)", True))
     _read_json(os.path.join(annotation_dir, "mmls.json"), annotations)
 
     # fsstat
+    print("Annotation reader: reading fsstat annotations...")
     annotation_types.append(("fsstat", "File system sectors (from TSK fsstat)",
                                                                         True))
     _read_json(os.path.join(annotation_dir, "fsstat.json"), annotations)

@@ -85,8 +85,8 @@ class MenuView():
                        activebackground=colors.ACTIVEBACKGROUND,
                        highlightthickness=0)
         preferences_button.pack(side=tkinter.LEFT)
-        Tooltip(preferences_button, "Toggle format preference "
-                 "between hex, decimal, and byte alignment (usually sectors")
+        Tooltip(preferences_button, "Toggle format preference between hex,\n"
+                                    "decimal, and sector (usually sector)")
 
     def _handle_open(self):
         OpenWindow(self.frame, self._open_manager)
