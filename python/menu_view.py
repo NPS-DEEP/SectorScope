@@ -55,15 +55,15 @@ class MenuView():
         project_button.pack(side=tkinter.LEFT, padx=(0,8))
         Tooltip(project_button, "Show project statistics")
 
-        # import button
-        self._import_icon = tkinter.PhotoImage(file=icon_path("import"))
-        import_button = tkinter.Button(button_frame, image=self._import_icon,
-                       command=self._handle_import,
+        # ingest button
+        self._ingest_icon = tkinter.PhotoImage(file=icon_path("ingest"))
+        ingest_button = tkinter.Button(button_frame, image=self._ingest_icon,
+                       command=self._handle_ingest,
                        bg=colors.BACKGROUND,
                        activebackground=colors.ACTIVEBACKGROUND,
                        highlightthickness=0)
-        import_button.pack(side=tkinter.LEFT)
-        Tooltip(import_button, "Import from files into a\nnew hashdb database")
+        ingest_button.pack(side=tkinter.LEFT)
+        Tooltip(ingest_button, "Ingest files into a\nnew hashdb database")
 
         # scan button
         self._scan_icon = tkinter.PhotoImage(file=icon_path("scan"))
@@ -96,11 +96,12 @@ class MenuView():
 
     def _handle_scan(self):
         ScanImageWindow(self.frame)
-    #        ScanImageWindow(self.frame, image='/home/bdallen/Kitty/jo-favorites-usb-2009-12-11.E01', hashdb_dir='/home/bdallen/zzz5', output_file='/home/bdallen/zzzout5.json')
+        # ScanImageWindow(self.frame, image='/home/bdallen/Kitty/jo-favorites-usb-2009-12-11.E01', hashdb_dir='/home/bdallen/Kitty/KittyMaterial.hdb', output_file='/home/bdallen/Kitty/zz_jo.json')
 
     def _handle_preferences(self):
         self._preferences.set_next()
 
-    def _handle_import(self):
+    def _handle_ingest(self):
         IngestWindow(self.frame)
+        # IngestWindow(self.frame, source_dir='/home/bdallen/KittyMaterial', hashdb_dir='/home/bdallen/Kitty/zzki.hdb')
 

@@ -3,7 +3,7 @@
 
 import os
 import sys
-import threaded_scan_image
+import command_runner
 import helpers
 try:
     import queue
@@ -253,18 +253,33 @@ class ScanImageWindow():
             self._output_file_entry.insert(0, output_file)
 
     def _handle_consume_queue(self):
+        is_done = self._command_runner.is_done()
+
         # consume the queue
         while not self._queue.empty():
-            self._progress_text.insert(tkinter.END, self._queue.get())
-            self._progress_text.see(tkinter.END)
+            name, line = self._queue.get()
+
+            # stderr and stdout lines go to output_file
+            if name == "stderr" or name == "stdout":
+                self._outfile.write(line)
+ 
+            # comment lines and non-stdout/stderr lines go to progress_text
+            if (name != "stderr" and name != "stdout") or \
+                                  len(line) > 0 and line[0] == '#':
+                self._progress_text.insert(tkinter.END, "%s: %s" %(name, line))
+                self._progress_text.see(tkinter.END)
 
         # more or done
-        if self._threaded_scan_image.is_alive():
+        if not is_done:
             # keep progress_text consuming queue
             self._progress_text.after(200, self._handle_consume_queue)
         else:
             # done, successful or not
-            if self._threaded_scan_image.subprocess_returncode == 0:
+            # close outfile
+            self._outfile.close()
+
+            # show status
+            if self._command_runner.return_code() == 0:
                 # good
                 self._set_done()
             else:
@@ -285,14 +300,14 @@ class ScanImageWindow():
         # get hashdb_dir field
         hashdb_dir = os.path.abspath(self._hashdb_directory_entry.get())
         if not os.path.exists(hashdb_dir):
-            self._set_status_text("Error: hashdb database directory '%s'"
+            self._set_status_text("Error: hashdb database directory '%s' "
                                     "does not exist." % hashdb_dir)
             return
 
         # get output_file field
         output_file = os.path.abspath(self._output_file_entry.get())
         if os.path.exists(output_file):
-            self._set_status_text("Error: output file '%s'"
+            self._set_status_text("Error: output file '%s' "
                                     "already exists." % output_file)
             return
 
@@ -307,10 +322,15 @@ class ScanImageWindow():
         # compose the scan_image command
         cmd = ["hashdb", "scan_image", "-s", "%s"%step_size, hashdb_dir, image]
 
+        # open the output file, it is closed when _handle_consume_queue stops
+        try:
+            self._outfile = open(output_file, 'w')
+        except Exception as e:
+            self._queue.put(("Error", "Unable to open %s.  Aborting." % self._outfilename))
+            return
+
         # start the scan
-        self._threaded_scan_image = threaded_scan_image.ThreadedScanImage(
-                                         cmd, self._queue, output_file)
-        self._threaded_scan_image.start()
+        self._command_runner = command_runner.CommandRunner(cmd, self._queue)
 
         # start the consumer
         self._progress_text.after(200, self._handle_consume_queue)
@@ -318,7 +338,7 @@ class ScanImageWindow():
         self._set_running()
 
     def _handle_cancel(self):
-        self._threaded_scan_image.kill()
+        self._command_runner.kill()
 
     def _handle_close(self):
         self._root_window.destroy()

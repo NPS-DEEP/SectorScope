@@ -3,8 +3,7 @@
 
 import os
 import sys
-import threaded_subprocess
-from subprocess import Popen, PIPE
+import command_runner
 import helpers
 
 try:
@@ -287,18 +286,23 @@ class IngestWindow():
             self._byte_alignment_entry.config(state=tkinter.DISABLED)
 
     def _handle_consume_queue(self):
+        is_done = self._command_runner.is_done()
+
         # consume the queue
         while not self._queue.empty():
-            self._progress_text.insert(tkinter.END, self._queue.get())
+            name, line = self._queue.get()
+
+            # show everything
+            self._progress_text.insert(tkinter.END, "%s: %s" %(name, line))
             self._progress_text.see(tkinter.END)
 
         # more or done
-        if self._threaded_subprocess.is_alive():
+        if not is_done:
             # keep progress_text consuming queue
             self._progress_text.after(200, self._handle_consume_queue)
         else:
-            # done, successful or not
-            if self._threaded_subprocess.subprocess_returncode == 0:
+            # done, successful or not, show status
+            if self._command_runner.return_code() == 0:
                 # good
                 self._set_done()
             else:
@@ -308,7 +312,6 @@ class IngestWindow():
     def _handle_start(self):
         # clear any existing progress text
         self._progress_text.delete(1.0, tkinter.END)
-        self._set_status_text("")
 
         # get source_dir field
         source_dir = os.path.abspath(self._source_directory_entry.get())
@@ -385,9 +388,7 @@ class IngestWindow():
                "-s", "%s"%step_size, hashdb_dir, source_dir]
 
         # start the import
-        self._threaded_subprocess = threaded_subprocess.ThreadedSubprocess(
-                                                           cmd, self._queue)
-        self._threaded_subprocess.start()
+        self._command_runner = command_runner.CommandRunner(cmd, self._queue)
 
         # start the consumer
         self._progress_text.after(200, self._handle_consume_queue)
@@ -395,7 +396,7 @@ class IngestWindow():
         self._set_running()
 
     def _handle_cancel(self):
-        self._threaded_subprocess.kill()
+        self._command_runner.kill()
 
     def _handle_close(self):
         self._root_window.destroy()

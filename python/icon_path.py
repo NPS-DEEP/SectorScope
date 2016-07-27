@@ -13,7 +13,7 @@ def icon_path(name):
         return _absolute_path("document-new-4.gif")
     if name == "scan":
         return _absolute_path("database-gear.gif")
-    if name == "import":
+    if name == "ingest":
         return _absolute_path("database-add.gif")
     if name == "select_all":
         return _absolute_path("plus_blue.gif")
