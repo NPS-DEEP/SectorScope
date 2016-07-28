@@ -20,12 +20,12 @@ from histogram_view import HistogramView
 from preferences import Preferences
 from sources_view import SourcesView
 from open_manager import OpenManager
-from project_window import ProjectWindow
+from scan_statistics_window import ScanStatisticsWindow
 import colors
 
 # compose the GUI
 def build_gui(root_window, data_manager, annotation_filter,
-                             histogram_control, open_manager, project_window):
+                             histogram_control, open_manager, scan_window):
     """The left frame holds the banner, histogram, and table of selected
     sources.  The right frame holds the table of all sources."""
 
@@ -46,7 +46,7 @@ def build_gui(root_window, data_manager, annotation_filter,
     menu_and_filters_frame.pack(side=tkinter.TOP, anchor="w")
 
     # menu
-    menu_view = MenuView(menu_and_filters_frame, open_manager, project_window,
+    menu_view = MenuView(menu_and_filters_frame, open_manager, scan_window,
                                                                 preferences)
     menu_view.frame.pack(side=tkinter.LEFT, anchor="n", padx=(0,80), pady=4)
 
@@ -74,18 +74,21 @@ if __name__=="__main__":
     parser.add_argument('-i', '--scan_file',
                         help= 'path to a block hash match scan file',
                         default='')
+    parser.add_argument('-m', '--alternate_media_image',
+                        help= 'path to an alternate media image',
+                        default='')
+    parser.add_argument('-d', '--alternate_hash_database',
+                        help= 'path to an alternate hash database',
+                        default='')
     parser.add_argument('-s', '--sector_size',
                         help= 'sector size for sectors',
                         default=512)
-    parser.add_argument('-m', '--media_image',
-                        help= 'path to the associated media image file',
-                        default='')
     args = parser.parse_args()
 
     # initialize Tk
     root_window = tkinter.Tk()
 
-    # the project data dataset
+    # the scan data dataset
     data_manager = DataManager()
 
     # the annotation filter
@@ -101,17 +104,17 @@ if __name__=="__main__":
     open_manager = OpenManager(root_window, data_manager,
                            annotation_filter, histogram_control, preferences)
 
-    # the project window, hidden until show()
-    project_window = ProjectWindow(root_window, data_manager, preferences)
+    # the scan window, hidden until show()
+    scan_window = ScanStatisticsWindow(root_window, data_manager, preferences)
 
     # build the GUI
     build_gui(root_window, data_manager, annotation_filter,
-                             histogram_control, open_manager, project_window)
+                             histogram_control, open_manager, scan_window)
 
     # now open the scan_file
     if args.scan_file != "":
         open_manager.open_scan_file(args.scan_file, args.sector_size,
-                                    args.media_image)
+                  args.alternate_media_image, args.alternate_hash_database)
 
     # keep Tk alive
     root_window.mainloop()

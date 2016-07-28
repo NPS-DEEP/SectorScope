@@ -16,7 +16,7 @@ class Preferences():
       Tk must be initialized for tkinter.Variable to work.
     """
 
-    offset_format = "hex"
+    offset_format = "sector"
 
     def __init__(self):
         # the signal variable
@@ -24,16 +24,16 @@ class Preferences():
         self._preferences_changed = tkinter.BooleanVar()
 
     def reset(self):
-        self.offset_format = "hex"
+        self.offset_format = "sector"
         self._fire_change()
 
     def set_next(self):
-        if self.offset_format == "hex":
+        if self.offset_format == "sector":
             self.offset_format = "decimal"
         elif self.offset_format == "decimal":
-            self.offset_format = "sector"
-        elif self.offset_format == "sector":
             self.offset_format = "hex"
+        elif self.offset_format == "hex":
+            self.offset_format = "sector"
         else:
             raise RuntimeError("program error")
         self._fire_change()

@@ -87,10 +87,10 @@ class HistogramControl():
                                    histogram_constants.HISTOGRAM_X_OFFSET + 1
         self._fire_change("width_changed")
 
-    def set_project(self, image_size, sector_size):
+    def set_initial_view(self, image_size, sector_size):
         """Establish starting bounds, zoom fully out, and clear any range
           without firing any events."""
-        # set constants given a project dataset
+        # set constants given a scan dataset
         self.image_size = image_size
         self.sector_size = sector_size
 

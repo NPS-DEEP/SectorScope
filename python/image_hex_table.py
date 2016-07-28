@@ -17,7 +17,7 @@ class ImageHexTable():
                                                         width=88, height=32):
         """Args:
           master(a UI container): Parent.
-          data_manager(DataManager): Manages project data and filters.
+          data_manager(DataManager): Manages scan data and filters.
           histogram_control(HistogramControl): Interfaces for controlling
             the histogram view.
         """

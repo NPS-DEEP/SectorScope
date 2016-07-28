@@ -1,9 +1,11 @@
 import colors
+import info
 from icon_path import icon_path
 from tooltip import Tooltip
 from scan_image_window import ScanImageWindow
 from ingest_window import IngestWindow
 from open_window import OpenWindow
+from info_window import InfoWindow
 try:
     import tkinter
 except ImportError:
@@ -16,7 +18,7 @@ class MenuView():
       frame(Frame): the containing frame for this view.
     """
 
-    def __init__(self, master, open_manager, project_window, preferences):
+    def __init__(self, master, open_manager, scan_statistics_window, preferences):
         """Args:
           master(a UI container): Parent.
           open_mangaer(OpenManager): Able to open a new dataset.
@@ -24,7 +26,7 @@ class MenuView():
 
         # open manager
         self._open_manager = open_manager
-        self._project_window = project_window
+        self._scan_statistics_window = scan_statistics_window
         self._preferences = preferences
 
         # make the containing frame
@@ -44,16 +46,16 @@ class MenuView():
         open_button.pack(side=tkinter.LEFT)
         Tooltip(open_button, "Open scanned output")
 
-        # project properties button
-        self._project_icon = tkinter.PhotoImage(file=icon_path("view_project"))
-        project_button = tkinter.Button(button_frame,
-                       image=self._project_icon,
-                       command=self._handle_project_window,
+        # scan statistics button
+        self._scan_statistics_icon = tkinter.PhotoImage(file=icon_path("view_scan_statistics"))
+        scan_statistics_button = tkinter.Button(button_frame,
+                       image=self._scan_statistics_icon,
+                       command=self._handle_scan_statistics_window,
                        bg=colors.BACKGROUND,
                        activebackground=colors.ACTIVEBACKGROUND,
                        highlightthickness=0)
-        project_button.pack(side=tkinter.LEFT, padx=(0,8))
-        Tooltip(project_button, "Show project statistics")
+        scan_statistics_button.pack(side=tkinter.LEFT, padx=(0,8))
+        Tooltip(scan_statistics_button, "Show scan statistics")
 
         # ingest button
         self._ingest_icon = tkinter.PhotoImage(file=icon_path("ingest"))
@@ -84,15 +86,32 @@ class MenuView():
                        bg=colors.BACKGROUND,
                        activebackground=colors.ACTIVEBACKGROUND,
                        highlightthickness=0)
-        preferences_button.pack(side=tkinter.LEFT)
-        Tooltip(preferences_button, "Toggle format preference between hex,\n"
-                                    "decimal, and sector (usually sector)")
+        preferences_button.pack(side=tkinter.LEFT, padx=(0,8))
+        Tooltip(preferences_button, "Toggle offset format between\n"
+                                    "sector, decimal, and hex")
+
+        # info button
+        self._info_icon = tkinter.PhotoImage(file=icon_path(
+                                                              "info"))
+        info_button = tkinter.Button(button_frame,
+                       image=self._info_icon,
+                       command=self._handle_info,
+                       bg=colors.BACKGROUND,
+                       activebackground=colors.ACTIVEBACKGROUND,
+                       highlightthickness=0)
+        info_button.pack(side=tkinter.LEFT)
+        Tooltip(info_button, "About SectorScope %s" % info.VERSION)
+
 
     def _handle_open(self):
         OpenWindow(self.frame, self._open_manager)
 
-    def _handle_project_window(self):
-        self._project_window.show()
+    def _handle_scan_statistics_window(self):
+        self._scan_statistics_window.show()
+
+    def _handle_ingest(self):
+        IngestWindow(self.frame)
+        # IngestWindow(self.frame, source_dir='/home/bdallen/KittyMaterial', hashdb_dir='/home/bdallen/Kitty/zzki.hdb')
 
     def _handle_scan(self):
         ScanImageWindow(self.frame)
@@ -101,7 +120,6 @@ class MenuView():
     def _handle_preferences(self):
         self._preferences.set_next()
 
-    def _handle_ingest(self):
-        IngestWindow(self.frame)
-        # IngestWindow(self.frame, source_dir='/home/bdallen/KittyMaterial', hashdb_dir='/home/bdallen/Kitty/zzki.hdb')
+    def _handle_info(self):
+        InfoWindow(self.frame)
 

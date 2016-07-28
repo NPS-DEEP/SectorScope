@@ -4,6 +4,7 @@
 import os
 import sys
 import command_runner
+from tooltip import Tooltip
 import helpers
 
 try:
@@ -115,6 +116,9 @@ class IngestWindow():
         self._repository_name_entry.grid(row=2, column=1, sticky=tkinter.W,
                                          padx=(8,0))
         self._repository_name_entry.insert(0, self._repository_name)
+        Tooltip(self._repository_name_entry,
+                "Alternate repository name, leave blank to use\n"
+                "the default from the source directory path")
 
         # step size label
         tkinter.Label(required_frame, text="Step Size") \
@@ -270,7 +274,7 @@ class IngestWindow():
     def _handle_output_directory_chooser(self, *args):
         output_directory = fd.askdirectory(
                                title="Open hash database output Directory",
-                               mustexist=True)
+                               mustexist=False)
         if output_directory:
             self._output_directory_entry.delete(0, tkinter.END)
             self._output_directory_entry.insert(0, output_directory)

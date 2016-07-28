@@ -9,10 +9,9 @@
 # texlive-appendix
 # texlive-fancyhdr
 
-DEPENDENCIES = sectorscope_um.tex title.tex
+DEPENDENCIES = sectorscope_um.tex title.tex screenshots/*
 
 sectorscope_um.pdf: $(DEPENDENCIES)
-	cd drawings; make
 	pdflatex sectorscope_um.tex
 	pdflatex sectorscope_um.tex
 

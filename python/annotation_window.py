@@ -6,12 +6,12 @@ except ImportError:
 
 class AnnotationWindow():
     _checkbuttons = list() # (checkbutton, annotation_type, int_var)
-    """Provides a window to show opened project attributes.
+    """Provides a window to show opened scan attributes.
     """
     def __init__(self, master, data_manager, annotation_filter):
         """Args:
           master(a UI container): Parent.
-          data_manager(DataManager): Manages project data and filters.
+          data_manager(DataManager): Manages scan data and filters.
           annotation_filter(AnnotationFilter): The annotation filter that
             selections modify.
         """

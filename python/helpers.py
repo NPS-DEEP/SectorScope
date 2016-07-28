@@ -90,3 +90,18 @@ def read_image_bytes(image_filename, offset, count):
         else:
             return "", stdout_bytearray
 
+"""Read the hashdb version."""
+def read_hashdb_version():
+
+    cmd = ["hashdb", "-v"]
+    with CompatiblePopen(cmd, stdout=PIPE, stderr=PIPE) as p:
+
+        stdout_data, stderr_data = p.communicate()
+        stdout_text = stdout_data.decode('utf-8')
+        stderr_text = stderr_data.decode('utf-8')
+
+        if p.returncode == 0:
+            return stdout_text
+        else:
+            return "hashdb is not available."
+

@@ -9,7 +9,7 @@ def icon_path(name):
     # menu icons
     if name == "open":
         return _absolute_path("document-open-2.gif")
-    if name == "view_project":
+    if name == "view_scan_statistics":
         return _absolute_path("document-new-4.gif")
     if name == "scan":
         return _absolute_path("database-gear.gif")
@@ -18,7 +18,9 @@ def icon_path(name):
     if name == "select_all":
         return _absolute_path("plus_blue.gif")
     if name == "preferences":
-        return _absolute_path("font.gif")
+        return _absolute_path("configure-5.gif")
+    if name == "info":
+        return _absolute_path("dialog-information-4.gif")
 
     # ignore filters
     if name == "ignore_hashes_in_range":
@@ -56,7 +58,7 @@ def icon_path(name):
     if name == "show_hex_view":
         return _absolute_path("text-x-hex.gif")
     if name == "view_annotations":
-        return _absolute_path("edit-find-8.gif")
+        return _absolute_path("font.gif")
 
     # histogram y view control
     if name == "y_plus":

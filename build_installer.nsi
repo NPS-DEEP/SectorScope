@@ -80,15 +80,15 @@ Section "SectorScope"
 	writeUninstaller "$INSTDIR\uninstall.exe"
  
         # install all .py files
-        file "../python/*.py"
+        file "python/*.py"
 
         # install icons
         setOutPath "$INSTDIR\icons"
-        file "../python/icons/*.gif"
+        file "python/icons/*.gif"
 
         # install the PDF doc
         setOutPath "$INSTDIR\pdf"
-        file "download/sectorscope_um.pdf"
+        file "doc/sectorscope_um/sectorscope_um.pdf"
 
 	# create the start menu for shortcuts
 	createDirectory "$SMPROGRAMS\${APPNAME}"
@@ -150,7 +150,7 @@ FunctionEnd
 
 Section "SectorScope Autopsy Plug-in (to desktop)"
 	setOutPath "$DESKTOP"
-	file "download/${PLUGINNAME}"
+	file "build/${PLUGINNAME}"
 sectionEnd
 
 section "uninstall"

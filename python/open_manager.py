@@ -19,7 +19,7 @@ class OpenManager():
         """Args:
           master(a UI container): Parent.
           data_reader(DataReader): Data reader.
-          data_manager(DataManager): Manages project data and filters.
+          data_manager(DataManager): Manages scan data and filters.
           histogram_control(HistogramControl): Interfaces for controlling
             the histogram view.
            preferences(Preferences): Preference, namely the offset format.
@@ -35,17 +35,18 @@ class OpenManager():
         self._data_reader = DataReader()
 
     """Open scan_file and note the media_image and sector_size."""
-    def open_scan_file(self, scan_file, sector_size, alternate_media_image):
+    def open_scan_file(self, scan_file, sector_size,
+                       alternate_media_image, alternate_hashdb_dir):
         # read scan_file else show error window
         try:
             self._data_reader.read(scan_file, sector_size,
-                                   alternate_media_image)
+                       alternate_media_image, alternate_hashdb_dir)
 
         except Exception as e:
             ErrorWindow(self._master, "Open Error", e)
             return
 
-        # the read worked so accept the the project
+        # the read worked so accept the the scan data
 
         # report if annotation reader failed
         if self._data_reader.annotation_load_status:
@@ -59,8 +60,8 @@ class OpenManager():
         self._annotation_filter.set([])
 
         # reset the histogram control settings
-        self._histogram_control.set_project(self._data_reader.image_size,
-                                            self._data_reader.sector_size)
+        self._histogram_control.set_initial_view(self._data_reader.image_size,
+                                                 self._data_reader.sector_size)
 
         # accept the data, firing change
         self._data_manager.set_data(self._data_reader)

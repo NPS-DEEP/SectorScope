@@ -14,17 +14,15 @@ def offset_string(offset, offset_format, sector_size):
     elif offset_format == "sector":
         # return 0 if not initialized
         if sector_size == 0:
-            return 0
+            return "0 s"
 
         # program error if not sector aligned or one less than sector aligned
         if offset / sector_size != offset // sector_size and \
                    (offset+1) / sector_size != (offset+1) // sector_size:
 
-            print("offset: %d, sector_size: %d" %(offset, sector_size))
             raise RuntimeError("program error")
         return "%d s" % (offset // sector_size)
     else:
-        print("offset format: '%s'" % offset_format)
         raise RuntimeError("program error")
 
 def int_string(value):

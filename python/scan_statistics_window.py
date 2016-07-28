@@ -6,13 +6,13 @@ try:
 except ImportError:
     import Tkinter as tkinter
 
-class ProjectWindow():
-    """Provides a window to show opened project attributes.
+class ScanStatisticsWindow():
+    """Provides a window to show opened scan attributes.
     """
     def __init__(self, master, data_manager, preferences):
         """Args:
           master(a UI container): Parent.
-          data_manager(DataManager): Manages project data and filters.
+          data_manager(DataManager): Manages scan data and filters.
          """
         # variables
         self._data_manager = data_manager
@@ -20,18 +20,14 @@ class ProjectWindow():
 
         # make toplevel window
         self._root_window = tkinter.Toplevel(master)
-        self._root_window.title("Project Statistics")
+        self._root_window.title("Scan Statistics")
         self._root_window.transient(master)
         self._root_window.protocol('WM_DELETE_WINDOW', self._hide)
 
         # make the containing frame
-        f = tkinter.Frame(self._root_window, padx=8, pady=8,
+        f = tkinter.Frame(self._root_window, padx=18, pady=18,
                                                        bg=colors.BACKGROUND)
         f.pack()
-
-        # title
-        tkinter.Label(f, text="Project", bg=colors.BACKGROUND).pack(
-                                             side=tkinter.TOP, pady=(0,4))
 
         # scan file path
         self._scan_file_text = tkinter.Label(f, bg=colors.BACKGROUND)
@@ -41,13 +37,13 @@ class ProjectWindow():
         self._image_text = tkinter.Label(f, bg=colors.BACKGROUND)
         self._image_text.pack(side=tkinter.TOP, anchor="w")
 
-        # media image size
-        self._image_size_text = tkinter.Label(f, bg=colors.BACKGROUND)
-        self._image_size_text.pack(side=tkinter.TOP, anchor="w")
-
         # hashdb database path
         self._database_text = tkinter.Label(f, bg=colors.BACKGROUND)
         self._database_text.pack(side=tkinter.TOP, anchor="w")
+
+        # media image size
+        self._image_size_text = tkinter.Label(f, bg=colors.BACKGROUND)
+        self._image_size_text.pack(side=tkinter.TOP, anchor="w")
 
         # block size
         self._block_size_text = tkinter.Label(f, bg=colors.BACKGROUND)
@@ -64,17 +60,6 @@ class ProjectWindow():
         # matched sources
         self._matched_sources_text = tkinter.Label(f, bg=colors.BACKGROUND)
         self._matched_sources_text .pack(side=tkinter.TOP, anchor="w")
-
-
-
-
-
-
-
-
-        # size statistics
-        self._sizes_text = tkinter.Label(f, bg=colors.BACKGROUND)
-        self._sizes_text.pack(side=tkinter.TOP, anchor="w")
 
         # register to receive data manager change events
         data_manager.set_callback(self._handle_data_manager_change)

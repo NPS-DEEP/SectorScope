@@ -54,7 +54,7 @@ class HistogramBar():
                 annotation_filter, histogram_control):
         """Args:
           master(a UI container): Parent.
-          data_manager(DataManager): Manages project data and filters.
+          data_manager(DataManager): Manages scan data and filters.
           fit_range_selection(FitRangeSelection): Receive signal to fit range.
           preferences(Preferences): Preference, namely the offset format.
           annotation_filter(AnnotationFilter): The annotation filter that

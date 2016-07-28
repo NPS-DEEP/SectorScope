@@ -47,7 +47,7 @@ class SourcesTable():
                                                        width=40, height=12):
         """Args:
           master(a UI container): Parent.
-          data_manager(DataManager): Manages project data and filters.
+          data_manager(DataManager): Manages scan data and filters.
           histogram_control(HistogramControl): Interfaces for controlling
             the histogram view.
            width, height(int): size in characters of table.

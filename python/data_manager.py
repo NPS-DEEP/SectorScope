@@ -15,7 +15,7 @@ class DataManager():
     # change type signaled: data_changed, filter_changed
     change_type = ""
 
-    # project attributes
+    # scan attributes
     scan_file = ""
     image_size = 0
     image_filename = ""
@@ -47,7 +47,7 @@ class DataManager():
         self._data_manager_changed = tkinter.BooleanVar()
 
     def set_data(self, data_reader):
-        # copy project attributes from data reader
+        # copy scan attributes from data reader
         self.scan_file = data_reader.scan_file
         self.image_size = data_reader.image_size
         self.image_filename = data_reader.image_filename
@@ -86,7 +86,7 @@ class DataManager():
         self._data_manager_changed.set(True)
 
     # ############################################################
-    # project data
+    # scan data
     # ############################################################
     def calculate_hash_counts(self):
         """Calculate hash counts based on identified data and filter

@@ -57,7 +57,8 @@ class DataReader():
         self.annotations = list()
         self.annotation_load_status = ""
 
-    def read(self, scan_file, sector_size, alternate_image_filename):
+    def read(self, scan_file, sector_size,
+             alternate_image_filename, alternate_hashdb_dir):
         """
         Reads and sets data else raises an exception and leaves data alone.
         Args:
@@ -76,6 +77,10 @@ class DataReader():
         # use the alternate media image if it is defined
         if alternate_image_filename:
             image_filename = alternate_image_filename
+
+        # use the alternate hash database if it is defined
+        if alternate_hashdb_dir:
+            hashdb_dir = alternate_hashdb_dir
 
         # read hash_block_size used for calculating block hashes
         hash_block_size = helpers.get_hash_block_size(hashdb_dir)
