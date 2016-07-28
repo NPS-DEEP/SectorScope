@@ -62,9 +62,11 @@ class ImageHexWindow():
     def _set_view(self):
         # read page of image bytes starting at offset else warn and clear
         block_hash_offset = self._histogram_control.cursor_offset
+        if block_hash_offset < 0:
+            block_hash_offset = 0
         error_message, buf = read_image_bytes(
                                      self._data_manager.image_filename,
-                                     self._histogram_control.cursor_offset,
+                                     block_hash_offset,
                                      self.BUFSIZE)
         if (error_message):
             ErrorWindow(self._root_window, "Open Error", error_message)

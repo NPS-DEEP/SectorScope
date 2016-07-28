@@ -196,12 +196,45 @@ class HistogramBar():
 
     def _calculate_bucket_data(self):
         (self._source_buckets, self._ignored_source_buckets,
-         self._highlighted_source_buckets, self._y_scale) = \
+         self._highlighted_source_buckets) = \
                       self._data_manager.calculate_bucket_data(
                                     self._hash_counts,
                                     self._histogram_control.start_offset,
                                     self._histogram_control.bytes_per_bucket,
                                     self._histogram_control.num_buckets)
+
+    def _calculate_y_scale(self):
+        if self._preferences.auto_y_scale:
+            # find bar with biggest count
+            highest_count = max(self._source_buckets)
+
+            # set y_scale to fit all the buckets vertically
+            if highest_count < 100:
+                self._y_scale = 1
+            elif highest_count < 500:
+                self._y_scale = 5
+            elif highest_count < 1000:
+                self._y_scale = 10
+            elif highest_count < 5000:
+                self._y_scale = 50
+            elif highest_count < 10000:
+                self._y_scale = 100
+            elif highest_count < 50000:
+                self._y_scale = 500
+            elif highest_count < 100000:
+                self._y_scale = 1000
+            elif highest_count < 500000:
+                self._y_scale = 5000
+            elif highest_count < 1000000:
+                self._y_scale = 10000
+            elif highest_count < 5000000:
+                self._y_scale = 50000
+            else:
+                self._y_scale = 100000
+
+        else:
+            # set y_scale 1:1
+            self._y_scale = 1
 
     # this function is registered to and called by HistogramControl
     def _handle_histogram_control_change(self, *args):
@@ -224,20 +257,7 @@ class HistogramBar():
         self._draw(self._data_manager.change_type)
 
     def _draw(self, change_mode):
-        """Draw text based on change mode, then redraw the graph.
-        Change modes:
-          cursor_moved: Cursor moved, redraw cursor bar and cursor
-            offset text.
-          range_changed: Range changed, recalculate sources in range,
-            draw range rectangle and fire change for redrawing the
-            sources table.
-          plot_region_changed: Histogram zoomed or panned, redraw bars and
-            annotation.
-          fit_range: Redraw to fit range.
-          preferences_changed: Offset text units changed, change annotation.
-          plot_region_changed: Recalculate bucket counts due to pan or zoom
-            and redraw buckets.
-        """
+        # draw text based on change mode, then redraw the graph
         if change_mode == "cursor_moved":
             self._draw_cursor_text()
 
@@ -246,16 +266,19 @@ class HistogramBar():
 
         elif change_mode == "plot_region_changed":
             self._calculate_bucket_data()
+            self._calculate_y_scale()
             self._draw_all_text()
             self._valid_bucket_range = \
                              self._histogram_control.valid_bucket_range()
 
         elif change_mode == "preferences_changed":
+            self._calculate_y_scale()
             self._draw_all_text()
 
         elif change_mode == "fit_range":
             self._histogram_control.fit_range()
             self._calculate_bucket_data()
+            self._calculate_y_scale()
             self._draw_all_text()
             self._valid_bucket_range = \
                              self._histogram_control.valid_bucket_range()
@@ -263,11 +286,13 @@ class HistogramBar():
         elif change_mode == "filter_changed":
             self._hash_counts = self._data_manager.calculate_hash_counts()
             self._calculate_bucket_data()
+            self._calculate_y_scale()
             self._draw_all_text()
 
         elif change_mode == "data_changed":
             self._hash_counts = self._data_manager.calculate_hash_counts()
             self._calculate_bucket_data()
+            self._calculate_y_scale()
             self._draw_all_text()
             self._valid_bucket_range = \
                              self._histogram_control.valid_bucket_range()

@@ -17,7 +17,7 @@ def icon_path(name):
         return _absolute_path("database-add.gif")
     if name == "select_all":
         return _absolute_path("plus_blue.gif")
-    if name == "preferences":
+    if name == "offset_format_preference":
         return _absolute_path("configure-5.gif")
     if name == "info":
         return _absolute_path("dialog-information-4.gif")
@@ -59,6 +59,8 @@ def icon_path(name):
         return _absolute_path("text-x-hex.gif")
     if name == "view_annotations":
         return _absolute_path("font.gif")
+    if name == "auto_y_scale_preference":
+        return _absolute_path("arrow_plain_blue_N_S.gif")
 
     # histogram y view control
     if name == "y_plus":

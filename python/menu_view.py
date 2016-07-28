@@ -77,18 +77,18 @@ class MenuView():
         scan_button.pack(side=tkinter.LEFT, padx=(0,8))
         Tooltip(scan_button, "Scan a media image")
 
-        # preferences button
-        self._preferences_icon = tkinter.PhotoImage(file=icon_path(
-                                                              "preferences"))
-        preferences_button = tkinter.Button(button_frame,
-                       image=self._preferences_icon,
-                       command=self._handle_preferences,
+        # offset format preference button
+        self._offset_format_preference_icon = tkinter.PhotoImage(
+                                file=icon_path("offset_format_preference"))
+        offset_format_preference_button = tkinter.Button(button_frame,
+                       image=self._offset_format_preference_icon,
+                       command=self._handle_offset_format_preference,
                        bg=colors.BACKGROUND,
                        activebackground=colors.ACTIVEBACKGROUND,
                        highlightthickness=0)
-        preferences_button.pack(side=tkinter.LEFT, padx=(0,8))
-        Tooltip(preferences_button, "Toggle offset format between\n"
-                                    "sector, decimal, and hex")
+        offset_format_preference_button.pack(side=tkinter.LEFT, padx=(0,8))
+        Tooltip(offset_format_preference_button,
+                  "Toggle offset format between\nsector, decimal, and hex")
 
         # info button
         self._info_icon = tkinter.PhotoImage(file=icon_path(
@@ -117,8 +117,8 @@ class MenuView():
         ScanImageWindow(self.frame)
         # ScanImageWindow(self.frame, image='/home/bdallen/Kitty/jo-favorites-usb-2009-12-11.E01', hashdb_dir='/home/bdallen/Kitty/KittyMaterial.hdb', output_file='/home/bdallen/Kitty/zz_jo.json')
 
-    def _handle_preferences(self):
-        self._preferences.set_next()
+    def _handle_offset_format_preference(self):
+        self._preferences.set_next_offset_format()
 
     def _handle_info(self):
         InfoWindow(self.frame)

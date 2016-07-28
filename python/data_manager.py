@@ -36,6 +36,8 @@ class DataManager():
     annotation_load_status = ""
 
     # filters
+    ignore_entropy_below = 0
+    ignore_entropy_above = 0
     ignore_max_hashes = 0
     ignore_flagged_blocks = True
     ignored_sources = set()
@@ -62,6 +64,8 @@ class DataManager():
         self.len_sources = len(data_reader.sources)
 
         # clear any filter settings
+        self.ignore_entropy_below = 0
+        self.ignore_entropy_above = 0
         self.ignore_max_hashes = 0
         self.ignore_flagged_blocks = True
         self.ignored_sources.clear()
@@ -101,6 +105,8 @@ class DataManager():
         t0 = ts0("data_manager.calculate_hash_counts start")
 
         # optimization: make local references to filter variables
+        ignore_entropy_below = self.ignore_entropy_below
+        ignore_entropy_above = self.ignore_entropy_above
         ignore_max_hashes = self.ignore_max_hashes
         ignore_flagged_blocks = self.ignore_flagged_blocks
         ignored_sources = self.ignored_sources
@@ -115,20 +121,22 @@ class DataManager():
         for block_hash, hash_data in self.hashes.items():
 
             count = hash_data["count"]
+            entropy = hash_data["entropy"]
             hash_counts[block_hash] = (
-                    # count
-                    count,
+                # count
+                count,
 
-                    # is_ignored
-                    ignore_max_hashes != 0 and count > ignore_max_hashes or
-                    block_hash in ignored_hashes or
-                    ignore_flagged_blocks and len(hash_data["block_label"]) or
-                    len(ignored_sources.intersection(
-                                             hash_data["source_hashes"])),
+                # is_ignored
+                ignore_entropy_below != 0 and entropy < ignore_entropy_below or
+                ignore_entropy_above != 0 and entropy > ignore_entropy_above or
+                ignore_max_hashes != 0 and count > ignore_max_hashes or
+                block_hash in ignored_hashes or
+                ignore_flagged_blocks and len(hash_data["block_label"]) or
+                len(ignored_sources.intersection(hash_data["source_hashes"])),
 
-                    # is_highlighted
-                    block_hash in highlighted_hashes or
-                    len(highlighted_sources.intersection(
+                # is_highlighted
+                block_hash in highlighted_hashes or
+                len(highlighted_sources.intersection(
                                              hash_data["source_hashes"])))
 
         ts("data_manager.calculate_hash_counts done", t0)
@@ -145,20 +153,18 @@ class DataManager():
             values.
           highlighted_source_buckets(List): List of num_buckets sorce
             count values.
-          y_scale(int): Scale to fit the list of buckets vertically.
         """
         t0 = ts0("data_manager.calculate_bucket_data.start")
         # initialize empty buckets for each data type tracked
         source_buckets = [0] * num_buckets
         ignored_source_buckets = [0] * num_buckets
         highlighted_source_buckets = [0] * num_buckets
-        y_scale = 0
 
         if bytes_per_bucket == 0:
             # no data
             ts("data_manager.calculate_bucket_data none", t0)
             return (source_buckets, ignored_source_buckets,
-                                        highlighted_source_buckets, y_scale)
+                                        highlighted_source_buckets)
 
 
         # calculate the histogram
@@ -183,35 +189,9 @@ class DataManager():
             if is_highlighted:
                 highlighted_source_buckets[bucket] += count
 
-        # set Y scale
-        # find bar with biggest count
-        highest_count = max(source_buckets)
-        if highest_count < 100:
-            y_scale = 1
-        elif highest_count < 500:
-            y_scale = 5
-        elif highest_count < 1000:
-            y_scale = 10
-        elif highest_count < 5000:
-            y_scale = 50
-        elif highest_count < 10000:
-            y_scale = 100
-        elif highest_count < 50000:
-            y_scale = 500
-        elif highest_count < 100000:
-            y_scale = 1000
-        elif highest_count < 500000:
-            y_scale = 5000
-        elif highest_count < 1000000:
-            y_scale = 10000
-        elif highest_count < 5000000:
-            y_scale = 50000
-        else:
-            y_scale = 100000
-
         ts("data_manager.calculate_bucket_data done", t0)
         return (source_buckets, ignored_source_buckets,
-                highlighted_source_buckets, y_scale)
+                highlighted_source_buckets)
 
     # ############################################################
     # filter actions
@@ -344,6 +324,8 @@ class DataManager():
             tuple of sources found.
         """
         # similar to calculate_hash_counts()
+        ignore_entropy_below = self.ignore_entropy_below
+        ignore_entropy_above = self.ignore_entropy_above
         ignore_max_hashes = self.ignore_max_hashes
         ignore_flagged_blocks = self.ignore_flagged_blocks
         ignored_sources = self.ignored_sources
@@ -359,6 +341,13 @@ class DataManager():
         for block_hash, hash_data in self.hashes.items():
 
             # skip ignored hashes
+
+            # skip entropy outside range
+            entropy = hash_data["entropy"]
+            if ignore_entropy_below != 0 and entropy < ignore_entropy_below:
+                continue
+            if ignore_entropy_above != 0 and entropy > ignore_entropy_above:
+                continue
 
             # hash count exceeds ignore_max_hashes
             if ignore_max_hashes != 0 and \

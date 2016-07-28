@@ -28,6 +28,9 @@ class HistogramView():
             the histogram view.
         """
 
+        # preferences
+        self._preferences = preferences
+
         # histogram control
         self._histogram_control = histogram_control
 
@@ -97,6 +100,20 @@ class HistogramView():
         view_annotations_button.pack(side=tkinter.LEFT, padx=4)
         Tooltip(view_annotations_button, "Manage annotations shown")
 
+        # button to toggle auto_y_scale_preference
+        self._auto_y_scale_preference_icon = tkinter.PhotoImage(file=icon_path(
+                                                  "auto_y_scale_preference"))
+        auto_y_scale_preference_button = tkinter.Button(controls_frame,
+                           image=self._auto_y_scale_preference_icon,
+                           command=self._handle_auto_y_scale_preference,
+                           bg=colors.BACKGROUND,
+                           activebackground=colors.ACTIVEBACKGROUND,
+                           highlightthickness=0)
+
+        auto_y_scale_preference_button.pack(side=tkinter.LEFT)
+        Tooltip(auto_y_scale_preference_button,
+                "Disable/enable auto-Y-axis\nhistogram bar scale")
+
         # range selection
         range_selection_frame = tkinter.Frame(self.frame, bg=colors.BACKGROUND)
         range_selection_frame.pack(side=tkinter.TOP, anchor="w")
@@ -119,6 +136,9 @@ class HistogramView():
 
     def _handle_view_annotations(self):
         self._annotation_window.show()
+
+    def _handle_auto_y_scale_preference(self):
+        self._preferences.set_toggle_auto_y_scale()
 
     # this function is registered to and called by RangeSelection
     def _handle_histogram_control_change(self, *args):

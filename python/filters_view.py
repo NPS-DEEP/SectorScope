@@ -107,60 +107,23 @@ class FiltersView():
         Tooltip(self._clear_highlighted_sources_button,
                                            "Clear all highlighted sources")
 
-        # Ignore frame
+        # ignore frame
         ignore_frame = tkinter.LabelFrame(highlight_and_ignore_frame,
                          text="Ignore", bg=colors.BACKGROUND, padx=4, pady=4)
-        ignore_frame.pack(side=tkinter.LEFT, anchor="n")
-
-        # ignore max same hashes text entry
-        ignore_max_hashes_frame = tkinter.Frame(ignore_frame,
-                                                bg=colors.BACKGROUND)
-        ignore_max_hashes_frame.pack(side=tkinter.TOP, anchor="w")
-        tkinter.Label(ignore_max_hashes_frame,
-                      text="Max Duplicate Hashes:", padx=0, pady=0,
-                      bg=colors.BACKGROUND).pack( side=tkinter.LEFT, anchor="w")
-        self._ignore_max_hashes_entry = tkinter.Entry(ignore_max_hashes_frame,
-                                                               width=6)
-        self._ignore_max_hashes_entry.insert(0, "None")
-        self._ignore_max_hashes_entry.pack(side=tkinter.LEFT, anchor="w")
-
-        # bind actions for ignore max hashes text entry
-        self._ignore_max_hashes_entry.bind('<Return>',
-                           self._handle_ignore_max_hashes_selection, add='+')
-        self._ignore_max_hashes_entry.bind('<FocusOut>',
-                           self._handle_ignore_max_hashes_selection, add='+')
-
-        # ignore flagged blocks checkbutton
-        self._ignore_flagged_blocks_checkbutton = tkinter.Checkbutton(
-                        ignore_frame, text="Auto-filter",
-                        variable=self._ignore_flagged_blocks_trace_var,
-                        bd=0,
-                        bg=colors.BACKGROUND,
-                        activebackground=colors.ACTIVEBACKGROUND,
-                        pady=4, highlightthickness=0)
-        self._ignore_flagged_blocks_checkbutton.pack(side=tkinter.TOP,
-                                                                 anchor="w")
-        Tooltip(self._ignore_flagged_blocks_checkbutton,
-                                         "Ignore flagged blocks")
-
-        # bind actions for ignore_flagged_blocks checkbutton
-        self._ignore_flagged_blocks_trace_var.trace_variable('w',
-                             self._handle_ignore_flagged_blocks_selection)
-
-        # ignore buttons
 
         # ignore hashes in range
         self._ignore_hashes_in_range_icon = tkinter.PhotoImage(
                                  file=icon_path("ignore_hashes_in_range"))
-        self._ignore_hashes_in_range_button = tkinter.Button(ignore_frame,
-                           image=self._ignore_hashes_in_range_icon,
-                           text="H",
-                           compound="left", padx=4, pady=0,
-                           command=self._handle_ignore_hashes_in_range,
-                           bg=colors.BACKGROUND,
-                           activebackground=colors.ACTIVEBACKGROUND,
-                           highlightthickness=0)
-        self._ignore_hashes_in_range_button.pack(side=tkinter.LEFT)
+        self._ignore_hashes_in_range_button = tkinter.Button(
+                   ignore_frame, image=self._ignore_hashes_in_range_icon,
+                   text="H",
+                   compound="left", padx=4, pady=0,
+                   command=self._handle_ignore_hashes_in_range,
+                   bg=colors.BACKGROUND,
+                   activebackground=colors.ACTIVEBACKGROUND,
+                   highlightthickness=0)
+        self._ignore_hashes_in_range_button.grid(
+                                        row=0, column=0, sticky=tkinter.W)
         Tooltip(self._ignore_hashes_in_range_button,
                                          "Ignore hashes in selected range")
 
@@ -176,7 +139,8 @@ class FiltersView():
                    bg=colors.BACKGROUND,
                    activebackground=colors.ACTIVEBACKGROUND,
                    highlightthickness=0)
-        self._ignore_sources_with_hashes_in_range_button.pack(side=tkinter.LEFT)
+        self._ignore_sources_with_hashes_in_range_button.grid(
+                                        row=0, column=1, sticky=tkinter.W)
         Tooltip(self._ignore_sources_with_hashes_in_range_button,
                              "Ignore sources with hashes in selected range")
 
@@ -191,7 +155,8 @@ class FiltersView():
                    bg=colors.BACKGROUND,
                    activebackground=colors.ACTIVEBACKGROUND,
                    highlightthickness=0)
-        self._clear_ignored_hashes_button.pack(side=tkinter.LEFT)
+        self._clear_ignored_hashes_button.grid(
+                                        row=0, column=2, sticky=tkinter.W)
         Tooltip(self._clear_ignored_hashes_button, "Clear all ignored hashes")
 
         # clear ignored sources
@@ -205,8 +170,77 @@ class FiltersView():
                    bg=colors.BACKGROUND,
                    activebackground=colors.ACTIVEBACKGROUND,
                    highlightthickness=0)
-        self._clear_ignored_sources_button.pack(side=tkinter.LEFT)
+        self._clear_ignored_sources_button.grid(
+                                        row=0, column=3, sticky=tkinter.W)
         Tooltip(self._clear_ignored_sources_button, "Clear all ignored sources")
+
+        # ignore entropy below
+        tkinter.Label(ignore_frame,
+                      text="Entropy Below:", padx=0, pady=0,
+                      bg=colors.BACKGROUND).grid(padx=(16,4),
+                                        row=0, column=4, sticky=tkinter.E)
+        self._ignore_entropy_below_entry = tkinter.Entry(ignore_frame, width=6)
+        self._ignore_entropy_below_entry.insert(0, "None")
+        self._ignore_entropy_below_entry.grid(
+                                        row=0, column=5, sticky=tkinter.W)
+
+        # bind actions for ignore max hashes text entry
+        self._ignore_entropy_below_entry.bind('<Return>',
+                           self._handle_selection_change, add='+')
+        self._ignore_entropy_below_entry.bind('<FocusOut>',
+                           self._handle_selection_change, add='+')
+
+        # ignore entropy above
+        tkinter.Label(ignore_frame,
+                      text="Entropy Above:", padx=0, pady=0,
+                      bg=colors.BACKGROUND).grid(padx=(16,4),
+                                        row=1, column=4, sticky=tkinter.E)
+        self._ignore_entropy_above_entry = tkinter.Entry(ignore_frame, width=6)
+        self._ignore_entropy_above_entry.insert(0, "None")
+        self._ignore_entropy_above_entry.grid(
+                                        row=1, column=5, sticky=tkinter.W)
+
+        # bind actions for ignore max hashes text entry
+        self._ignore_entropy_above_entry.bind('<Return>',
+                           self._handle_selection_change, add='+')
+        self._ignore_entropy_above_entry.bind('<FocusOut>',
+                           self._handle_selection_change, add='+')
+
+        # ignore max same hashes text entry
+        tkinter.Label(ignore_frame,
+                      text="Max Duplicate Hashes:", padx=0, pady=0,
+                      bg=colors.BACKGROUND).grid(padx=(16,4),
+                                        row=0, column=6, sticky=tkinter.E)
+        self._ignore_max_hashes_entry = tkinter.Entry(ignore_frame, width=6)
+        self._ignore_max_hashes_entry.insert(0, "None")
+        self._ignore_max_hashes_entry.grid(
+                                        row=0, column=7, sticky=tkinter.W)
+
+        # bind actions for ignore max hashes text entry
+        self._ignore_max_hashes_entry.bind('<Return>',
+                           self._handle_selection_change, add='+')
+        self._ignore_max_hashes_entry.bind('<FocusOut>',
+                           self._handle_selection_change, add='+')
+
+        # ignore flagged blocks checkbutton auto-filter
+        self._ignore_flagged_blocks_checkbutton = tkinter.Checkbutton(
+                        ignore_frame, text="Auto-filter",
+                        variable=self._ignore_flagged_blocks_trace_var,
+                        bd=0,
+                        bg=colors.BACKGROUND,
+                        activebackground=colors.ACTIVEBACKGROUND,
+                        pady=4, highlightthickness=0)
+        self._ignore_flagged_blocks_checkbutton.grid(padx=(16,4),
+                                        row=1, column=6, sticky=tkinter.W)
+        Tooltip(self._ignore_flagged_blocks_checkbutton,
+                                         "Ignore flagged blocks")
+
+        # pack ignore_frame
+        ignore_frame.pack(side=tkinter.TOP, anchor="w")
+
+        # bind actions for ignore_flagged_blocks checkbutton auto-filter
+        self._ignore_flagged_blocks_trace_var.trace_variable('w',
+                             self._handle_selection_change)
 
         # register to receive data manager change events
         data_manager.set_callback(self._handle_data_manager_change)
@@ -224,8 +258,17 @@ class FiltersView():
         # handle_filter_change loop
         self._is_handle_filter_change = True
 
+        # entropy below
+        self._set_numeric_entry(self._ignore_entropy_below_entry,
+                                self._data_manager.ignore_entropy_below)
+
+        # entropy above
+        self._set_numeric_entry(self._ignore_entropy_above_entry,
+                                self._data_manager.ignore_entropy_above)
+
         # ignore max hashes
-        self._set_ignore_max_hashes_entry(self._data_manager.ignore_max_hashes)
+        self._set_numeric_entry(self._ignore_max_hashes_entry,
+                                self._data_manager.ignore_max_hashes)
 
         # ignore flagged blocks
         self._ignore_flagged_blocks_trace_var.set(
@@ -268,45 +311,65 @@ class FiltersView():
         self._highlight_hashes_in_range_button.config(state=state)
         self._highlight_sources_with_hashes_in_range_button.config(state=state)
 
-    def _set_ignore_max_hashes_entry(self, ignore_max_hashes):
-        self._ignore_max_hashes_entry.delete(0, tkinter.END)
-        if ignore_max_hashes == 0:
-            self._ignore_max_hashes_entry.insert(0, "None")
+    def _set_numeric_entry(self, entry, value):
+        entry.delete(0, tkinter.END)
+        if value == 0:
+            entry.insert(0, "None")
         else:
-            self._ignore_max_hashes_entry.insert(0, "%s" % ignore_max_hashes)
+            entry.insert(0, "%s" % value)
 
-    def _handle_ignore_max_hashes_selection(self, e):
-        # get max_hashes int
+    def _handle_selection_change(self, *_):
+        # Note: entries take e and trace_variable takes *arg so use *_
+        # change is one of: max hashes, entropy below, or entropy above
+        # text or flagged blocks checkbox
+
+        # entropy_below
+        try:
+            ignore_entropy_below = float(self._ignore_entropy_below_entry.get())
+        except ValueError:
+            ignore_entropy_below = 0
+        self._set_numeric_entry(self._ignore_entropy_below_entry,
+                                ignore_entropy_below)
+
+        # entropy_above
+        try:
+            ignore_entropy_above = float(self._ignore_entropy_above_entry.get())
+        except ValueError:
+            ignore_entropy_above = 0
+        self._set_numeric_entry(self._ignore_entropy_above_entry,
+                                ignore_entropy_above)
+
+        # max_hashes
         try:
             ignore_max_hashes = int(self._ignore_max_hashes_entry.get())
         except ValueError:
             ignore_max_hashes = 0
+        self._set_numeric_entry(self._ignore_max_hashes_entry,
+                                ignore_max_hashes)
 
-        # set entry to make sure it looks nice
-        self._set_ignore_max_hashes_entry(ignore_max_hashes)
+        # done if change is from filter handler
+        if self._is_handle_filter_change:
+            return
 
-        # accept if change is from the user
-        if not self._is_handle_filter_change:
+        # done if user change is same
+        if ignore_entropy_below == self._data_manager.ignore_entropy_below and \
+           ignore_entropy_above == self._data_manager.ignore_entropy_above and \
+           ignore_max_hashes == self._data_manager.ignore_max_hashes and \
+           self._ignore_flagged_blocks_trace_var.get() == \
+                                   self._data_manager.ignore_flagged_blocks:
+            return
 
-            # drop focus so entry visually looks accepted
-            # by giving focus to something that doesn't need or show it
-            self.frame.focus()
+        # drop focus so entry visually looks accepted
+        # by giving focus to something that doesn't need or show it
+        self.frame.focus()
 
-            # ignore if no change
-            if ignore_max_hashes == self._data_manager.ignore_max_hashes:
-                return
-
-            self._data_manager.ignore_max_hashes = ignore_max_hashes
-            self._data_manager.fire_filter_change()
-
-    def _handle_ignore_flagged_blocks_selection(self, *args):
-
-        # accept if change is from the user
-        if not self._is_handle_filter_change:
-            # make the change
-            self._data_manager.ignore_flagged_blocks = \
+        # accept and forward user selection change event
+        self._data_manager.ignore_entropy_below = ignore_entropy_below
+        self._data_manager.ignore_entropy_above = ignore_entropy_above
+        self._data_manager.ignore_max_hashes = ignore_max_hashes
+        self._data_manager.ignore_flagged_blocks = \
                                 self._ignore_flagged_blocks_trace_var.get()
-            self._data_manager.fire_filter_change()
+        self._data_manager.fire_filter_change()
 
     # filter button handlers
     def _handle_highlight_hashes_in_range(self):

@@ -75,6 +75,8 @@ def get_scan_file_attributes(scan_file):
 
 """Read bytes from an image file, return error_message, image_bytes."""
 def read_image_bytes(image_filename, offset, count):
+    if offset < 0:
+        raise ValueError("Invalid negative offset requested.")
 
     cmd = ["hashdb", "read_bytes", image_filename, str(offset), str(count)]
     with CompatiblePopen(cmd, stdout=PIPE, stderr=PIPE) as p:
