@@ -5,7 +5,7 @@ try:
 except ImportError:
     import Tkinter as tkinter
 
-class HistogramAnnotations():
+class AnnotationView():
     """Renders histogram annotation text in the histogram canvas based on
     registered events.
     """

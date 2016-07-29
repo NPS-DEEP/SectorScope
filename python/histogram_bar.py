@@ -6,7 +6,7 @@ from forensic_path import offset_string, size_string, int_string
 from icon_path import icon_path
 from tooltip import Tooltip
 from math import log, floor, log10, pow, ceil
-from histogram_annotations import HistogramAnnotations
+from annotation_view import AnnotationView
 try:
     import tkinter
 except ImportError:
@@ -174,7 +174,7 @@ class HistogramBar():
         w = self._histogram_control.num_buckets * \
                                       histogram_constants.BUCKET_WIDTH
         h = histogram_constants.ANNOTATION_HEIGHT
-        self._histogram_annotations = HistogramAnnotations(self._c,
+        self.annotation_vieiw = AnnotationView(self._c,
                       x0, y0, w, h, self._histogram_control,
                       self._data_manager, annotation_filter)
 

@@ -43,6 +43,10 @@ basicstyle=\footnotesize\ttfamily, frame=single, float=htpb}
 \mbox{}
 \newpage
 
+\tableofcontents
+\newpage
+\pagenumbering{arabic}
+\newpage
 
 \section{Introduction}
 \subsection {Overview of \sscope}
@@ -59,6 +63,34 @@ Download and run the latest \sscope Windows installer available under \url{https
 
 \subsubsection{Installing on Linux or Mac}
 Download and unzip \sscope files from the \verb+.zip+ file under \url{https://github.com/NPS-DEEP/NPS-SectorScope/blob/master/build}.\\ Please see \url{https://github.com/NPS-DEEP/hashdb/wiki/Installing-hashdb} for information on installing \hdb.\\
+
+\section{Managing Massive Datasets}
+Block hash scans can produce a large amount of matches. \sscope provides filters to highlight and ignore data:
+\begin{itemize}
+\item \textbf{Highlight Sectors and Hashes}\\
+Entire sectors or individual hashes may be highlighted.
+\item \textbf{Ignore Sectors and Hashes}\\
+Entire sectors or individual hashes may be ignored.
+\item \textbf{Ignore Entropy Range}\\
+All hashes from blocks below or above given entropy values may be ignored.
+\item \textbf{Ignore Maximum Duplicate Hashes}\\
+All hashes with a duplicates count above a maximum may be ignored.
+\item \textbf{Ignore Auto-filter Labeled Hashes}\\
+All hashes marked with a block label may be ignored.
+\end{itemize}
+\sscope is able to provide filtering by using block and source information stored in the \hdb database. Specifically:
+\begin{itemize}
+\item \textbf{Block Entropy}\\
+Low entropy blocks are frequently nonprobative.
+\item \textbf{Block Label}\\
+\hdb generates block labels for blocks possessing specific characteristics. \hdb generates several block labels. Defining effective block labels is an area of research.
+\item \textbf{Source Size}\\
+The source size is used to calculate the percentage of a source that was matched.
+\item \textbf{Count}\\
+The count of matches for a block and the sub-count of matches contributed by each source for a block are used to indicate how common a block is.
+\item \textbf{Source Label}\\
+Source labels may be used to infer expected entropy values. \hdb and \sscope do not use this information. This is an area of research.
+\end{itemize}
 
 \section{Using \sscope}
 \subsection{Starting \sscope}
@@ -118,7 +150,7 @@ If this is selected, a new database will be created instead of using an existing
 \end{itemize}
 
 \subsubsection{Scan}
-Here is the \sscope Scan Image window:\\
+Here is the \sscope Scan Media Image window:\\
 \includegraphics[scale=.4]{screenshots/scan}\\
 Use this window to scan a media image for matching block hashes.
 \begin{itemize}
@@ -130,16 +162,13 @@ The path to the hash database to scan against.
 The sector size for this media, typically 512 bytes. \sscope will display sectors of this size. \sscope will zoom in to this size.
 \end{itemize}
 
-\subsubsection{Toggle Offset Units}
-\sscope displays offsets as sectors, decimal bytes, or hexadecimal bytes. This button toggles the offset units across these view modes.
-
 \subsubsection{Information}
 This button opens a window showing the version of \sscope and \hdb.
 
 \subsection{Highlight and Ignore}
 Here is an example view of the highlight and ignore controls:\\
 \includegraphics[scale=.4]{screenshots/highlight_and_ignore}\\
-These buttons provide control over which hashes and sources are highlighted or ignored. Highlighted items are shown in green. Ignored items are not displayed.
+These inputs control which hashes and sources are highlighted or ignored in the histogram bar and in the source list. Highlighted items are shown in green. Ignored items are not displayed.
 \subsubsection{Highlight}
 \begin{itemize}
 \item \textbf{+H}\\
@@ -154,10 +183,6 @@ Un-highlight all sources.
 
 \subsubsection{Ignore}
 \begin{itemize}
-\item \textbf{Max Duplicate Hashes}\\
-Ignore hashes matched more than a maximum number of times.
-\item \textbf{Auto-filter}\\
-Ignore hashes if they have been flagged as potentially non-probative based on experimental entropy calculations.
 \item \textbf{+H}\\
 Select a range and ignore hashes in this range.
 \item \textbf{+S}\\
@@ -166,213 +191,153 @@ Select a range and ignore all sources containing hashes in this range.
 Stop ignoring all ignored hashes.
 \item \textbf{-S}\\
 Stop ignoring all ignored sources.
+\item \textbf{Entropy Below}\\
+Ignore hashes with an entropy value below this threshold.
+\item \textbf{Entropy Above}\\
+Ignore hashes with an entropy value above this threshold.
+\item \textbf{Max Duplicate Hashes}\\
+Ignore hashes matched more than a maximum number of times.
+\item \textbf{Auto-filter}\\
+Ignore hashes if they have been flagged as potentially non-probative based on experimental entropy calculations.
 \end{itemize}
 
+\subsection{Histogram}
+Here is an example view of the histogram portion:\\
+\includegraphics[scale=.4]{screenshots/histogram}\\
 
+\subsubsection{Graph View}
+The histogram graph area shows the frequency of hash matches at given offsets in the media image. Bar width depends on the zoom level. Bar color indicates hashes present within the region of the bar. Blue indicates hashes present. A blue tick above the bar indicates total hashes when hashes are ignored. A green bar indicates highlighted hashes.\\
 
-
-
-
-The step size to move along while calculating block hashes. The byte alignment must be compatible with the step size, specifically, byte alignment must be divisible by step size.
-
-The repository name to associate the imported sources with. Leave blank to use the default, which is the source directory path.
-\end{itemize}
-
-
-
-An alternate path to the hash database to use if the path in the scan file is incorrect. Keep blank to use the default.
-
-
-When \hdb performs a scan, all matches are placed in this scan file. The scan file also contains the path to the media image scanned and the hash database scanned against. If these paths move, alternate paths may be provided.
-
-
-
-information about the media image containsis a scan file created from a \hdb scan. All block hashes that matched a scan are 
-
-
+\subsubsection{Graph Annotation}
 \begin{itemize}
-\item The top-middle part of the view shows that the Block Match Viewer is displaying block matches in the 1GiB disk image \verb+jo-favorites-usb-2009-12-11.E01+ matching source files in hashdb image \verb+kitty_blacklist.hdb+.
-\item: The \textbf{Filters} section at the top-left show:
-  * There is no filtering applied to duplicate hashes.  For example if this value were 20, then block hash values that are cited from more than 20 sources would be filtered, meaning that these matches would not show up in the **Filtered matches removed** view and would show up in the **Filtered matches only** view.
-  * Flagged blocks are marked as filtered.  You can turn off this filtering by turning off the checkmark.  The *bulk_extractor* *hashdb* scanner automatically flags blocks that are considered low entropy when hashes are imported.
-* The middle-left portion of the viewer shows the **Image Match Histogram**.
-  * Three histogram views are shown:
-    * **All matches** shows a histogram of matches across the media image.
-    * **Filtered matches removed** shows matches with filtered matches removed.
-    * **Filtered matches only** shows the histogram of filtered matches.  Adjust filtering to adjust these histograms.
-  * The vertical bar in the **Image Match Histogram** shows that an image offset has been selected, in this case, 0x03200000 hexadecimal or 52428800 decimal byte offset in the media image.  The raw bytes of this offset is shown below in the **Image Hex View**.
-  * Zoom in all the way to individual sectors or zoom out to the whole media image view by moving the cursor over your desired zoom point and rolling the mouse wheel to your desired resolution.  Move the mouse to the right or left to change the zoom point.  The leftmost and rightmost sector offsets are shown just below the histogram window.
-* The bottom-left portion of the viewer shows the **Image Hex View**.  Click on a a point in the histogram view to select a media image sector and its raw hex bytes will be shown here.  Also, the block hash will be shown.  If the block hash is matched by a source, you may filter the selected hash:
-  * Click Add to filter the hash.  You may turn off all other filters to see where in the disk image that a particular hash resides.
-  * Click Remove to remove the hash from the filter.
-
-* The right side of the viewer shows **Matched Sources**.  This consists of a list of every source in the database that had hash blocks that matched the media image scanned.
-  * Each source is shown in a row describing the following:
-    * The source index, with a checkbox.  Select the checkbox to filter the associated source.
-    * **%Match** The percent of sectors that the source has that were found in the media image.
-    * **#Match** The number of sectors that the source has that were found in the media image.
-    * **Size** The size, in bytes, of the source file.
-    * **Repository** The repository name assigned to the source.
-    * **File** The filename of the source.
-  * Press the **Clear All** button to clear all source filters selected.  Press the **Select All** button to select them all.  Click on individual source checkboxes to filter individual sources.  For example turn off all filters except one source filter to see where in the media image that all hashes associated with a source are located.
-
-### A note on filters
-There are several filter types and they may be used by themselves or in combination with others:
-* **Max Same Hashes** filters filter duplicate hashes.
-* **Filter Flagged Blocks** filters hashes that have been flagged by the *bulk_extractor* *hashdb* scanner as having low entropy.
-* **Block Hash Filters** filter hashes that have been selected individually.
-* **Source Filters** filter hashes associated with specific sources.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-\subsection{Menu Controls}
-\includegraphics[scale=.8]{screenshots/menu_controls}
-
-
-
-# Menu Controls
-[[https://raw.githubusercontent.com/NPS-DEEP/NPS-SectorScope/master/doc/sectorscope_um/screenshots/menu_controls.png]]
-
-* Open new project by providing a *bulk_extractor* scan directory.
-* View properties about an opened project.
-* Import a directory of files into a new *hashdb* database.
-* Scan a media image for matches in a *hashdb* database.
-* Toggle the offset value view between hexadecimal, decimal, or sector number.
-
-# Highlighting Hashes and Sources
-[[https://raw.githubusercontent.com/NPS-DEEP/NPS-SectorScope/master/doc/sectorscope_um/screenshots/highlight_controls.png]]
-* `+H` Select a range and highlight hashes in this range.
-* `+S` Select a range and highlight all sources containing hashes in this range.
-* `-H` Un-highlight all highlighted hashes.
-* `-S` Un-highlight all sources.
-
-# Ignoring Duplicates, Low Entropy, Hashes, and Sources
-[[https://raw.githubusercontent.com/NPS-DEEP/NPS-SectorScope/master/doc/sectorscope_um/screenshots/ignore_controls.png]]
-* `Max Duplicate Hashes` Ignore hashes matched from more than a maximum number of sources.
-* `Auto-filter` Ignore hashes if they have been flagged as potentially non-probative based on experimental entropy calculations.
-* `+H` Select a range and ignore hashes in this range.
-* `+S` Select a range and ignore all sources containing hashes in this range.
-* `-H` Stop ignoring all ignored hashes.
-* `-S` Stop ignoring all ignored sources.
-
-# Histogram
-[[https://raw.githubusercontent.com/NPS-DEEP/NPS-SectorScope/master/doc/sectorscope_um/screenshots/bar.png]]
-The histogram view shows the frequency of hash matches at given offsets in the media image.
-Frequency is distributed across about 300 buckets and is graphed as vertical bars.
-Bars are colored blue.  If hashes are ignored, a blue tick is shown indicating frequency, instead of a bar.
-Highlighted bars are colored green.
-When selecting a range, the range is shaded light blue.
-
-Use the mouse to navigate:
-
-* Move the mouse to hover over a bar.
-* Click and drag to select a range.  Click to unselect a range.
-* Right-click and drag to pan.
-* Roll the wheel to zoom in and out.
-
-# Histogram Controls
-[[https://raw.githubusercontent.com/NPS-DEEP/NPS-SectorScope/master/doc/sectorscope_um/screenshots/bar_controls.png]]
-
-* Zoom to full scale.
-* Zoom to range selection.
-* Show a hex dump of a region within a range selection.
-* Manage annotations about regions of the image such as volume metadata, associated filenames, etc, this capability is currently not implemented and is expected to be incrementally introduced.
-* Increase or decrease the vertical scale by a factor of ten to rescale tall or short bars.
-
-# Histogram Annotation
-[[https://raw.githubusercontent.com/NPS-DEEP/NPS-SectorScope/master/doc/sectorscope_um/screenshots/bar_annotation.png]]
-* `Bar width` The amount of the media image that one bar spans.
-* `Bar matches` The amount of matches under the bar that the cursor is hovering over.  Three values are shown: total matches, highlighted matches (h), and ignored matches (i).
-* `Range` The amount of the media image that the selected range spans.
-* The first and last offset across the histogram is shown.
-* The horizontal scale is shown, indicating the number of hash matches required to reach that height.
-
-# Source Table
-[[https://raw.githubusercontent.com/NPS-DEEP/NPS-SectorScope/master/doc/sectorscope_um/screenshots/sources_excerpt.png]]
-Here are some properties of the source table:
-
-* If a range is selected, only sources with hashes in that range are shown.  Otherwise, all hashes are shown.
-* If all hashes of a source are ignored, that source will not be shown.
-* Click on a source row to highlight that source.  Click again to un-highlight it.
-
-Source rows contain the following information:
-
-* The source ID, an internal index *hashdb* uses to reference a given source.
-* `%Match` The percent of this source that was matched by the scan.
-* `#Match` The number of matches matched by the scan.
-* `#M(h)` The number of matches that are highlighted.
-* `Size` The size of the source file matched.
-* `Repository Name` The Repository name given to the source imported.
-* `Filename` The filename given to the source imported.
+\item \textbf{Bar width}\\
+The number of sectors or bytes spanned by each bar, depending on the offset format.
+\item \textbf{Bar matches}\\
+The number of matches under the bar that the cursor is hovering over.  Three values are shown: total matches, highlighted matches (h), and ignored matches (i).
+\item \textbf{Range}\\
+The amount of the media image that the selected range spans.
+\item \textbf{Bounds}\\
+The first and last offset across the histogram is shown.
+\item \textbf{Y-axis scale}\\
+The horizontal scale, indicating the number of hash matches required to reach that height. This scale may be toggled between auto-scaling and no scaling.
+\end{itemize}
+
+\subsubsection{Graph Button Controls}
+\begin{itemize}
+\item \textbf{Zoom to full scale}\\
+Zoom out so the view spans the entire media iamge.
+\item \textbf{Zoom to range selection}\\
+Zoom in on the selected range to fit the view.
+\item \textbf{Show Hex View}\\
+Open a window to show the hexadecimal bytes of the block under the cursor.
+The following example hex view shows bytes for matched block hash \verb+0x3982...+ at media image offset \verb+0x09c40000+.\\
+\includegraphics[scale=.4]{screenshots/hex_view}\\
+\item \textbf{Manage annotations}\\
+Open a window to enable or disable annotation categories. Here is an example window showing that annotations from disk partitions and file system sectors are enabled:\\
+\includegraphics[scale=.4]{screenshots/manage_annotations}\\
+  \begin{itemize}
+  \item Disk partition annotations are obtained by running the TSK mmls command.
+  \item File system sectors are obtained by running the TSK fsstat command.
+  \end{itemize}
+New annotation types may be added in the future. \sscope accepts annotations in the form of \verb+type+, \verb+offset+, \verb+length+, and \verb+text+.
+\item \textbf{Toggle Offset Units}\\
+Toggle the displayed offset units between sectors, decimal bytes, and hexadecimal bytes.
+\item \textbf{Toggle auto-y-axis}\\
+Enable or disable auto-y-axis histogram bar scaling.
+\end{itemize}
+
+\subsubsection{Graph Cursor Controls}
+Cursor movement, click, drag, and wheel motions manipulate the graph view:
+\begin{itemize}
+\item Move the mouse to position the cursor. Enable hex view to see the bytes under the cursor.
+\item Drag the mouse to select a range. Zoom to expand the graph to the selected range. Ignore or highlight hashes or sources in this selected range.
+\item Right-click drag to pan the graph.
+\item Roll the wheel to zoom in and out.
+\end{itemize}
+
+\subsection{Media Image Annotations}
+Here is an example view of media image annotations:\\
+\includegraphics[scale=.4]{screenshots/annotations}\\
+Disk partitions and file system sectors are shown. They run over the top of each other because the histogram view is fully zoomed out and there are so many annotations present. To help preserve readability, only annotations that refer to a range that spans a whole histogram bar or more are shown in black, annotations that span less than one histogram bar in width are shown in gray, and annotations that span less than one tenth of a histogram bar are shown in light gray.
+
+\subsection{Source Table}
+Here is an example view of the source table:\\
+\includegraphics[scale=.4]{screenshots/source_table}\\
+
+\subsubsection{Source Table Contents}
+Rows in the source table contain the following information:
+\begin{itemize}
+\item \textbf{Source Hash}\\
+The hash hexcode of the source file.
+\item \textbf{\%Match}\\
+The percent of this source that was matched by the scan.
+\item \textbf{\#Match}\\
+The number of matches matched by the scan.
+\item \textbf{\#M(h)}\\
+The number of matches that are highlighted.
+\item \textbf{Size}\\
+The size of the source file matched.
+\item \textbf{Repository Name}\\
+A repository name associated with this source file.
+\item \textbf{Filename}\\
+A filename associated with this source file.
+\end{itemize}
+
+\subsubsection{Source Table Controls}
+\begin{itemize}
+\item If a range is selected, only sources with hashes in that range are shown. Otherwise, all hashes are shown.
+\item If all hashes of a source are ignored, that source will not be shown.
+\item Click on a source to highlight it. It will show up green. Portions of the histogram bars contributed  by that source will show up green. Re-click to un-highlight.
+\item Left-click on a source to ignore it. It will be removed from the sources table. Portions of the histogram bars contributed  by that source will be removed. Ignored sources may be un-ignored using the \textbf{-S} Ignore control.
+\end{itemize}
+
+\section{Example}
+In this example, we create a blacklist database of block hashes, then scan a media image for matches:
+
+\begin{enumerate}
+\item Identify a directory containing your blacklist source data.
+In this example, we use the Kitty Material demo source files available at \url{http://digitalcorpora.org/corpora/scenarios/2009-m57-patents/KittyMaterial} and scan for matches in the demo media image available at \url{http://digitalcorpora.org/corpora/scenarios/2009-m57-patents/drives-redacted/jo-favorites-usb-2009-12-11.E01} which contains blacklist block hashes from the Kitty demo:
+\item Start \sscope by typing the following at a command prompt:
+\begin{Verbatim}[commandchars=\\\{\}]
+\verbbf{sectorscope.py}
+\end{Verbatim} 
+\item Click on the Ingest menu icon 
+\includegraphics[scale=.4]{screenshots/ingest_menu_icon}
+to open the \sscope Ingest window.
+\item Fill in the fields:
+  \begin{itemize}
+  \item Set Source Directory to the directory containing your blacklist source data.
+  \item Set Hash Database to your new hash database.
+  \item Set the Repository Name to the name of this case dataset, or leave blank to use the source directory as the repository name.
+  \item Use the default step size to ingest along sector intervals.
+  \item Keep Make New Database checked since you will not be ingesting block hashes into an existing database.
+  \item Use the default block size to calculate sector-sized block hashes.
+  \item Use the default byte alignment since the blocks are sector-aligned.
+  \end{itemize}
+\item Click the \verb+Start+ button to begin the process of ingesting block hashes from files under the source directory. Progress information will be displayed. When done, status will indicate \verb+Done+. Close the window.
+\item Click on the scan media image icon
+\includegraphics[scale=.4]{screenshots/scan_media_image_icon}
+to open the \sscope Scan Media Image window.
+\item Fill in the fields:
+  \begin{itemize}
+  \item Set the path to the media image to be scanned.
+  \item Set the path to the newly created hash database.
+  \item Set the path to the scan output file that will be generated.
+  \item Use the default step size to scan along sector intervals.
+  \end{itemize}
+\item Click the \verb+Start+ button to begin the process of scanning for matching block hashes. Progress information will be displayed. When done, status will indicate \verb+Done+. Close the window.
+\item Click on the Open scanned output icon
+\includegraphics[scale=.4]{screenshots/open_scanned_output_icon}
+to open the Open Scan File window which opens the scan data into \sscope.
+\item Fill in the fields:
+  \begin{itemize}
+  \item Set the path to newly created scan file.
+  \item Leave the alternate media image field blank since the path to the media image defined in the scan file is correct.
+  \item Leave the alternate hash database field blank since the path to the hash database defined in the scan file is correct.
+  \item Use the default sector size to view sector offsets for 512-byte-sized sectors.
+  \end{itemize}
+\item Click the \verb+Open+ button to load this scan dataset into \sscope. It can take 30 seconds or more to load large datasets. \sscope currently does not show progress during open. Close the window.
+\item Manipulate \sscope controls to examine matched data.
+\end{enumerate}
 
 \end{document}

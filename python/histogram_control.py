@@ -6,7 +6,6 @@ from forensic_path import offset_string, size_string, int_string
 from icon_path import icon_path
 from tooltip import Tooltip
 from math import log, floor, log10, pow, ceil
-from histogram_annotations import HistogramAnnotations
 try:
     import tkinter
 except ImportError:

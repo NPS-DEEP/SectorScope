@@ -40,7 +40,7 @@ class ScanImageWindow():
 
         # toplevel
         self._root_window = tkinter.Toplevel(master)
-        self._root_window.title("SectorScope Scan Image")
+        self._root_window.title("SectorScope Scan Media Image")
 
         # make the control frame
         control_frame = tkinter.Frame(self._root_window, borderwidth=1,

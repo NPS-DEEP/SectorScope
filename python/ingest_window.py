@@ -140,7 +140,7 @@ class IngestWindow():
         self._is_new_int_var = tkinter.IntVar()
         self._is_new_int_var.set(True)
         self._is_new_checkbutton = tkinter.Checkbutton(optional_frame,
-                    text="Make new database", variable = self._is_new_int_var,
+                    text="Make New Database", variable = self._is_new_int_var,
                     command = self._handle_is_new_checkbutton_press,
                     bd=0, pady=4, highlightthickness=0)
         self._is_new_checkbutton.grid(row=0, column=0)
