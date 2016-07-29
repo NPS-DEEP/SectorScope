@@ -85,7 +85,7 @@ class HistogramView():
                               activebackground=colors.ACTIVEBACKGROUND,
                               highlightthickness=0)
         show_hex_view_button.pack(side=tkinter.LEFT)
-        Tooltip(show_hex_view_button, "Show hex view of selection")
+        Tooltip(show_hex_view_button, "Show hex view of block under cursor")
 
         # button to view annotations
         self._view_annotations_icon = tkinter.PhotoImage(file=icon_path(
@@ -100,6 +100,19 @@ class HistogramView():
         view_annotations_button.pack(side=tkinter.LEFT, padx=4)
         Tooltip(view_annotations_button, "Manage annotations shown")
 
+        # button to toggle offset_format_preference
+        self._offset_format_preference_icon = tkinter.PhotoImage(
+                                file=icon_path("offset_format_preference"))
+        offset_format_preference_button = tkinter.Button(controls_frame,
+                       image=self._offset_format_preference_icon,
+                       command=self._handle_offset_format_preference,
+                       bg=colors.BACKGROUND,
+                       activebackground=colors.ACTIVEBACKGROUND,
+                       highlightthickness=0)
+        offset_format_preference_button.pack(side=tkinter.LEFT)
+        Tooltip(offset_format_preference_button,
+                  "Toggle offset format between\nsector, decimal, and hex")
+
         # button to toggle auto_y_scale_preference
         self._auto_y_scale_preference_icon = tkinter.PhotoImage(file=icon_path(
                                                   "auto_y_scale_preference"))
@@ -110,7 +123,7 @@ class HistogramView():
                            activebackground=colors.ACTIVEBACKGROUND,
                            highlightthickness=0)
 
-        auto_y_scale_preference_button.pack(side=tkinter.LEFT)
+        auto_y_scale_preference_button.pack(side=tkinter.LEFT, padx=4)
         Tooltip(auto_y_scale_preference_button,
                 "Disable/enable auto-Y-axis\nhistogram bar scale")
 
@@ -136,6 +149,9 @@ class HistogramView():
 
     def _handle_view_annotations(self):
         self._annotation_window.show()
+
+    def _handle_offset_format_preference(self):
+        self._preferences.set_next_offset_format()
 
     def _handle_auto_y_scale_preference(self):
         self._preferences.set_toggle_auto_y_scale()
