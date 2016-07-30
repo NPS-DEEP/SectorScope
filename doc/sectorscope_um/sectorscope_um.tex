@@ -23,9 +23,7 @@
 \newcommand \sscope {\textit{SectorScope}\xspace}
 \newcommand \hdb {\textit{hashdb}\xspace}
 \newcommand \aut {\textit{Autopsy}\xspace}
-\newcommand \bulk {\textbf{bulk\_extractor}\xspace}
-\newcommand \mdd {\textbf{md5deep}\xspace}
-\newcommand \fiwalk {\textbf{fiwalk}\xspace}
+\newcommand \bulk {\textit{bulk\_extractor}\xspace}
 
 \hypersetup{%
     pdfborder = {0 0 0}
@@ -49,20 +47,82 @@ basicstyle=\footnotesize\ttfamily, frame=single, float=htpb}
 \newpage
 
 \section{Introduction}
-\subsection {Overview of \sscope}
+\subsection {Overview}
 \sscope is a graphical interface tool for viewing blocks that match blacklist block hashes stored in a \hdb database. \sscope includes interfaces for scanning media images, ingesting source files into \hdb databases, and directly viewing raw media image bytes.\\
 
 \subsection{Obtaining \sscope}
 \label{Obtaining}
-\sscope requires \hdb. Both tools are readily available for Windows systems, Linux flavors, and MacOS.  A Windows installer is available for Windows users.  A source code distribution is available for Linux and Mac users.  Developers may download these tools directly from source available on GitHub.\\
+\sscope requires \hdb. Both tools are readily available for Windows systems, Linux flavors, and MacOS.  Windows installers are available for Windows users.  Source code distributions are available for Linux and Mac users.  Developers may download these tools directly from source available on GitHub.\\
 
 \subsubsection{Installing on Windows}
-Download and run the latest \sscope Windows installer available under \url{https://github.com/NPS-DEEP/NPS-SectorScope/blob/master/build}. Click on the latest \verb+.exe+ file, click on \verb+View Raw+, save it, and then run that.\\
+Download and run the latest \sscope Windows installer available under \url{http://digitalcorpora.org/downloads/sectorscope/}. It is named\\
+\verb+SectorScope-x.y.z-windowsinstallelr.exe+ where x.y.z is the latest version.\\
 
-\hdb is available under \url{http://digitalcorpora.org/downloads/hashdb}. Please see \hdb documentation for further information on installing \hdb.\\
+Note that an option is available for installing the \sscope \aut \verb+.nbm+ module for running \sscope from \aut.  Configuration requirements for this module is described below.
 
 \subsubsection{Installing on Linux or Mac}
-Download and unzip \sscope files from the \verb+.zip+ file under \url{https://github.com/NPS-DEEP/NPS-SectorScope/blob/master/build}.\\ Please see \url{https://github.com/NPS-DEEP/hashdb/wiki/Installing-hashdb} for information on installing \hdb.\\
+\begin{itemize}
+\item Download \sscope files from the \verb+.zip+ file under \url{http://digitalcorpora.org/downloads/sectorscope/}.\\
+\item Unzip  the downloaded \verb+.zip+ file to extract \sscope.
+\item Copy these unzipped files to a directory where you can run them or set your \verb+PATH+ variable to find them. For example create directory \verb+local/bin+ in your home directory and copy the files there. Then add the following text to your \verb+$HOME/.bash+ file and then close and reopen your command window so that these tools can be found:
+
+\begingroup
+\footnotesize
+\begin{Verbatim}[fontfamily=courier]
+# User specific aliases and functions
+PATH=$HOME/local/bin:$PATH
+\end{Verbatim}
+\endgroup
+\end{itemize}
+
+\subsubsection{Installing Other Resources}
+\sscope requires other resources to run:
+\begin{itemize}
+\item \textbf{hashdb}\\
+\sscope uses \hdb to run scans, ingest block hashes, and read media image bytes.\\
+
+For Windows: download and run the latest \hdb Windows installer available under \url{http://digitalcorpora.org/downloads/hashdb/}. It is named\\
+\verb+hashdb-x.y.z-windowsinstallelr.exe+ where x.y.z is the latest version.\\
+
+For Linux and Mac: download and build \hdb as described in the \hdb Users Manual available at \url{http://digitalcorpora.org/downloads/hashdb/} or on the \hdb Wiki at \url{https://github.com/NPS-DEEP/hashdb/wiki/Installing-hashdb}.
+
+\item \textbf{Python}\\
+\sscope requires Python2.7 or Python3. Please see \url{https://www.python.org/downloads/} to install Python.
+\item \textbf{TSK}\\
+Although TSK is required for generating media image annotations, \sscope can run without it. To support media image annotations, please install TSK executables and libraries from \url{http://www.sleuthkit.org/sleuthkit/download.php} and set your \verb+PATH+ variable to include the installed \verb+bin+ directory.
+\item \textbf{Autopsy}\\
+If you would like to run \sscope from \aut, please also install \aut, \url{http://www.sleuthkit.org/autopsy}. Note that the \sscope \aut plug-in module must also be installed and configured, described below.
+\end{itemize}
+
+\subsubsection{Installing the \sscope \aut Plug-in Module}
+The \sscope Windows installer installs the requisite \verb+.nbm+ Autopsy plug-in module onto the desktop. Please follow these steps to install this module:
+\begin{enumerate}
+\item Open \aut. From the \aut menu, select \verb+Tools | Plugins+.
+\item Open the \verb+Downloaded+ tab and click the \verb+Add Plugins...+ button.
+\item From the \verb+Add Plugins+ window, navigate to the \verb+.nbm+ module file that was installed onto the desktop, and open it.
+\item Click \verb+Install+ and follow the wizard. Please note that it may be difficult to replace an old module of NPS-Autopsy-hashdb already installed in \aut. If the error \verb+Some plugins require plugin org.jdesktop.beansbinding to be installed+ appears, it may be necessary to uninstall and reinstall \aut.
+\end{enumerate}
+
+\subsubsection{Configuring the \sscope \aut Plug-in Module}
+The path to the hashdb database must be configured:
+\begin{enumerate}
+\item Start a new case, \verb+File | New Case...+, fill in the Case Information fields, and click Next.
+\item Fill in Case Information and click Finish.
+\item For Add Data Source (1 of 3), put in a media image for \aut to process and click \verb+Next+.
+\item For Add Data Source (2 of 3), select checkboxes as desired, then click on \verb+SectorScope+ text to configure the path to your hashdb database to scan against. Currently a file chooser is not available, so please type in the full path, for example: \verb+C:\Users\me\my_hashdb.hdb+. Click \verb+Next+.
+\item For Add Data Source (3 of 3) click \verb+Finish+. When the \sscope module begins processing, \aut will display "NPS-SectorScope ..." as \bulk runs, which may take up to several hours. Unfortunately, \bulk progress is not currently indicated. For diagnostics: please see text in the generated \verb+bulk_extractor\report.xml+ file and in the generated log file and try running the \bulk scanner directly from \sscope.\\
+
+Note: In the future, the \sscope \aut plug-in module may be updated to use \hdb instead of \bulk.
+\end{enumerate}
+
+\subsection{Starting \sscope}
+To open \sscope, type the following on the command line:
+\begin{Verbatim}[commandchars=\\\{\}]
+\verbbf{sectorscope.py}
+\end{Verbatim}
+If desired, \sscope may be opened with alternate parameters so that it starts with a scan dataset. Type \verb+sectorscope.py -h+ for help on options.\\
+
+\sscope runs from \aut. To start \sscope from \aut, click the \verb+SectorScope+ property in the \aut window.
 
 \section{Managing Massive Datasets}
 Block hash scans can produce a large amount of matches. \sscope provides filters to highlight and ignore data:
@@ -93,12 +153,6 @@ Source labels may be used to infer expected entropy values. \hdb and \sscope do 
 \end{itemize}
 
 \section{Using \sscope}
-\subsection{Starting \sscope}
-\begin{itemize}
-\item Type \verb+sectorscope.py+. Type \verb+sectorscope.py -h+ for help on options.
-\item In \aut, click the \verb+SectorScope+ property.
-\end{itemize}
-
 \subsection{Main Window}
 Here is an example screenshot of the \sscope main window:\\
 \includegraphics[scale=.4]{screenshots/main_window}\\
@@ -291,7 +345,8 @@ A filename associated with this source file.
 \item Left-click on a source to ignore it. It will be removed from the sources table. Portions of the histogram bars contributed  by that source will be removed. Ignored sources may be un-ignored using the \textbf{-S} Ignore control.
 \end{itemize}
 
-\section{Example}
+\section{Examples}
+\subsection{Create and Scan using \sscope}
 In this example, we create a blacklist database of block hashes, then scan a media image for matches:
 
 \begin{enumerate}
@@ -338,6 +393,16 @@ to open the Open Scan File window which opens the scan data into \sscope.
   \end{itemize}
 \item Click the \verb+Open+ button to load this scan dataset into \sscope. It can take 30 seconds or more to load large datasets. \sscope currently does not show progress during open. Close the window.
 \item Manipulate \sscope controls to examine matched data.
+\end{enumerate}
+
+\subsection{Scan using \aut}
+\begin{enumerate}
+\item Obtain a populated hash database and a media image to scan. This example uses the database and media image described in the previous example.
+\item Start \aut and select \verb+Add Data Source+ if this window is not already open.
+\item In \verb+Add Data Source+ Step 1, select the path to media image \verb+jo-favorites-usb-2009-12-11.E01+ and click \verb+Next+.
+\item In Add Data Source Step 2, configure ingest modules, select the SectorScope ingest module and type in the full path to the \verb+kitty_blacklist.hdb+ block hash blacklist database (file chooser capability is not available yet). Deselect other modules as desired. Click \verb+Next+. Autopsy will remember these settings.
+\item In \verb+Add Data Source+ Step 3, click finish.
+\item When processing completes, click on Reports in the tree on the left to show the Reports table. In the Reports table, click on the \verb+Block Hash Blacklist+ cell to open \sscope.
 \end{enumerate}
 
 \end{document}
