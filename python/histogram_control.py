@@ -17,7 +17,7 @@ class HistogramControl():
 
     Attributes:
       change_type(str): plot_region_changed, cursor_moved, range_changed.
-      image_size(int): Image size to bind motion events within.
+      media_size(int): Media size to bind motion events within.
       sector_size(int): Sector size of view.
       num_buckets(int): Number of buckets shown in the histogram.
       _histogram_mouse_changed is used as a signal.  Its value is always true.
@@ -32,7 +32,7 @@ class HistogramControl():
     change_type = ""
 
     # sizes
-    image_size = 0
+    media_size = 0
     sector_size = 0
 
     # plot region
@@ -65,14 +65,14 @@ class HistogramControl():
         self.set_width(320)
 
     def __repr__(self):
-        return "HistogramControl(change_type=%s, image_size=%d, " \
+        return "HistogramControl(change_type=%s, media_size=%d, " \
                "sector_size=%d, num_buckets=%d, " \
                "histogram_bar_width=%d, canvas_width=%d, "\
                "start_offset=%d, " \
                "bytes_per_bucket=%d, is_valid_cursor=%s, " \
                "cursor_offset=%d, is_valid_range=%s, " \
                "range_start=%d, range_stop=%d)" % (self.change_type,
-                self.image_size, self.sector_size, self.num_buckets,
+                self.media_size, self.sector_size, self.num_buckets,
                 self.histogram_bar_width, self.canvas_width,
                 self.start_offset, self.bytes_per_bucket,
                 self.is_valid_cursor, self.cursor_offset,
@@ -86,17 +86,17 @@ class HistogramControl():
                                    histogram_constants.HISTOGRAM_X_OFFSET + 1
         self._fire_change("width_changed")
 
-    def set_initial_view(self, image_size, sector_size):
+    def set_initial_view(self, media_size, sector_size):
         """Establish starting bounds, zoom fully out, and clear any range
           without firing any events."""
         # set constants given a scan dataset
-        self.image_size = image_size
+        self.media_size = media_size
         self.sector_size = sector_size
 
         # zoom fully out
         self.start_offset = 0
         self.bytes_per_bucket = self._round_up_to_block(
-                                          self.image_size / self.num_buckets)
+                                          self.media_size / self.num_buckets)
 
         # clear any selected range
         self.is_valid_range = False
@@ -228,14 +228,14 @@ class HistogramControl():
         return offset
 
     # convert offset to a bucket number
-    def offset_to_bucket(self, image_offset):
+    def offset_to_bucket(self, media_offset):
 
         # initialization
         if self.bytes_per_bucket == 0:
             return -1
 
         # calculate bucket
-        bucket = (image_offset - self.start_offset) // self.bytes_per_bucket
+        bucket = (media_offset - self.start_offset) // self.bytes_per_bucket
 
         return bucket
 
@@ -246,7 +246,7 @@ class HistogramControl():
         return (bucket >= 0 and bucket <= self.num_buckets and
                 bucket >= self.offset_to_bucket(0) and
                 bucket <= self.offset_to_bucket(self._round_up_to_block(
-                                                   self.image_size - 1)) + 1)
+                                                   self.media_size - 1)) + 1)
 
     def offset_is_on_bucket(self, offset):
         """ the offset maps onto a bucket."""
@@ -255,12 +255,12 @@ class HistogramControl():
         return (bucket >= 0 and bucket < self.num_buckets and
                 bucket >= self.offset_to_bucket(0) and
                 bucket <= self.offset_to_bucket(self._round_up_to_block(
-                                                       self.image_size - 1)))
+                                                       self.media_size - 1)))
 
     def valid_bucket_range(self):
         leftmost_bucket = self.offset_to_bucket(0)
         rightmost_bucket = self.offset_to_bucket(
-                                 self._round_up_to_block(self.image_size -1))
+                                 self._round_up_to_block(self.media_size -1))
         return leftmost_bucket, rightmost_bucket
 
     # round up to aligned block
@@ -289,8 +289,8 @@ class HistogramControl():
         size = int(floor(round(size, 5)))
 
         # align
-        if size % self.sector_size == 0:
-            # already aligned
+        if self.sector_size == 0 or size % self.sector_size == 0:
+            # not initialized or already aligned
             return size
 
         else:
@@ -302,17 +302,17 @@ class HistogramControl():
         # the provided range is at least partially within the graph
         end_offset = proposed_start_offset + proposed_bytes_per_bucket * \
                                                           self.num_buckets
-        return proposed_start_offset <= self.image_size and end_offset >= 0
+        return proposed_start_offset <= self.media_size and end_offset >= 0
 
     def bound_offset(self, offset):
-        # return offset bound within range of image
+        # return offset bound within range of media image
         if offset < 0:
             return 0
-        if offset >= self.image_size:
-            if self.image_size == 0:
+        if offset >= self.media_size:
+            if self.media_size == 0:
                 return 0
             else:
-                return self.image_size - 1
+                return self.media_size - 1
         return offset
 
     def _fire_change(self, change_type):
@@ -327,9 +327,9 @@ class HistogramControl():
         self.bytes_per_bucket = new_bytes_per_bucket
         self._fire_change("plot_region_changed")
 
-    def fit_image(self):
+    def fit_media(self):
         self._set_plot_region(0, self._round_up_to_block(
-                                         self.image_size / self.num_buckets))
+                                         self.media_size / self.num_buckets))
 
     def fit_range(self):
         """Fit view to range selection."""
@@ -455,11 +455,11 @@ class HistogramControl():
             start = offset2
             stop = offset1
 
-        # bound range to image
+        # bound range to media image
         if start < 0:
             start = 0
-        if stop > self.image_size:
-            stop = self.image_size
+        if stop > self.media_size:
+            stop = self.media_size
 
         # accept the range change
         if not self.is_valid_range or start != self.range_start or \

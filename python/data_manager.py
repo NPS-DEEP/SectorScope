@@ -17,8 +17,8 @@ class DataManager():
 
     # scan attributes
     scan_file = ""
-    image_size = 0
-    image_filename = ""
+    media_size = 0
+    media_filename = ""
     hashdb_dir = ""
     sector_size = 0
     hash_block_size = 0
@@ -51,8 +51,8 @@ class DataManager():
     def set_data(self, data_reader):
         # copy scan attributes from data reader
         self.scan_file = data_reader.scan_file
-        self.image_size = data_reader.image_size
-        self.image_filename = data_reader.image_filename
+        self.media_size = data_reader.media_size
+        self.media_filename = data_reader.media_filename
         self.hashdb_dir = data_reader.hashdb_dir
         self.sector_size = data_reader.sector_size
         self.hash_block_size = data_reader.hash_block_size

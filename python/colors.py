@@ -23,7 +23,7 @@ IGNORED_LIGHTER = "#ffdddd"
 X_AXIS = "black"
 BOUNDING_BOX = "#888888"
 
-# image hex table colors
+# media image hex table colors
 EVEN_UNMATCHED = "#eeeeee"     # unmatched: gray
 ODD_UNMATCHED = "#dddddd"
 EVEN_MATCHED = "#ddddff"       # matched: blue

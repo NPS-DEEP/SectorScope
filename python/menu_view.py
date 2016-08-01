@@ -2,7 +2,7 @@ import colors
 import info
 from icon_path import icon_path
 from tooltip import Tooltip
-from scan_image_window import ScanImageWindow
+from scan_media_window import ScanMediaWindow
 from ingest_window import IngestWindow
 from open_window import OpenWindow
 from info_window import InfoWindow
@@ -101,8 +101,8 @@ class MenuView():
         # IngestWindow(self.frame, source_dir='/home/bdallen/KittyMaterial', hashdb_dir='/home/bdallen/Kitty/zzki.hdb')
 
     def _handle_scan(self):
-        ScanImageWindow(self.frame)
-        # ScanImageWindow(self.frame, image='/home/bdallen/Kitty/jo-favorites-usb-2009-12-11.E01', hashdb_dir='/home/bdallen/Kitty/KittyMaterial.hdb', output_file='/home/bdallen/Kitty/zz_jo.json')
+        ScanMediaWindow(self.frame)
+        # ScanMediaWindow(self.frame, media='/home/bdallen/Kitty/jo-favorites-usb-2009-12-11.E01', hashdb_dir='/home/bdallen/Kitty/KittyMaterial.hdb', output_file='/home/bdallen/Kitty/zz_jo.json')
 
     def _handle_info(self):
         InfoWindow(self.frame)

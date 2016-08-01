@@ -37,21 +37,21 @@ def get_hash_block_size(hashdb_dir):
         block_size = settings["block_size"]
         return block_size
 
-"""Read scan file and return image_filename, image_size, hashdb_dir
+"""Read scan file and return media_filename, media_size, hashdb_dir
    Raises exception on error."""
 def get_scan_file_attributes(scan_file):
 
     with open(scan_file, 'r') as f:
 
-        # get hashdb_dir and image_filename from first line
+        # get hashdb_dir and media_filename from first line
         line = f.readline().strip()   # line without newline
         print("line '%s'"%line)
         if line[:11] == '# command: ':
             parts = line.split(' ')# may need to harden for quoted parameters
             print("parts", parts)
             hashdb_dir = parts[-2]
-            image_filename = parts[-1]
-            print("line-1 '%s'"%image_filename)
+            media_filename = parts[-1]
+            print("line-1 '%s'"%media_filename)
         else:
             raise ValueError("Invalid format in first line of scan"
                              " file %s" % scan_file)
@@ -62,23 +62,23 @@ def get_scan_file_attributes(scan_file):
             raise ValueError("Invalid format in second line of scan"
                              " file %s" % scan_file)
 
-        # get image size from third line
+        # get media size from third line
         line = f.readline()
         if line[:11] == '# Scanning ':
             parts = line.split(' ')
-            image_size = int(parts[-1])
+            media_size = int(parts[-1])
         else:
             raise ValueError("Invalid format in second line of scan"
                              " file %s" % scan_file)
 
-        return image_filename, image_size, hashdb_dir
+        return media_filename, media_size, hashdb_dir
 
-"""Read bytes from an image file, return error_message, image_bytes."""
-def read_image_bytes(image_filename, offset, count):
+"""Read bytes from a media image file, return error_message, media_bytes."""
+def read_media_bytes(media_filename, offset, count):
     if offset < 0:
         raise ValueError("Invalid negative offset requested.")
 
-    cmd = ["hashdb", "read_bytes", image_filename, str(offset), str(count)]
+    cmd = ["hashdb", "read_media", media_filename, str(offset), str(count)]
     with CompatiblePopen(cmd, stdout=PIPE, stderr=PIPE) as p:
 
         stdout_data, stderr_data = p.communicate()
@@ -86,7 +86,7 @@ def read_image_bytes(image_filename, offset, count):
         stderr_text = stderr_data.decode('utf-8')
 
         if p.returncode != 0:
-            error_message = "Error reading image bytes, " \
+            error_message = "Error reading media bytes, " \
                             "command %s: %s" % (" ".join(cmd), stderr_text)
             return error_message, stdout_bytearray
         else:

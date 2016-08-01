@@ -13,14 +13,14 @@ except ImportError:
 
 class DataReader():
     """Read identified blocks from a scan file to provide hash,
-      source, and image data related to a block hash scan.
+      source, and media image data related to a block hash scan.
 
     This is a helper class to be used only by the data manager.
 
     Attributes:
       scan_file (str): The .json block hash scan file.
-      image_size (int): Size in bytes of the media image.
-      image_filename (str): Full path of the media image filename.
+      media_size (int): Size in bytes of the media image.
+      media_filename (str): Full path of the media image filename.
       hashdb_dir (str): Full path to the hash database directory.
       sector_size(int): The sector size to view.
       hash_block_size(int): The size of the hashed blocks.
@@ -33,7 +33,7 @@ class DataReader():
       annotation_types (list<(type, description, is_active)>): List
         of annotation types available.
       annotations (list<(annotation_type, offset, length, text)>):
-        List of image annotations that can be displayed.
+        List of media image annotations that can be displayed.
       annotation_load_status (str): status of the annotation load or none
         if okay.
 
@@ -45,8 +45,8 @@ class DataReader():
     def __init__(self):
         # set initial state
         self.scan_file = ""
-        self.image_size = 0
-        self.image_filename = ""
+        self.media_size = 0
+        self.media_filename = ""
         self.hashdb_dir = ""
         self.sector_size = 0
         self.hash_block_size = 0
@@ -58,25 +58,25 @@ class DataReader():
         self.annotation_load_status = ""
 
     def read(self, scan_file, sector_size,
-             alternate_image_filename, alternate_hashdb_dir):
+             alternate_media_filename, alternate_hashdb_dir):
         """
         Reads and sets data else raises an exception and leaves data alone.
         Args:
           scan_file(str): The block hash scan file containing the identified
                           blocks.
           sector_size(int): The minimum resolution to zoom down to.
-          alternate_image_filename(str): An alternate path to read the media
+          alternate_media_filename(str): An alternate path to read the media
                           image from, or blank to read and use the default.
  
         Raises read related exceptions.
         """
         # read scan file attributes
-        image_filename, image_size, hashdb_dir = \
+        media_filename, media_size, hashdb_dir = \
                                  helpers.get_scan_file_attributes(scan_file)
 
         # use the alternate media image if it is defined
-        if alternate_image_filename:
-            image_filename = alternate_image_filename
+        if alternate_media_filename:
+            media_filename = alternate_media_filename
 
         # use the alternate hash database if it is defined
         if alternate_hashdb_dir:
@@ -92,11 +92,11 @@ class DataReader():
                                self._read_hash_scan_file(scan_file)
         t1 = ts("data_reader.read finished read identified_blocks", t0)
 
-        # read image annotations
+        # read media image annotations
 
         try:
             annotation_types, annotations = read_annotations(
-                                image_filename, "temp_image_annotations_dir")
+                                media_filename, "temp_media_annotations_dir")
             annotation_load_status = ""
 
         except Exception as e:
@@ -107,8 +107,8 @@ class DataReader():
         t4 = ts("data_reader.read finished read annotations.  Done.", t1)
         # everything worked so accept the data
         self.scan_file = scan_file
-        self.image_size = image_size
-        self.image_filename = image_filename
+        self.media_size = media_size
+        self.media_filename = media_filename
         self.hashdb_dir = hashdb_dir
         self.sector_size = sector_size
         self.hash_block_size = hash_block_size
@@ -121,16 +121,16 @@ class DataReader():
 
     def __repr__(self):
         return("DataReader("
-              "scan_file: '%s', Image size: %d, Image filename: '%s', "
+              "scan_file: '%s', Media size: %d, Media filename: '%s', "
               "hashdb directory: '%s', Sector size: %d, Block size: %d "
               "Number of forensic paths: %d, Number of hashes: %d, "
               "Number of sources: %d, "
-              "Number of image annotation types: %d, "
-              "Number of image annotations: %d)"
+              "Number of media image annotation types: %d, "
+              "Number of media image annotations: %d)"
               "" % (
                         self.scan_file,
-                        self.image_size,
-                        self.image_filename,
+                        self.media_size,
+                        self.media_filename,
                         self.hashdb_dir,
                         self.sector_size,
                         self.hash_block_size,
@@ -192,7 +192,7 @@ class DataReader():
                     raise ValueError("Error reading file '%s' "
                              "line %d:'%s':%s\nPlease check that "
                              "this file was made using the hashdb "
-                             "scan_image command." % (scan_file, i, line, e))
+                             "scan_media command." % (scan_file, i, line, e))
 
         return (forensic_paths, hashes, sources)
 

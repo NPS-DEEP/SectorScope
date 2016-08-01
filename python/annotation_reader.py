@@ -15,9 +15,9 @@ def _run_cmd(cmd):
 
     return lines
 
-def _import_mmls(image_filename, annotation_dir):
+def _import_mmls(media_filename, annotation_dir):
     # mmls for volume allocation table
-    cmd = ["mmls", image_filename]
+    cmd = ["mmls", media_filename]
     lines = _run_cmd(cmd)
 
     outfile = os.path.join(annotation_dir, "mmls.json")
@@ -36,11 +36,11 @@ def _import_mmls(image_filename, annotation_dir):
             # don't use this line
             pass
 
-def _import_fsstat(image_filename, annotation_dir):
+def _import_fsstat(media_filename, annotation_dir):
     # fsstat file system statistics, specifically, allocated sectors
 
-    # first, get partition information
-    cmd = ["mmls", image_filename]
+    # first, get partition information from the volume system
+    cmd = ["mmls", media_filename]
     lines = _run_cmd(cmd)
 
     # find any line where fields parse in a valid way
@@ -59,7 +59,7 @@ def _import_fsstat(image_filename, annotation_dir):
     with open(outfile, "w") as f:
         for sector_offset in partition_starts:
             try:
-                cmd = ["fsstat", "-o", "%s"%sector_offset, image_filename]
+                cmd = ["fsstat", "-o", "%s"%sector_offset, media_filename]
                 lines = _run_cmd(cmd)
             except RuntimeError as e:
                 # skip partition if it has no file system
@@ -91,17 +91,17 @@ def _import_fsstat(image_filename, annotation_dir):
                     # don't use this line
                     pass
 
-def _import_annotations(image_filename, annotation_dir):
+def _import_annotations(media_filename, annotation_dir):
     print("Annotation reader: importing mmls annotations...")
-    _import_mmls(image_filename, annotation_dir)
+    _import_mmls(media_filename, annotation_dir)
     print("Annotation reader: importing fsstat annotations...")
-    _import_fsstat(image_filename, annotation_dir)
+    _import_fsstat(media_filename, annotation_dir)
 
-    # record image_filename in annotation_dir
-    print("Annotation reader: recording image filename...")
-    image_filename_path = os.path.join(annotation_dir, "image_filename")
-    with open(image_filename_path, "w") as f:
-        f.write("%s\n" % image_filename)
+    # record media_filename in annotation_dir
+    print("Annotation reader: recording media image filename...")
+    media_filename_path = os.path.join(annotation_dir, "media_filename")
+    with open(media_filename_path, "w") as f:
+        f.write("%s\n" % media_filename)
 
 def _read_json(annotations_file, annotations):
     with open(annotations_file, "r") as f:
@@ -109,31 +109,31 @@ def _read_json(annotations_file, annotations):
             d = json.loads(line)
             annotations.append((d["type"], d["offset"], d["length"], d["text"]))
 
-def read_annotations(image_filename, annotation_dir):
-    """Read image annotations from annotation_dir, creating them if necessary.
+def read_annotations(media_filename, annotation_dir):
+    """Read media annotations from annotation_dir, creating them if necessary.
     Throws on failure.
 
     Returns:
       annotation_types(list<(type, description, is_active)>): Tuple of
         annotation types and whether they are active by default.
       annotations(list<(type, offset, length, text)>): List of annotations
-        defined by annotation type, image offset, length, and text.
+        defined by annotation type, media offset, length, and text.
     """
 
     # check status of annotation_dir
     if not os.path.exists(annotation_dir):
         # create annotation_dir and import annotations
         os.makedirs(annotation_dir)
-        _import_annotations(image_filename, annotation_dir)
+        _import_annotations(media_filename, annotation_dir)
     else:
         # make sure annotation_dir is right for this media image
-        image_filename_path = os.path.join(annotation_dir, "image_filename")
-        with open(image_filename_path, 'r') as f:
+        media_filename_path = os.path.join(annotation_dir, "media_filename")
+        with open(media_filename_path, 'r') as f:
             line = f.readline().strip()
-            if os.path.abspath(line) != os.path.abspath(image_filename):
-                raise ValueError("Incorrect image filename in pre-built"
+            if os.path.abspath(line) != os.path.abspath(media_filename):
+                raise ValueError("Incorrect media filename in pre-built"
                         " annotation directory.  Expected %s"
-                        " but found %s" % (os.path.abspath(image_filename),
+                        " but found %s" % (os.path.abspath(media_filename),
                         os.path.abspath(line)))
 
     # read annotations

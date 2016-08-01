@@ -1,13 +1,13 @@
-from image_hex_table import ImageHexTable
+from media_hex_table import MediaHexTable
 import hashlib
-from helpers import read_image_bytes
+from helpers import read_media_bytes
 from error_window import ErrorWindow
 try:
     import tkinter
 except ImportError:
     import Tkinter as tkinter
 
-class ImageHexWindow():
+class MediaHexWindow():
     """Provides a window to show a hex dump of specified bytes of a
     media image.
     """
@@ -40,10 +40,10 @@ class ImageHexWindow():
         self._md5_label = tkinter.Label(self._root_window)
         self._md5_label.pack(side=tkinter.TOP)
 
-        # add the frame to contain the image hex table
-        self._image_hex_table = ImageHexTable(self._root_window, data_manager,
+        # add the frame to contain the media hex table
+        self._media_hex_table = MediaHexTable(self._root_window, data_manager,
                                       histogram_control, width=88, height=32)
-        self._image_hex_table.frame.pack(side=tkinter.TOP, anchor="w")
+        self._media_hex_table.frame.pack(side=tkinter.TOP, anchor="w")
 
         # register to receive histogram control change events
         histogram_control.set_callback(self._handle_histogram_control_change)
@@ -60,12 +60,12 @@ class ImageHexWindow():
             self._set_view()
 
     def _set_view(self):
-        # read page of image bytes starting at offset else warn and clear
+        # read page of media bytes starting at offset else warn and clear
         block_hash_offset = self._histogram_control.cursor_offset
         if block_hash_offset < 0:
             block_hash_offset = 0
-        error_message, buf = read_image_bytes(
-                                     self._data_manager.image_filename,
+        error_message, buf = read_media_bytes(
+                                     self._data_manager.media_filename,
                                      block_hash_offset,
                                      self.BUFSIZE)
         if (error_message):
@@ -116,7 +116,7 @@ class ImageHexWindow():
         self._md5_label["text"]='MD5: %s' % block_hash
 
         # set hex table
-        self._image_hex_table.set_view(block_hash_offset, buf, is_in)
+        self._media_hex_table.set_view(block_hash_offset, buf, is_in)
 
     def _clear_view(self):
 
@@ -127,7 +127,7 @@ class ImageHexWindow():
         self._md5_label["text"]='MD5: No selection.'
 
         # clear hex table
-        self._image_hex_table.clear_view()
+        self._media_hex_table.clear_view()
 
     def show(self):
         self._is_visible = True

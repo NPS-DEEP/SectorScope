@@ -18,22 +18,22 @@ class OpenWindow():
 
     def __init__(self, master, open_manager,
                  scan_file="", sector_size=512,
-                 alternate_media_image="", alternate_hashdb_dir=""):
+                 alternate_media_filename="", alternate_hashdb_dir=""):
 
         """Args:
           scan_file(str): The block hash scan file containing the matching
                           identified blocks.
           sector_size(int): The minimum resolution to zoom down to.
-          alternate_media_image(str): The media image that the scan came from
-                                      or leave blank for default.
-          alternate_media_image(str): The hashdb_dir used by the scan
-                                      or leave blank for default.
+          alternate_media_filename(str): The media image that the scan came from
+                                         or leave blank for default.
+          alternate_media_filename(str): The hashdb_dir used by the scan
+                                         or leave blank for default.
         """
         # input parameters
         self._open_manager = open_manager
         self._scan_file = scan_file
         self._sector_size = sector_size
-        self._alternate_media_image = alternate_media_image
+        self._alternate_media_filename = alternate_media_filename
         self._alternate_hashdb_dir = alternate_hashdb_dir
 
         # toplevel
@@ -79,18 +79,18 @@ class OpenWindow():
                           .grid(row=1, column=0, sticky=tkinter.W)
 
         # alternate media image entry
-        self._media_image_entry = tkinter.Entry(required_frame, width=40)
-        self._media_image_entry.grid(row=1, column=1, sticky=tkinter.W,
+        self._media_filename_entry = tkinter.Entry(required_frame, width=40)
+        self._media_filename_entry.grid(row=1, column=1, sticky=tkinter.W,
                                           padx=8)
-        self._media_image_entry.insert(0, self._alternate_media_image)
-        Tooltip(self._media_image_entry, "Alternate media image, leave blank"
+        self._media_filename_entry.insert(0, self._alternate_media_filename)
+        Tooltip(self._media_filename_entry, "Alternate media image, leave blank"
                                          "\nto use the default from scan file")
 
         # alternate media image chooser button
-        media_image_entry_button = tkinter.Button(required_frame,
+        media_filename_entry_button = tkinter.Button(required_frame,
                                 text="...",
-                                command=self._handle_media_image_chooser)
-        media_image_entry_button.grid(row=1, column=2, sticky=tkinter.W)
+                                command=self._handle_media_filename_chooser)
+        media_filename_entry_button.grid(row=1, column=2, sticky=tkinter.W)
 
         # alternate hashdb_dir label
         tkinter.Label(required_frame, text="Alternate Hash Database") \
@@ -136,18 +136,18 @@ class OpenWindow():
 
         return button_frame
 
-    def _handle_media_image_chooser(self, *args):
-        image_file = fd.askopenfilename(title="Open Alternate Media Image")
-        if image_file:
-            self._media_image_entry.delete(0, tkinter.END)
-            self._media_image_entry.insert(0, image_file)
+    def _handle_media_filename_chooser(self, *args):
+        media_file = fd.askopenfilename(title="Open Alternate Media Image")
+        if media_file:
+            self._media_filename_entry.delete(0, tkinter.END)
+            self._media_filename_entry.insert(0, media_file)
 
     def _handle_hashdb_dir_chooser(self, *args):
-        image_file = fd.askdirectory(title="Open Alternate Hash Database",
+        media_file = fd.askdirectory(title="Open Alternate Hash Database",
                                      mustexist=True)
-        if image_file:
+        if media_file:
             self._hashdb_dir_entry.delete(0, tkinter.END)
-            self._hashdb_dir_entry.insert(0, image_file)
+            self._hashdb_dir_entry.insert(0, media_file)
 
     def _handle_scan_file_chooser(self, *args):
         file_opt={"title":"Open Scan Match File", "defaultextension":".json"}
@@ -174,10 +174,10 @@ class OpenWindow():
             return
 
         # get alternate media image field
-        alternate_media_image = self._media_image_entry.get()
-        if alternate_media_image:
-            alternate_media_image = os.path.abspath(alternate_media_image)
-            if not os.path.exists(alternate_media_image):
+        alternate_media_filename = self._media_filename_entry.get()
+        if alternate_media_filename:
+            alternate_media_filename = os.path.abspath(alternate_media_filename)
+            if not os.path.exists(alternate_image_filename):
                 ErrorWindow(self._master, "Open Error",
                     "Unable to find alternate media image file %s" % scan_file)
                 return
@@ -192,7 +192,7 @@ class OpenWindow():
                 return
 
         self._open_manager.open_scan_file(scan_file, sector_size,
-                                alternate_media_image, alternate_hashdb_dir);
+                              alternate_media_filename, alternate_hashdb_dir);
 
     def _handle_cancel(self):
         self._root_window.destroy()

@@ -16,21 +16,21 @@ except ImportError:
     import Tkinter as tkinter
     import tkFileDialog as fd
 
-class ScanImageWindow():
+class ScanMediaWindow():
     """Scan a media image for matching hashes using a GUI interface.
     """
 
-    def __init__(self, master, image="", hashdb_dir="", output_file="",
+    def __init__(self, master, media="", hashdb_dir="", output_file="",
                  step_size=512):
 
         """Args:
-          image(str): The media image to scan.
+          media(str): The media image to scan.
           hashdb_dir(str): Path to the hashdb directory to scan against.
           output_file(str): The new output file to create during the scan.
           step_size(int): The step size to increment along while scanning.
         """
         # input parameters
-        self._image = image
+        self._media = media
         self._hashdb_dir = hashdb_dir
         self._output_file = output_file
         self._step_size = step_size
@@ -68,21 +68,21 @@ class ScanImageWindow():
                                             text="Required Parameters",
                                             padx=8, pady=8)
 
-        # image label
+        # media label
         tkinter.Label(required_frame, text="Media Image") \
                           .grid(row=0, column=0, sticky=tkinter.W)
 
-        # image entry
-        self._image_entry = tkinter.Entry(required_frame, width=40)
-        self._image_entry.grid(row=0, column=1, sticky=tkinter.W,
+        # media entry
+        self._media_entry = tkinter.Entry(required_frame, width=40)
+        self._media_entry.grid(row=0, column=1, sticky=tkinter.W,
                                           padx=8)
-        self._image_entry.insert(0, self._image)
+        self._media_entry.insert(0, self._media)
 
-        # image chooser button
-        image_entry_button = tkinter.Button(required_frame,
+        # media image chooser button
+        media_entry_button = tkinter.Button(required_frame,
                                 text="...",
-                                command=self._handle_image_chooser)
-        image_entry_button.grid(row=0, column=2, sticky=tkinter.W)
+                                command=self._handle_media_chooser)
+        media_entry_button.grid(row=0, column=2, sticky=tkinter.W)
 
         # hashdb database directory label
         tkinter.Label(required_frame, text="Hash Database") \
@@ -231,11 +231,11 @@ class ScanImageWindow():
         self._cancel_button.config(state=tkinter.DISABLED)
         self._close_button.config(state=tkinter.NORMAL)
 
-    def _handle_image_chooser(self, *args):
-        image_file = fd.askopenfilename(title="Open Media Image")
-        if image_file:
-            self._image_entry.delete(0, tkinter.END)
-            self._image_entry.insert(0, image_file)
+    def _handle_media_chooser(self, *args):
+        media_file = fd.askopenfilename(title="Open Media Image")
+        if media_file:
+            self._media_entry.delete(0, tkinter.END)
+            self._media_entry.insert(0, media_file)
 
     def _handle_hashdb_directory_chooser(self, *args):
         hashdb_directory = fd.askdirectory(
@@ -262,10 +262,9 @@ class ScanImageWindow():
             # stderr and stdout lines go to output_file
             if name == "stderr" or name == "stdout":
                 self._outfile.write(line)
- 
-            # comment lines and non-stdout/stderr lines go to progress_text
-            if (name != "stderr" and name != "stdout") or \
-                                  len(line) > 0 and line[0] == '#':
+
+            # report all but non-comment lines from stdout
+            if name != "stdout" or len(line) > 0 and line[0] == '#':
                 self._progress_text.insert(tkinter.END, "%s: %s" %(name, line))
                 self._progress_text.see(tkinter.END)
 
@@ -290,11 +289,11 @@ class ScanImageWindow():
         # clear any existing progress text
         self._progress_text.delete(1.0, tkinter.END)
 
-        # get image field
-        image = os.path.abspath(self._image_entry.get())
-        if not os.path.exists(image):
+        # get media filename field
+        media = os.path.abspath(self._media_entry.get())
+        if not os.path.exists(media):
             self._set_status_text("Error: media image '%s' does "
-                                    "not exist." % image)
+                                    "not exist." % media)
             return
 
         # get hashdb_dir field
@@ -319,8 +318,8 @@ class ScanImageWindow():
                                   self._step_size_entry.get())
             return
 
-        # compose the scan_image command
-        cmd = ["hashdb", "scan_image", "-s", "%s"%step_size, hashdb_dir, image]
+        # compose the scan_media command
+        cmd = ["hashdb", "scan_media", "-s", "%s"%step_size, hashdb_dir, media]
 
         # open the output file, it is closed when _handle_consume_queue stops
         try:

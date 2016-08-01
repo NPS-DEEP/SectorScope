@@ -34,13 +34,13 @@ class OpenManager():
 
         self._data_reader = DataReader()
 
-    """Open scan_file and note the media_image and sector_size."""
+    """Open scan_file and note the media_filename and sector_size."""
     def open_scan_file(self, scan_file, sector_size,
-                       alternate_media_image, alternate_hashdb_dir):
+                       alternate_media_filename, alternate_hashdb_dir):
         # read scan_file else show error window
         try:
             self._data_reader.read(scan_file, sector_size,
-                       alternate_media_image, alternate_hashdb_dir)
+                       alternate_media_filename, alternate_hashdb_dir)
 
         except Exception as e:
             ErrorWindow(self._master, "Open Error", e)
@@ -60,7 +60,7 @@ class OpenManager():
         self._annotation_filter.set([])
 
         # reset the histogram control settings
-        self._histogram_control.set_initial_view(self._data_reader.image_size,
+        self._histogram_control.set_initial_view(self._data_reader.media_size,
                                                  self._data_reader.sector_size)
 
         # accept the data, firing change

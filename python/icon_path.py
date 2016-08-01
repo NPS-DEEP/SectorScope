@@ -51,7 +51,7 @@ def icon_path(name):
         return _absolute_path("minus_blue.gif")
 
     # histogram bar control
-    if name == "fit_image":
+    if name == "fit_media":
         return _absolute_path("zoom-original-2.gif")
     if name == "fit_range":
         return _absolute_path("zoom-in-3.gif")

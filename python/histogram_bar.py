@@ -451,7 +451,7 @@ class HistogramBar():
         if self._histogram_control.bytes_per_bucket == -1:
             return
 
-        # valid bucket boundaries map inside the image
+        # valid bucket boundaries map inside the photo image
         leftmost_bucket, rightmost_bucket = self._valid_bucket_range
 
         # draw the buckets

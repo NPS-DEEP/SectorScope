@@ -1,5 +1,5 @@
 from fit_range_selection import FitRangeSelection
-from image_hex_window import ImageHexWindow
+from media_hex_window import MediaHexWindow
 import colors
 from icon_path import icon_path
 from tooltip import Tooltip
@@ -11,7 +11,7 @@ except ImportError:
     import Tkinter as tkinter
 
 class HistogramView():
-    """Renders the Image Match Histogram view.
+    """Renders the Media Image Match Histogram view.
 
     Attributes:
       frame(Frame): the containing frame for this view.
@@ -34,9 +34,9 @@ class HistogramView():
         # histogram control
         self._histogram_control = histogram_control
 
-        # the image hex window that the show hex view button can show
-        self._image_hex_window = ImageHexWindow(master, data_manager,
-                                                  histogram_control)
+        # the media hex window that the show hex view button can show
+        self._media_hex_window = MediaHexWindow(master, data_manager,
+                                                histogram_control)
 
         # the fit byte range selection signal manager
         fit_range_selection = FitRangeSelection()
@@ -53,16 +53,16 @@ class HistogramView():
         controls_frame.pack(side=tkinter.TOP, anchor="w")
 #        controls_frame.pack(side=tkinter.TOP, fill=tkinter.X)
 
-        # button to zoom to fit image
-        self._fit_image_icon = tkinter.PhotoImage(file=icon_path("fit_image"))
-        self._fit_image_button = tkinter.Button(controls_frame,
-                           image=self._fit_image_icon,
-                           command=self._handle_fit_image,
+        # button to zoom to fit media image
+        self._fit_media_icon = tkinter.PhotoImage(file=icon_path("fit_media"))
+        self._fit_media_button = tkinter.Button(controls_frame,
+                           image=self._fit_media_icon,
+                           command=self._handle_fit_media,
                            bg=colors.BACKGROUND,
                            activebackground=colors.ACTIVEBACKGROUND,
                            highlightthickness=0)
-        self._fit_image_button.pack(side=tkinter.LEFT)
-        Tooltip(self._fit_image_button, "Zoom to fit image")
+        self._fit_media_button.pack(side=tkinter.LEFT)
+        Tooltip(self._fit_media_button, "Zoom to fit media image")
 
         # button to zoom to fit range
         self._fit_range_icon = tkinter.PhotoImage(file=icon_path("fit_range"))
@@ -80,7 +80,7 @@ class HistogramView():
                                                               "show_hex_view"))
         show_hex_view_button = tkinter.Button(controls_frame,
                               image=self._show_hex_view_icon,
-                              command=self._image_hex_window.show,
+                              command=self._media_hex_window.show,
                               bg=colors.BACKGROUND,
                               activebackground=colors.ACTIVEBACKGROUND,
                               highlightthickness=0)
@@ -144,8 +144,8 @@ class HistogramView():
         # set to basic initial state
         self._handle_histogram_control_change()
 
-    def _handle_fit_image(self):
-        self._histogram_control.fit_image()
+    def _handle_fit_media(self):
+        self._histogram_control.fit_media()
 
     def _handle_view_annotations(self):
         self._annotation_window.show()

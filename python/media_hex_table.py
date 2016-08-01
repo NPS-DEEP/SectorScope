@@ -5,7 +5,7 @@ try:
 except ImportError:
     import Tkinter as tkinter
 
-class ImageHexTable():
+class MediaHexTable():
     """Manages the hex view for a selected range into a media image.
     The hex view changes when the range selection changes.
 
@@ -82,7 +82,7 @@ class ImageHexTable():
             if i >= len(buf):
                  break
 
-            # format image offset
+            # format media image offset
             line = "0x%08x:" % (offset + i)
 
             # append hexadecimal values
