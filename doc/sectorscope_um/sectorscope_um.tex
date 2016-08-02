@@ -47,18 +47,22 @@ basicstyle=\footnotesize\ttfamily, frame=single, float=htpb}
 \newpage
 
 \section{Introduction}
+\label{intro}
 \subsection {Overview}
 \sscope is a graphical interface tool for viewing blocks that match blacklist block hashes stored in a \hdb database. \sscope includes interfaces for scanning media images, ingesting source files into \hdb databases, and directly viewing raw media image bytes.\\
 
 \subsection{Obtaining \sscope}
 \label{Obtaining}
-\sscope requires \hdb. Both tools are readily available for Windows systems, Linux flavors, and MacOS.  Windows installers are available for Windows users.  Source code distributions are available for Linux and Mac users.  Developers may download these tools directly from source available on GitHub.\\
+\sscope requires \hdb. Both tools are readily available for Windows systems, Linux flavors, and MacOS.  Windows installers are available for Windows users.  Source code distributions are available.  Developers may download these tools directly from source available on GitHub.\\
 
 \subsubsection{Installing on Windows}
 Download and run the latest \sscope Windows installer available under \url{http://digitalcorpora.org/downloads/sectorscope/}. It is named\\
-\verb+SectorScope-x.y.z-windowsinstallelr.exe+ where x.y.z is the latest version.\\
+\verb+SectorScope-x.y.z-windowsinstaller.exe+ where x.y.z is the latest version.\\
 
-Note that an option is available for installing the \sscope \aut \verb+.nbm+ module for running \sscope from \aut.  Configuration requirements for this module is described below.
+The Windows installer includes an optional \sscope \aut \verb+.nbm+ module for running \sscope from \aut.  Please see \textbf{\Autoref{installingNBM}} and \textbf{\Autoref{configuringNBM}} for information on configuring and installing this optional \sscope module.\\
+
+Here is a view of the \sscope Windows installer:\\
+\includegraphics[scale=.4]{screenshots/installer}\\
 
 \subsubsection{Installing on Linux or Mac}
 \begin{itemize}
@@ -95,7 +99,8 @@ If you would like to run \sscope from \aut, please also install \aut, \url{http:
 \end{itemize}
 
 \subsubsection{Installing the \sscope \aut Plug-in Module}
-The \sscope Windows installer installs the requisite \verb+.nbm+ Autopsy plug-in module onto the desktop. Please follow these steps to install this module:
+\label{installingNBM}
+The \sscope Windows installer installs the \verb+.nbm+ \sscope \aut plug-in module onto the desktop. Please follow these steps to install this module into the \aut workflow:
 \begin{enumerate}
 \item Open \aut. From the \aut menu, select \verb+Tools | Plugins+.
 \item Open the \verb+Downloaded+ tab and click the \verb+Add Plugins...+ button.
@@ -104,6 +109,7 @@ The \sscope Windows installer installs the requisite \verb+.nbm+ Autopsy plug-in
 \end{enumerate}
 
 \subsubsection{Configuring the \sscope \aut Plug-in Module}
+\label{configuringNBM}
 The path to the hashdb database must be configured:
 \begin{enumerate}
 \item Start a new case, \verb+File | New Case...+, fill in the Case Information fields, and click Next.
@@ -319,6 +325,16 @@ Here is an example view of the source table:\\
 \includegraphics[scale=.4]{screenshots/source_table}\\
 
 \subsubsection{Source Table Contents}
+The source table shows information about sources in the hash database that have hashes in common with the media image scan. For each source shown, this information includes the source file hash, how much of the file matched, the file size, and one repository name, filename pair matching this file hash.\\
+
+The set of sources and the percent matched depend on the range selection in the histogram view and filter settings:
+\begin{itemize}
+\item If a range is not selected in the histogram view, all matched sources are shown except for sources that are filtered as ignored and sources where all matched hashes are filtered as ignored..
+\item If a range is selected in the histogram view, only sources with hashes in this range may be shown.
+\item If all the hashes that match a source are ignored, the source will not be shown.
+\item If some of the hashes that match a source are ignored, the source will be shown, but the percent matched value will be lower.
+\item If all the hashes that match a source are ignored, the source will not be shown.
+\end{itemize}
 Rows in the source table contain the following information:
 \begin{itemize}
 \item \textbf{Source Hash}\\
