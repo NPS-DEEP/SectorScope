@@ -130,7 +130,8 @@ If desired, \sscope may be opened with alternate parameters so that it starts wi
 
 \sscope runs from \aut. To start \sscope from \aut, click the \verb+SectorScope+ property in the \aut window.
 
-\section{Managing Massive Datasets}
+\section{Working with \sscope}
+\subsection{Managing Massive Datasets}
 Block hash scans can produce a large amount of matches. \sscope provides filters to highlight and ignore data:
 \begin{itemize}
 \item \textbf{Highlight Sectors and Hashes}\\
@@ -158,7 +159,28 @@ The count of matches for a block and the sub-count of matches contributed by eac
 Source labels may be used to infer expected entropy values. \hdb and \sscope do not use this information. This is an area of research.
 \end{itemize}
 
-\section{Using \sscope}
+\subsection{Scan Files}
+Scan files contain the information about the blocks in a media image that match 
+blacklist blocks in a block hash database. \sscope contains the interfaces necessary for creating \hdb databases, creating scan files by scanning media images, and viewing match information contained in scan files.
+
+\subsection{Histogram Graph}
+The histogram graph shows a histogram of frequencies of matched hashes along a scanned media image. Controls in the user interface allow the user to pan and zoom the graph, highlight or ignore regions of the histogram, correlate matches with source files, and export sectors of the media image.
+
+\subsection{Media Image Annotations}
+\sscope displays media annotations below the histogam bars. The following annotation types are currently supported:
+\begin{itemize}
+\item Disk partition information obtained by running the TSK \verb+mmls+ command.
+\item File system information obtained by running the TSK \verb+fsstat+ command.
+\end{itemize}
+
+Annotation entries define the annotation type, the offset and length of the content being annotated, and annotation text. New annotation types may be added in the future.\\
+
+The first time a scan file is opened by \sscope, \sscope prepares annotation content in a subdirectory next to the scan file named \verb+<scan file>.temp_annotations+. For example if the scan file is named \verb+scanfile.json+, annotations will be generated at \verb+scanfile.json.temp_annotations+. \sscope references information in this subdirectory in order to display annotation content. This subdirectory may be deleted. \sscope will generate it again if it is not there.
+
+\subsection{Source Files}
+\sscope shows a list of all sources in a hash database that have hashes in common with the media image scan. Filter and range selection controls affect the source list by removing sources or modifying the report of how much of a source is matched.
+
+\section{\sscope User Interfaces}
 \subsection{Main Window}
 Here is an example screenshot of the \sscope main window:\\
 \includegraphics[scale=.4]{screenshots/main_window}\\
@@ -168,7 +190,7 @@ Here are the menu controls:\\
 \includegraphics[scale=.4]{screenshots/menu_controls}\\
 
 \subsubsection{Open Scan File}
-Here is the Open Scan File window:\\
+Use this control to open and view the output of a \hdb scan. Here is the Open Scan File window:\\
 \includegraphics[scale=.4]{screenshots/open_scan_file}\\
 \begin{itemize}
 \item \textbf{Scan File}\\
@@ -261,14 +283,44 @@ Ignore hashes matched more than a maximum number of times.
 Ignore hashes if they have been flagged as potentially non-probative based on experimental entropy calculations.
 \end{itemize}
 
-\subsection{Histogram}
-Here is an example view of the histogram portion:\\
+\subsection{Histogram and Media Image Annotation Graph}
+Histogram and media image annotations include button controls, cursor controls, graph annotations, and media image annotations:\\
+\includegraphics[scale=.4]{screenshots/histogram_and_annotation_graph}\\
+
+\subsubsection{Graph Button Controls}
+Here are the histogram and annotation graph button controls:\\
+\includegraphics[scale=.4]{screenshots/graph_button_controls}\\
+\begin{itemize}
+\item \textbf{Zoom to Full Scale}\\
+Zoom out so the view spans the entire media iamge.
+\item \textbf{Zoom to Range Selection}\\
+Zoom in on the selected range to fit the view.
+\item \textbf{Show Hex View}\\
+Open a window to show the hexadecimal bytes of the block under the cursor.
+The following example hex view shows bytes for matched block hash \verb+0x3982...+ at media image offset \verb+0x09c40000+.\\
+\includegraphics[scale=.4]{screenshots/hex_view}\\
+\item \textbf{Export Media Bytes}\\
+Open a window to export or append sectors from the media image into a file.\\
+\includegraphics[scale=.4]{screenshots/export_media_bytes}\\
+\item \textbf{Manage Annotations}\\
+Open a window to enable or disable annotation categories. Here is an example window showing that annotations from disk partitions and file system sectors are enabled:\\
+\includegraphics[scale=.4]{screenshots/manage_annotations}\\
+  \begin{itemize}
+  \item Disk partition annotations are obtained by running the TSK mmls command.
+  \item File system sectors are obtained by running the TSK fsstat command.
+  \end{itemize}
+New annotation types may be added in the future. \sscope accepts annotations in the form of \verb+type+, \verb+offset+, \verb+length+, and \verb+text+.
+\item \textbf{Toggle offset Units}\\
+Toggle the displayed offset units between sectors, decimal bytes, and hexadecimal bytes.
+\item \textbf{Toggle Auto-y-axis}\\
+Enable or disable auto-y-axis histogram bar scaling.
+\end{itemize}
+
+\subsubsection{Histogram}
+The histogram graph area shows the frequency of hash matches at given offsets in the media image. Bar width depends on the zoom level. Bar color indicates hashes present within the region of the bar. Blue indicates hashes present. A blue tick above the bar indicates total hashes when hashes are ignored. A green bar indicates highlighted hashes.\\
 \includegraphics[scale=.4]{screenshots/histogram}\\
 
-\subsubsection{Graph View}
-The histogram graph area shows the frequency of hash matches at given offsets in the media image. Bar width depends on the zoom level. Bar color indicates hashes present within the region of the bar. Blue indicates hashes present. A blue tick above the bar indicates total hashes when hashes are ignored. A green bar indicates highlighted hashes.\\
-
-\subsubsection{Graph Annotation}
+\subsubsection{Histogram Bar Annotation}
 \begin{itemize}
 \item \textbf{Bar width}\\
 The number of sectors or bytes spanned by each bar, depending on the offset format.
@@ -282,31 +334,7 @@ The first and last offset across the histogram is shown.
 The horizontal scale, indicating the number of hash matches required to reach that height. This scale may be toggled between auto-scaling and no scaling.
 \end{itemize}
 
-\subsubsection{Graph Button Controls}
-\begin{itemize}
-\item \textbf{Zoom to full scale}\\
-Zoom out so the view spans the entire media iamge.
-\item \textbf{Zoom to range selection}\\
-Zoom in on the selected range to fit the view.
-\item \textbf{Show Hex View}\\
-Open a window to show the hexadecimal bytes of the block under the cursor.
-The following example hex view shows bytes for matched block hash \verb+0x3982...+ at media image offset \verb+0x09c40000+.\\
-\includegraphics[scale=.4]{screenshots/hex_view}\\
-\item \textbf{Manage annotations}\\
-Open a window to enable or disable annotation categories. Here is an example window showing that annotations from disk partitions and file system sectors are enabled:\\
-\includegraphics[scale=.4]{screenshots/manage_annotations}\\
-  \begin{itemize}
-  \item Disk partition annotations are obtained by running the TSK mmls command.
-  \item File system sectors are obtained by running the TSK fsstat command.
-  \end{itemize}
-New annotation types may be added in the future. \sscope accepts annotations in the form of \verb+type+, \verb+offset+, \verb+length+, and \verb+text+.
-\item \textbf{Toggle Offset Units}\\
-Toggle the displayed offset units between sectors, decimal bytes, and hexadecimal bytes.
-\item \textbf{Toggle auto-y-axis}\\
-Enable or disable auto-y-axis histogram bar scaling.
-\end{itemize}
-
-\subsubsection{Graph Cursor Controls}
+\subsubsection{Histogram Cursor Controls}
 Cursor movement, click, drag, and wheel motions manipulate the graph view:
 \begin{itemize}
 \item Move the mouse to position the cursor. Enable hex view to see the bytes under the cursor.

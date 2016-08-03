@@ -94,9 +94,12 @@ class DataReader():
 
         # read media image annotations
 
+        # annotations_dir is scan_file + ".temp_annotations"
+        annotations_dir = scan_file + ".temp_annotations"
+
         try:
             annotation_types, annotations = read_annotations(
-                                media_filename, "temp_media_annotations_dir")
+                                media_filename, annotations_dir)
             annotation_load_status = ""
 
         except Exception as e:
