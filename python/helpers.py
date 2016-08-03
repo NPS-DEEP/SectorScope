@@ -73,7 +73,9 @@ def get_scan_file_attributes(scan_file):
 
         return media_filename, media_size, hashdb_dir
 
-"""Read bytes from a media image file, return error_message, media_bytes."""
+"""Read bytes from a media image file.  Returns: error_message else "",
+   media_bytes
+"""
 def read_media_bytes(media_filename, offset, count):
     if offset < 0:
         raise ValueError("Invalid negative offset requested.")

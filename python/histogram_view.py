@@ -5,6 +5,7 @@ from icon_path import icon_path
 from tooltip import Tooltip
 from histogram_bar import HistogramBar
 from annotation_window import AnnotationWindow
+from media_export_window import MediaExportWindow
 try:
     import tkinter
 except ImportError:
@@ -27,6 +28,9 @@ class HistogramView():
           histogram_control(HistogramControl): Interfaces for controlling
             the histogram view.
         """
+
+        self._master = master
+        self._data_manager = data_manager
 
         # preferences
         self._preferences = preferences
@@ -51,7 +55,6 @@ class HistogramView():
         # add controls frame
         controls_frame = tkinter.Frame(self.frame, bg=colors.BACKGROUND)
         controls_frame.pack(side=tkinter.TOP, anchor="w")
-#        controls_frame.pack(side=tkinter.TOP, fill=tkinter.X)
 
         # button to zoom to fit media image
         self._fit_media_icon = tkinter.PhotoImage(file=icon_path("fit_media"))
@@ -61,7 +64,7 @@ class HistogramView():
                            bg=colors.BACKGROUND,
                            activebackground=colors.ACTIVEBACKGROUND,
                            highlightthickness=0)
-        self._fit_media_button.pack(side=tkinter.LEFT)
+        self._fit_media_button.pack(side=tkinter.LEFT, padx=2)
         Tooltip(self._fit_media_button, "Zoom to fit media image")
 
         # button to zoom to fit range
@@ -72,7 +75,7 @@ class HistogramView():
                               bg=colors.BACKGROUND,
                               activebackground=colors.ACTIVEBACKGROUND,
                               highlightthickness=0)
-        self._fit_range_button.pack(side=tkinter.LEFT, padx=4)
+        self._fit_range_button.pack(side=tkinter.LEFT, padx=2)
         Tooltip(self._fit_range_button, "Zoom to range")
 
         # button to show hex view for selection
@@ -84,8 +87,20 @@ class HistogramView():
                               bg=colors.BACKGROUND,
                               activebackground=colors.ACTIVEBACKGROUND,
                               highlightthickness=0)
-        show_hex_view_button.pack(side=tkinter.LEFT)
+        show_hex_view_button.pack(side=tkinter.LEFT, padx=2)
         Tooltip(show_hex_view_button, "Show hex view of block under cursor")
+
+        # button to open window to export bytes to file
+        self._show_export_window_icon = tkinter.PhotoImage(file=icon_path(
+                                                        "show_export_window"))
+        show_export_window_button = tkinter.Button(controls_frame,
+                              image=self._show_export_window_icon,
+                              command=self._handle_export_window,
+                              bg=colors.BACKGROUND,
+                              activebackground=colors.ACTIVEBACKGROUND,
+                              highlightthickness=0)
+        show_export_window_button.pack(side=tkinter.LEFT, padx=2)
+        Tooltip(show_export_window_button, "Export media range to file...")
 
         # button to view annotations
         self._view_annotations_icon = tkinter.PhotoImage(file=icon_path(
@@ -97,7 +112,7 @@ class HistogramView():
                            activebackground=colors.ACTIVEBACKGROUND,
                            highlightthickness=0)
 
-        view_annotations_button.pack(side=tkinter.LEFT, padx=4)
+        view_annotations_button.pack(side=tkinter.LEFT, padx=2)
         Tooltip(view_annotations_button, "Manage annotations shown")
 
         # button to toggle offset_format_preference
@@ -109,7 +124,7 @@ class HistogramView():
                        bg=colors.BACKGROUND,
                        activebackground=colors.ACTIVEBACKGROUND,
                        highlightthickness=0)
-        offset_format_preference_button.pack(side=tkinter.LEFT)
+        offset_format_preference_button.pack(side=tkinter.LEFT, padx=2)
         Tooltip(offset_format_preference_button,
                   "Toggle offset format between\nsector, decimal, and hex")
 
@@ -123,7 +138,7 @@ class HistogramView():
                            activebackground=colors.ACTIVEBACKGROUND,
                            highlightthickness=0)
 
-        auto_y_scale_preference_button.pack(side=tkinter.LEFT, padx=4)
+        auto_y_scale_preference_button.pack(side=tkinter.LEFT, padx=2)
         Tooltip(auto_y_scale_preference_button,
                 "Disable/enable auto-Y-axis\nhistogram bar scale")
 
@@ -149,6 +164,9 @@ class HistogramView():
 
     def _handle_view_annotations(self):
         self._annotation_window.show()
+
+    def _handle_export_window(self):
+        MediaExportWindow(self._master, self._data_manager)
 
     def _handle_offset_format_preference(self):
         self._preferences.set_next_offset_format()

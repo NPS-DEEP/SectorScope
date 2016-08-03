@@ -80,7 +80,7 @@ def _import_fsstat(media_filename, annotation_dir):
                     # create dictionary entry for this line
                     d = dict()
                     d["type"] = "fsstat"
-                    d["offset"] = int(line[0:p1]) * 512
+                    d["offset"] = (int(line[0:p1]) + sector_offset) * 512
 #                    print("off", d["offset"])
                     d["length"] = int(line[p2+2:p3]) * 512
 #                    print("len", d["length"])

@@ -57,6 +57,8 @@ def icon_path(name):
         return _absolute_path("zoom-in-3.gif")
     if name == "show_hex_view":
         return _absolute_path("text-x-hex.gif")
+    if name == "show_export_window":
+        return _absolute_path("arrow-right-2.gif")
     if name == "view_annotations":
         return _absolute_path("font.gif")
     if name == "auto_y_scale_preference":
