@@ -66,7 +66,7 @@ public class BlacklistDataSourceIngestModule implements DataSourceIngestModule {
     private String mediaImagePath;
     private String mediaImageName;
     private String jobDir;
-    private String hashdbScanFile;
+    private String hashdbScanFilePath;
     
     BlacklistDataSourceIngestModule(BlacklistModuleIngestJobSettings settings) {
         this.hashdbDir = settings.getHashdbDir();
@@ -99,7 +99,7 @@ public class BlacklistDataSourceIngestModule implements DataSourceIngestModule {
         jobDir = moduleDir + File.separator + mediaImageName + "_" + timestampString;
 
         // set path to the scan file
-        hashdbScanFile = jobDir + File.separator + "hashdb_scanfile.json";
+        hashdbScanFilePath = jobDir + File.separator + "hashdb_scanfile.json";
 
         // create the output directory and any parent directories required to reach it
         new File(jobDir).mkdirs();
@@ -127,20 +127,23 @@ public class BlacklistDataSourceIngestModule implements DataSourceIngestModule {
         ProcessResult result = hashdbScanMedia();
         progressBar.switchToDeterminate(3);
 
-        // report results depending on whether blacklist data was found
-        if (result == ProcessResult.OK && hasMatch()) {
-
-            // show source summary from hashdb_scanfile.json
-            if (result == ProcessResult.OK) {
-                progressBar.progress(1);
-                result = showSourceSummaryString();
+        int matchCount = -1;
+        if (result == ProcessResult.OK) {
+            matchCount = getScanFileMatchCount();
+            if (matchCount == -1) {
+                result = ProcessResult.ERROR;
             }
+        }
+
+        // report results depending on whether blacklist data was found
+        if (result == ProcessResult.OK && matchCount > 0) {
+
+            progressBar.progress(1);
+            showSourceSummaryString(matchCount);
 
             // add report visualization launcher
-            if (result == ProcessResult.OK) {
-                progressBar.progress(2);
-                result = addReportVisualizationLauncher();
-            }
+            progressBar.progress(2);
+            result = addReportVisualizationLauncher();
 
         } else {
             // no blacklist block hashes were found
@@ -158,7 +161,7 @@ public class BlacklistDataSourceIngestModule implements DataSourceIngestModule {
     }
 
     // run hashdb scanner
-    private ProcessResult hashdbScanMedia()
+    private ProcessResult hashdbScanMedia() {
         // set progress type
         // in the future, get fancy and track progress using switchToDeterminate(n)
         // progressBar.switchToIndeterminate();
@@ -174,7 +177,7 @@ public class BlacklistDataSourceIngestModule implements DataSourceIngestModule {
 
         // configure the process to be executed
         ProcessBuilder processBuilder = new ProcessBuilder(commandLine);
-        String stdoutPath = hashdbScanFile;
+        String stdoutPath = hashdbScanFilePath;
         String stderrPath = jobDir + File.separator + "stderr_hashdb.txt";
         processBuilder.redirectOutput(ProcessBuilder.Redirect.to(new File(stdoutPath)));
         processBuilder.redirectError(ProcessBuilder.Redirect.to(new File(stderrPath)));
@@ -194,6 +197,32 @@ public class BlacklistDataSourceIngestModule implements DataSourceIngestModule {
             return ProcessResult.ERROR;
         }
         return ProcessResult.OK;
+    }
+
+    // return match count else -1 and log on error
+    private int getScanFileMatchCount() {
+        logger = IngestServices.getInstance().getLogger(BlacklistIngestModuleFactory.getModuleName());
+        logger.log(Level.INFO, "ScanFile match count");
+        int count = 0;
+        try {
+            // process each input line hashdb_scan_file.json
+            BufferedReader br;
+            br = new BufferedReader(new FileReader(hashdbScanFilePath));
+            String line = br.readLine();
+
+            while (line != null) {
+                // count match lines
+                if (!line.isEmpty() && line.charAt(0) != '#') {
+                    count++;
+                }
+                line = br.readLine();
+            }
+
+        } catch (IOException ex) {
+            logger.log(Level.SEVERE, "hashdb read file failed", ex);  //NON-NLS
+            return -1;
+        }
+        return count;
     }
 
     // return summary else "" and log on error
@@ -226,24 +255,25 @@ public class BlacklistDataSourceIngestModule implements DataSourceIngestModule {
         }
     }
 
-    private ProcessResult showSourceSummaryString() {
-        String summaryString = getSourceSummaryString();
-        if (summaryString == "") {
-            return ProcessResult.ERROR;
+    void ProcessResult showSourceSummaryString(int matchCount) {
+        String summaryString;
+        if (matchCount == 1) {
+            summaryString = "1 blacklist block hash offset match found";
         } else {
-            // send summary to message inbox
-            IngestMessage message = IngestMessage.createMessage(IngestMessage.MessageType.INFO,
-                                  BlacklistIngestModuleFactory.getModuleName(), summaryString);
-            IngestServices.getInstance().postMessage(message);
-
-            return ProcessResult.OK;
+            summaryString = matchCount + " blacklist block hash offset matches found";
         }
+
+        // send summary to message inbox
+        IngestMessage message = IngestMessage.createMessage(IngestMessage.MessageType.INFO,
+                              BlacklistIngestModuleFactory.getModuleName(), summaryString);
+        IngestServices.getInstance().postMessage(message);
+    }
 
     // add visualization launcher if data was found
     private ProcessResult addReportVisualizationLauncher() {
 
         String blockViewerPath = jobDir + File.separator + "sectorscope_launcher.bat";
-        String blockViewerCommand = "sectorscope.py -i \"" + hashdbScanFile + "\"";
+        String blockViewerCommand = "sectorscope.py -i \"" + hashdbScanFilePath + "\"";
         try {
             File file = new File(blockViewerPath);
             if (!file.exists()) {
