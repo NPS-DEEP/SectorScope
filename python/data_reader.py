@@ -64,7 +64,8 @@ class DataReader():
         Args:
           scan_file(str): The block hash scan file containing the identified
                           blocks.
-          sector_size(int): The minimum resolution to zoom down to.
+          sector_size(int): Use this to calculate sector numbers and to know
+                          The minimum resolution to zoom down to.
           alternate_media_filename(str): An alternate path to read the media
                           image from, or blank to read and use the default.
  
@@ -92,12 +93,17 @@ class DataReader():
                                self._read_hash_scan_file(scan_file)
         t1 = ts("data_reader.read finished read identified_blocks", t0)
 
-        # read media image annotations
-
         # annotations_dir is scan_file + ".temp_annotations"
         annotations_dir = scan_file + ".temp_annotations"
 
         try:
+            # require 512-byte sector size for TSK tools
+            if sector_size != 512:
+                raise ValueError("Media annotations not read because sector "
+                     "size %s is not compatible.\nSector size must be 512 "
+                     "to be compatible with TSK annotations." % sector_size)
+
+            # read annotations
             annotation_types, annotations = read_annotations(
                                 media_filename, annotations_dir)
             annotation_load_status = ""

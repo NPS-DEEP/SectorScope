@@ -31,6 +31,7 @@ class MediaExportWindow():
         # from input parameters
         self._master = master
         self._media_filename = data_manager.media_filename
+        self._sector_size = data_manager.sector_size
 
         # toplevel
         self._root_window = tkinter.Toplevel(master)
@@ -92,7 +93,8 @@ class MediaExportWindow():
                     text="Make New Export File",
                     variable = self._is_new_int_var,
                     bd=0, pady=4, highlightthickness=0)
-        self._is_new_checkbutton.grid(row=3, column=0)
+        self._is_new_checkbutton.grid(row=3, column=0,
+                                      columnspan=2, sticky=tkinter.W)
 
         return required_frame
 
@@ -126,7 +128,7 @@ class MediaExportWindow():
 
         # get byte offset
         try:
-            byte_offset = int(self._offset_entry.get()) * 512
+            byte_offset = int(self._offset_entry.get()) * self._sector_size
         except ValueError:
             ErrorWindow(self._master, "Export Error",
                         "Invalid sector offset value: '%s'." %
@@ -135,7 +137,7 @@ class MediaExportWindow():
 
         # get byte count
         try:
-            byte_count = int(self._count_entry.get()) * 512
+            byte_count = int(self._count_entry.get()) * self._sector_size
         except ValueError:
             ErrorWindow(self._master, "Export Error",
                         "Invalid sector count value: '%s'." %

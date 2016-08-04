@@ -45,9 +45,13 @@ class ScanStatisticsWindow():
         self._database_text = tkinter.Label(f, bg=colors.BACKGROUND)
         self._database_text.pack(side=tkinter.TOP, anchor="w")
 
-        # block size
-        self._block_size_text = tkinter.Label(f, bg=colors.BACKGROUND)
-        self._block_size_text .pack(side=tkinter.TOP, anchor="w")
+        # sector size
+        self._sector_size_text = tkinter.Label(f, bg=colors.BACKGROUND)
+        self._sector_size_text .pack(side=tkinter.TOP, anchor="w")
+
+        # hash block size
+        self._hash_block_size_text = tkinter.Label(f, bg=colors.BACKGROUND)
+        self._hash_block_size_text .pack(side=tkinter.TOP, anchor="w")
 
         # matched paths
         self._matched_paths_text = tkinter.Label(f, bg=colors.BACKGROUND)
@@ -88,7 +92,9 @@ class ScanStatisticsWindow():
                                       self._data_manager.sector_size))
             self._database_text["text"] = 'Database: %s' % \
                                self._data_manager.hashdb_dir
-            self._block_size_text["text"] = 'Block size: %s' % (
+            self._sector_size_text["text"] = 'Sector size: %s' % (
+                                      self._data_manager.sector_size)
+            self._hash_block_size_text["text"] = 'Hash block size: %s' % (
                                       self._data_manager.hash_block_size)
             self._matched_paths_text["text"] = 'Matched paths: %s' % (
                                       self._data_manager.len_forensic_paths)
@@ -103,7 +109,8 @@ class ScanStatisticsWindow():
             self._media_text["text"] = 'Media: Not opened'
             self._media_size_text["text"] = 'Media size: Not opened'
             self._database_text["text"] = 'Database: Not opened'
-            self._block_size_text["text"] = 'Block size: Not opened'
+            self._sector_size_text["text"] = 'Sector size: Not opened'
+            self._hash_block_size_text["text"] = 'Hash block size: Not opened'
             self._matched_paths_text["text"] = 'Matched paths: Not opened'
             self._matched_hashes_text["text"] = 'Matched hashes: Not opened'
             self._matched_sources_text["text"] = 'Matched sources: Not opened'

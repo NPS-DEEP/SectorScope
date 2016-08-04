@@ -113,7 +113,7 @@ if __name__=="__main__":
 
     # now open the scan_file
     if args.scan_file != "":
-        open_manager.open_scan_file(args.scan_file, args.sector_size,
+        open_manager.open_scan_file(args.scan_file, int(args.sector_size),
                   args.alternate_media_image, args.alternate_hash_database)
 
     # keep Tk alive
