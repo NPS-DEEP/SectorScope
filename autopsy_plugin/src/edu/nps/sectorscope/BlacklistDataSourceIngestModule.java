@@ -19,6 +19,8 @@ package edu.nps.sectorscope;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.BufferedReader;
+import java.io.FileReader;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
@@ -64,9 +66,7 @@ public class BlacklistDataSourceIngestModule implements DataSourceIngestModule {
     private String mediaImagePath;
     private String mediaImageName;
     private String jobDir;
-    private String bulk_extractorOutputDir;
-    private String identifiedBlocksPath;
-    private String identifiedBlocksExpandedPath;
+    private String hashdbScanFile;
     
     BlacklistDataSourceIngestModule(BlacklistModuleIngestJobSettings settings) {
         this.hashdbDir = settings.getHashdbDir();
@@ -98,16 +98,10 @@ public class BlacklistDataSourceIngestModule implements DataSourceIngestModule {
         String timestampString = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss").format(new Date());
         jobDir = moduleDir + File.separator + mediaImageName + "_" + timestampString;
 
-        // set bulk_extractor output directory
-        bulk_extractorOutputDir = jobDir + File.separator + "bulk_extractor";
+        // set path to the scan file
+        hashdbScanFile = jobDir + File.separator + "hashdb_scanfile.json";
 
-        // set identified_blocks.txt path
-        identifiedBlocksPath = bulk_extractorOutputDir + File.separator + "identified_blocks.txt";
-        
-        // set identified_blocks_expanded.txt path
-        identifiedBlocksExpandedPath = bulk_extractorOutputDir + File.separator + "identified_blocks_expanded.txt";
-
-        // create the output directories
+        // create the output directory and any parent directories required to reach it
         new File(jobDir).mkdirs();
     }
 
@@ -128,35 +122,29 @@ public class BlacklistDataSourceIngestModule implements DataSourceIngestModule {
  //       progressBar.switchToDeterminate(4);
  //       progressBar.progress(0);
 
-        // run bulk_extractor scan
+        // run hashdb scan_media
         progressBar.switchToIndeterminate();
-        ProcessResult result = bulk_extractorScan();
-        progressBar.switchToDeterminate(4);
-        progressBar.progress(1);
+        ProcessResult result = hashdbScanMedia();
+        progressBar.switchToDeterminate(3);
 
         // report results depending on whether blacklist data was found
-        if (result == ProcessResult.OK && new File(identifiedBlocksPath).length() > 0) {
-            // run hashdb expand_identified_blocks command
-            if (result == ProcessResult.OK) {
-                result = expandIdentifiedBlocks();
-            }
+        if (result == ProcessResult.OK && hasMatch()) {
 
-            // show source summary from identified_blocks_expanded
+            // show source summary from hashdb_scanfile.json
             if (result == ProcessResult.OK) {
-                progressBar.progress(2);
-//                result = showSourceSummaryString(dataSource);
-                result = showSourceSummaryStringEasy(dataSource);
+                progressBar.progress(1);
+                result = showSourceSummaryString();
             }
 
             // add report visualization launcher
             if (result == ProcessResult.OK) {
-                progressBar.progress(3);
+                progressBar.progress(2);
                 result = addReportVisualizationLauncher();
             }
 
         } else {
             // no blacklist block hashes were found
-            progressBar.progress(4);
+            progressBar.progress(3);
         }
 
         // alert if error
@@ -164,147 +152,98 @@ public class BlacklistDataSourceIngestModule implements DataSourceIngestModule {
             MessageNotifyUtil.Notify.show("Error processing block hash blacklist module",
                        "Block hash blacklist module failed", MessageNotifyUtil.MessageType.ERROR);
         } else {
-            progressBar.progress(4);
+            progressBar.progress(3);
         }
         return result;
     }
 
-    // run bulk_extractor hashdb scanner
-    private ProcessResult bulk_extractorScan() {
+    // run hashdb scanner
+    private ProcessResult hashdbScanMedia()
         // set progress type
-        // in the future, get fancy and track bulk_extractor progress using switchToDeterminate(n)
+        // in the future, get fancy and track progress using switchToDeterminate(n)
         // progressBar.switchToIndeterminate();
 
-        // configure the bulk_extractor command to execute
+        // configure the hashdb command to execute
         List<String> commandLine = new ArrayList<>();
-        commandLine.add("bulk_extractor.exe");
-        commandLine.add("-E");
-        commandLine.add("hashdb");
-        commandLine.add("-S");
-        commandLine.add("hashdb_mode=scan");
-        commandLine.add("-S");
-        commandLine.add("hashdb_block_size=512");
-        commandLine.add("-S");
-        commandLine.add("hashdb_scan_path_or_socket="+hashdbDir);
-        commandLine.add("-S");
-        commandLine.add("hashdb_scan_sector_size=512");
-        commandLine.add("-o");
-        commandLine.add(bulk_extractorOutputDir);
+        commandLine.add("hashdb.exe");
+        commandLine.add("scan_media");
+        commandLine.add("-x");
+        commandLine.add("r");
+        commandLine.add(hashdbDir);
         commandLine.add(mediaImagePath);
 
         // configure the process to be executed
         ProcessBuilder processBuilder = new ProcessBuilder(commandLine);
-        String stdoutPath = jobDir + File.separator + "stdout_bulk_extractor.txt";
-        String stderrPath = jobDir + File.separator + "stderr_bulk_extractor.txt";
+        String stdoutPath = hashdbScanFile;
+        String stderrPath = jobDir + File.separator + "stderr_hashdb.txt";
         processBuilder.redirectOutput(ProcessBuilder.Redirect.to(new File(stdoutPath)));
         processBuilder.redirectError(ProcessBuilder.Redirect.to(new File(stderrPath)));
         
-        // execute the bulk_extractor process
+        // execute the hashdb scan_media process
         try {
             int status;
             status = ExecUtil.execute(processBuilder, new DataSourceIngestModuleProcessTerminator(context));
             if (status == 0) {
-                logger.log(Level.INFO, "bulk_extractor completed");
+                logger.log(Level.INFO, "hashdb scan_media completed");
             } else {
-                logger.log(Level.SEVERE, "bulk_extractor failed");
+                logger.log(Level.SEVERE, "hashdb scan_media failed");
                 return ProcessResult.ERROR;
             }
         } catch (IOException ex) {
-            logger.log(Level.SEVERE, "bulk_extractor process failed", ex);  //NON-NLS
+            logger.log(Level.SEVERE, "hashdb process failed", ex);  //NON-NLS
             return ProcessResult.ERROR;
         }
         return ProcessResult.OK;
     }
 
-    private ProcessResult expandIdentifiedBlocks() {
-
-        // create identified_blocks_expanded.txt
-        String expandIdentifiedBlocksPath;
-        expandIdentifiedBlocksPath = bulk_extractorOutputDir + File.separator + "identified_blocks_expanded.txt";
-        List<String> commandLine = new ArrayList<>();
-        commandLine.add("hashdb.exe");
-        commandLine.add("expand_identified_blocks");
-        commandLine.add("-m");
-        commandLine.add("0");
-        commandLine.add(hashdbDir);
-        commandLine.add(identifiedBlocksPath);
-
-        // configure the process to be executed
-        ProcessBuilder processBuilder = new ProcessBuilder(commandLine);
-        processBuilder.redirectOutput(ProcessBuilder.Redirect.to(new File(expandIdentifiedBlocksPath)));
-        processBuilder.redirectError(ProcessBuilder.Redirect.to(new File(jobDir + File.separator + "stderr_hashdb_expand.txt")));
-
-        // execute the hashdb process
+    // return summary else "" and log on error
+    private String getScanFileSummary() {
+        logger = IngestServices.getInstance().getLogger(BlacklistIngestModuleFactory.getModuleName());
+        logger.log(Level.INFO, "ScanFileSummaryReader.a");
+        int count = 0;
         try {
-            int status = ExecUtil.execute(processBuilder, new DataSourceIngestModuleProcessTerminator(context));
-            if (status == 0) {
-                logger.log(Level.INFO, "hashdb expand_identified_blocks completed");
-            } else {
-                logger.log(Level.SEVERE, "hashdb expand_identified_blocks failed");
-                return ProcessResult.ERROR;
+            // process each input line hashdb_scan_file.json
+            BufferedReader br;
+            br = new BufferedReader(new FileReader(hashdbScanFilePath));
+            String line = br.readLine();
+
+            while (line != null) {
+                // count match lines
+                if (!line.isEmpty() && line.charAt(0) != '#') {
+                    count++;
+                }
+                line = br.readLine();
             }
+
         } catch (IOException ex) {
-            logger.log(Level.SEVERE, "hashdb expand_identified_blocks process failed", ex);  //NON-NLS
-            return ProcessResult.ERROR;
+            logger.log(Level.SEVERE, "hashdb read file failed", ex);  //NON-NLS
+            return "";
         }
-
-        return ProcessResult.OK;
-    }
-
-    private ProcessResult showSourceSummaryString(Content dataSource) {
-        // read identified_blocks_expanded.txt into sourceMap
-        IdentifiedBlocksExpandedReader reader = new IdentifiedBlocksExpandedReader(identifiedBlocksExpandedPath);
-        ProcessResult result = reader.read();
-        if (result != ProcessResult.OK) {
-            // something went wrong
-            return result;
-        }
-
-        // get source iterator
-        Set<Integer> keys = reader.sourceMap.keySet();
-        Iterator<Integer> it = keys.iterator();
-
-        // iterate over sources
-        int totalCount = 0;
-        int totalProbativeCount = 0;
-        while(it.hasNext()) {
-            Integer sourceID = it.next();
-            SourceData source = reader.sourceMap.get(sourceID);
-            totalCount += source.count;
-            totalProbativeCount += source.probativeCount;
-        }
-        String sourceSummaryString;
-        int numSources = reader.sourceMap.keySet().size();
-        if (totalCount == 1) {
-            sourceSummaryString = "1 Blacklist block hash (" + totalProbativeCount + " unflagged) found in " + numSources + " sources";
+        if (count == 1) {
+            return "1 blacklist block hash offset match found";
         } else {
-            sourceSummaryString = totalCount + " Blacklist block hashs (" + totalProbativeCount + " unflagged) found in " + numSources + " sources";
+            return count + " blacklist block hash offset matches found";
         }
-        
-        // send summary to message inbox
-        IngestMessage message = IngestMessage.createMessage(IngestMessage.MessageType.INFO,
-                              BlacklistIngestModuleFactory.getModuleName(),
-                              sourceSummaryString);
-        IngestServices.getInstance().postMessage(message);
- 
-        return ProcessResult.OK;
     }
 
-    private ProcessResult showSourceSummaryStringEasy(Content dataSource) {
-        // send summary to message inbox
-        IngestMessage message = IngestMessage.createMessage(IngestMessage.MessageType.INFO,
-                              BlacklistIngestModuleFactory.getModuleName(),
-                              "Blacklist block hash content found.");
-        IngestServices.getInstance().postMessage(message);
+    private ProcessResult showSourceSummaryString() {
+        String summaryString = getSourceSummaryString();
+        if (summaryString == "") {
+            return ProcessResult.ERROR;
+        } else {
+            // send summary to message inbox
+            IngestMessage message = IngestMessage.createMessage(IngestMessage.MessageType.INFO,
+                                  BlacklistIngestModuleFactory.getModuleName(), summaryString);
+            IngestServices.getInstance().postMessage(message);
 
-        return ProcessResult.OK;
-    }
+            return ProcessResult.OK;
+        }
 
     // add visualization launcher if data was found
     private ProcessResult addReportVisualizationLauncher() {
 
         String blockViewerPath = jobDir + File.separator + "sectorscope_launcher.bat";
-        String blockViewerCommand = "sectorscope.py -i \"" + bulk_extractorOutputDir + "\"";
+        String blockViewerCommand = "sectorscope.py -i \"" + hashdbScanFile + "\"";
         try {
             File file = new File(blockViewerPath);
             if (!file.exists()) {
