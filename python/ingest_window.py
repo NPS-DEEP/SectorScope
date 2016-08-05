@@ -133,17 +133,19 @@ class IngestWindow():
 
     def _make_optional_frame(self, master):
         optional_frame = tkinter.LabelFrame(master,
-                                            text="New Database",
+                                            text="Hash Database",
                                             padx=8, pady=8)
 
         # make new database checkbutton
         self._is_new_int_var = tkinter.IntVar()
         self._is_new_int_var.set(True)
         self._is_new_checkbutton = tkinter.Checkbutton(optional_frame,
-                    text="Make New Database", variable = self._is_new_int_var,
+                    text="Make New Hash Database",
+                    variable = self._is_new_int_var,
                     command = self._handle_is_new_checkbutton_press,
                     bd=0, pady=4, highlightthickness=0)
-        self._is_new_checkbutton.grid(row=0, column=0)
+        self._is_new_checkbutton.grid(row=0, column=0,
+                                      columnspan=2, sticky=tkinter.W)
 
         # block size label
         tkinter.Label(optional_frame, text="Block Size") \

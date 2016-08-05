@@ -189,7 +189,7 @@ public class BlacklistDataSourceIngestModule implements DataSourceIngestModule {
             if (status == 0) {
                 logger.log(Level.INFO, "hashdb scan_media completed");
             } else {
-                logger.log(Level.SEVERE, "hashdb scan_media failed");
+                logger.log(Level.SEVERE, "hashdb scan_media failed, status " + status);
                 return ProcessResult.ERROR;
             }
         } catch (IOException ex) {
@@ -255,7 +255,7 @@ public class BlacklistDataSourceIngestModule implements DataSourceIngestModule {
         }
     }
 
-    void ProcessResult showSourceSummaryString(int matchCount) {
+    void showSourceSummaryString(int matchCount) {
         String summaryString;
         if (matchCount == 1) {
             summaryString = "1 blacklist block hash offset match found";

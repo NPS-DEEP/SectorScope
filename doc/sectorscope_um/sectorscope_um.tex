@@ -23,7 +23,6 @@
 \newcommand \sscope {\textit{SectorScope}\xspace}
 \newcommand \hdb {\textit{hashdb}\xspace}
 \newcommand \aut {\textit{Autopsy}\xspace}
-\newcommand \bulk {\textit{bulk\_extractor}\xspace}
 
 \hypersetup{%
     pdfborder = {0 0 0}
@@ -110,15 +109,13 @@ The \sscope Windows installer installs the \verb+.nbm+ \sscope \aut plug-in modu
 
 \subsubsection{Configuring the \sscope \aut Plug-in Module}
 \label{configuringNBM}
-The path to the hashdb database must be configured:
+The path to the \hdb database must be configured:
 \begin{enumerate}
 \item Start a new case, \verb+File | New Case...+, fill in the Case Information fields, and click Next.
 \item Fill in Case Information and click Finish.
 \item For \verb+Add Data Source+ (1 of 3), put in a media image for \aut to process and click \verb+Next+.
-\item For \verb+Add Data Source+ (2 of 3), select checkboxes as desired, then click on \verb+SectorScope+ text to configure the path to your hashdb database to scan against. Currently a file chooser is not available, so please type in the full path, for example: \verb+C:\Users\me\my_hashdb.hdb+. Click \verb+Next+.
-\item For \verb+Add Data Source+ (3 of 3) click \verb+Finish+. When the \sscope module begins processing, \aut will display "NPS-SectorScope ..." as \bulk runs, which may take up to several hours. Unfortunately, \bulk progress is not currently indicated. For diagnostics: please see text in the generated \verb+bulk_extractor\report.xml+ file and in the generated log file and try running the \bulk scanner directly from \sscope.\\
-
-Note: In the future, the \sscope \aut plug-in module may be updated to use \hdb instead of \bulk.
+\item For \verb+Add Data Source+ (2 of 3), select checkboxes as desired, then click on \verb+SectorScope+ text to configure the path to your \hdb database to scan against. Currently a file chooser is not available, so please type in the full path, for example: \verb+C:\Users\me\my_hashdb.hdb+. Click \verb+Next+.
+\item For \verb+Add Data Source+ (3 of 3) click \verb+Finish+. When the \sscope module begins processing, \aut will display "NPS-SectorScope ..." as \hdb runs, which may take up to several hours. Unfortunately, \hdb progress is not currently indicated. For diagnostics: please see text in the generated log file and in the generated \verb+stderr_hashdb.txt+ file and try running the scan directly from \sscope.\\
 \end{enumerate}
 
 \subsection{Starting \sscope}
@@ -224,7 +221,7 @@ The path to the hash database to import block hashes into.
 The repository name to associate the imported sources with. Leave blank to use the default, which is the source directory path.
 \item \textbf{Step Size}\\
 The step size to move along while calculating block hashes. The byte alignment must be compatible with the step size, specifically, byte alignment must be divisible by step size.
-\item \textbf{Make New Database}\\
+\item \textbf{Make New Hash Database}\\
 If this is selected, a new database will be created instead of using an existing databases. The new database will be created with the following:
   \begin{itemize}
   \item \textbf{Block Size}\\
@@ -414,7 +411,7 @@ to open the \sscope Ingest window.
   \item Set Hash Database to your new hash database.
   \item Set the Repository Name to the name of this case dataset, or leave blank to use the source directory as the repository name.
   \item Use the default step size to ingest along sector intervals.
-  \item Keep Make New Database checked since you will not be ingesting block hashes into an existing database.
+  \item Keep Make New Hash Database checked since you will not be ingesting block hashes into an existing database.
   \item Use the default block size to calculate sector-sized block hashes.
   \item Use the default byte alignment since the blocks are sector-aligned.
   \end{itemize}

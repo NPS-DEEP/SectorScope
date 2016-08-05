@@ -45,13 +45,10 @@ def get_scan_file_attributes(scan_file):
 
         # get hashdb_dir and media_filename from first line
         line = f.readline().strip()   # line without newline
-        print("line '%s'"%line)
         if line[:11] == '# command: ':
             parts = line.split(' ')# may need to harden for quoted parameters
-            print("parts", parts)
             hashdb_dir = parts[-2]
             media_filename = parts[-1]
-            print("line-1 '%s'"%media_filename)
         else:
             raise ValueError("Invalid format in first line of scan"
                              " file %s" % scan_file)

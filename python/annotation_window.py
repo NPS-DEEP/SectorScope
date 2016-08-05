@@ -48,7 +48,7 @@ class AnnotationWindow():
         # clear existing checkbuttons
         for checkbutton, _, _ in self._checkbuttons:
             checkbutton.destroy()
-        self._checkbuttons.clear()
+        del self._checkbuttons[:]
 
         # initial ignored_types
         ignored_types = set()
