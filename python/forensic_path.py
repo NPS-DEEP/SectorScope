@@ -17,8 +17,8 @@ def offset_string(offset, offset_format, sector_size):
             return "0 s"
 
         # program error if not sector aligned or one less than sector aligned
-        if offset / sector_size != offset // sector_size and \
-                   (offset+1) / sector_size != (offset+1) // sector_size:
+        if float(offset) / sector_size != offset // sector_size and \
+            float(offset+1) / sector_size != (offset+1) // sector_size:
 
             raise RuntimeError("program error")
         return "%d s" % (offset // sector_size)

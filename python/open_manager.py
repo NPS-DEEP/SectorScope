@@ -37,12 +37,19 @@ class OpenManager():
     """Open scan_file and note the media_filename and sector_size."""
     def open_scan_file(self, scan_file, sector_size,
                        alternate_media_filename, alternate_hashdb_dir):
+
+#        # diagnostic only: use this to read and not catch
+#        self._data_reader.read(scan_file, sector_size,
+#                       alternate_media_filename, alternate_hashdb_dir)
+
         # read scan_file else show error window
         try:
             self._data_reader.read(scan_file, sector_size,
                        alternate_media_filename, alternate_hashdb_dir)
 
         except Exception as e:
+
+            # show error and do not accept
             ErrorWindow(self._master, "Open Error", e)
             return
 

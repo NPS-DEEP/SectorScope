@@ -93,25 +93,9 @@ class DataReader():
                                self._read_hash_scan_file(scan_file)
         t1 = ts("data_reader.read finished read identified_blocks", t0)
 
-        # annotations_dir is scan_file + ".temp_annotations"
-        annotations_dir = scan_file + ".temp_annotations"
-
-        try:
-            # require 512-byte sector size for TSK tools
-            if sector_size != 512:
-                raise ValueError("Media annotations not read because sector "
-                     "size %s is not compatible.\nSector size must be 512 "
-                     "to be compatible with TSK annotations." % sector_size)
-
-            # read annotations
-            annotation_types, annotations = read_annotations(
-                                media_filename, annotations_dir)
-            annotation_load_status = ""
-
-        except Exception as e:
-            annotation_load_status = e
-            annotation_types = list()
-            annotations = list()
+        # read any media image annotations
+        annotation_load_status, annotation_types, annotations = \
+                         read_annotations(media_filename, sector_size)
 
         t4 = ts("data_reader.read finished read annotations.  Done.", t1)
         # everything worked so accept the data

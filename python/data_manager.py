@@ -380,16 +380,19 @@ class DataManager():
 
         # create a list of source information to make the sorted list from
         sources_list = list()
-        temp_sector_size = self.sector_size
+        _sector_size = self.sector_size
         for source_hash, source in self.sources.items():
 
             # compose the source text
 
             # calculate percent of this source file found
+            file_sectors = (source["filesize"] + _sector_size - 1) // \
+                                                             _sector_size
+
             percent_found = sources_offsets[source_hash] / \
-                           (int((source["filesize"] + temp_sector_size -1)
-                           / temp_sector_size)) * 100
-#                print ("len source: ", sources_offsets[sources], source["filesize"], int(source["filesize"]), temp_sector_size)
+                                                float(file_sectors) * 100
+
+#                print ("len source: ", sources_offsets[sources], source["filesize"], int(source["filesize"]), _sector_size)
 
             text = '\t%.1f%%\t%d\t%d\t%s\t%s\t%s\n' \
                             %(percent_found,

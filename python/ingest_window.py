@@ -370,7 +370,7 @@ class IngestWindow():
                 return
 
             # create the new hashdb_dir
-            cmd = ["hashdb", "create", "-b", "%s"%block_size,
+            cmd = ["hashdb", "create", "-b", "%d"%block_size,
                    "-a", "%s"%byte_alignment, hashdb_dir]
             error_message, lines = helpers.run_short_command(cmd)
             if error_message:

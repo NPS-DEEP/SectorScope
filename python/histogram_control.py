@@ -2,7 +2,7 @@ import colors
 import histogram_constants
 from sys import platform
 from sys import maxsize
-from forensic_path import offset_string, size_string, int_string
+from forensic_path import offset_string, size_string
 from icon_path import icon_path
 from tooltip import Tooltip
 from math import log, floor, log10, pow, ceil
@@ -96,7 +96,7 @@ class HistogramControl():
         # zoom fully out
         self.start_offset = 0
         self.bytes_per_bucket = self._round_up_to_block(
-                                          self.media_size / self.num_buckets)
+                                   float(self.media_size) / self.num_buckets)
 
         # clear any selected range
         self.is_valid_range = False
@@ -219,7 +219,7 @@ class HistogramControl():
     # convert mouse coordinate to bucket
     def _mouse_to_bucket(self, e):
         """Returns bucket number even if outside valid range."""
-        return int((e.x - histogram_constants.HISTOGRAM_X_OFFSET) /
+        return int((e.x - histogram_constants.HISTOGRAM_X_OFFSET) //
                                            histogram_constants.BUCKET_WIDTH)
 
     # convert bucket to offset at left edge of bucket
@@ -235,7 +235,8 @@ class HistogramControl():
             return -1
 
         # calculate bucket
-        bucket = (media_offset - self.start_offset) // self.bytes_per_bucket
+        bucket = int((media_offset - self.start_offset) //
+                                                      self.bytes_per_bucket)
 
         return bucket
 
@@ -329,7 +330,7 @@ class HistogramControl():
 
     def fit_media(self):
         self._set_plot_region(0, self._round_up_to_block(
-                                         self.media_size / self.num_buckets))
+                                 float(self.media_size) / self.num_buckets))
 
     def fit_range(self):
         """Fit view to range selection."""
@@ -339,14 +340,14 @@ class HistogramControl():
 
         # calculate the range center offset
         range_center_offset = self._round_up_to_block(
-                                    (self.range_start + self.range_stop) / 2)
+                              (float(self.range_start) + self.range_stop) / 2)
 
         # calculate the bucket at the range center
         range_center_bucket = self.offset_to_bucket(range_center_offset)
 
         # calculate the new bytes per bucket
         new_bytes_per_bucket = self._round_up_to_block(
-                    (self.range_stop - self.range_start) / self.num_buckets)
+               float(self.range_stop - self.range_start) / self.num_buckets)
 
         # calculate the new start offset
         new_range_start = range_center_offset - \
@@ -367,7 +368,7 @@ class HistogramControl():
         self._set_plot_region(new_range_start, new_bytes_per_bucket)
 
     def _pan(self, start_offset_anchor, e):
-        num_pan_buckets = int((self._b3_down_x - e.x) /
+        num_pan_buckets = int((self._b3_down_x - e.x) //
                                             histogram_constants.BUCKET_WIDTH)
         new_start_offset = start_offset_anchor + self.bytes_per_bucket * \
                                                               num_pan_buckets

@@ -319,7 +319,7 @@ class ScanMediaWindow():
             return
 
         # compose the scan_media command
-        cmd = ["hashdb", "scan_media", "-s", "%s"%step_size, hashdb_dir, media]
+        cmd = ["hashdb", "scan_media", "-s", "%d"%step_size, hashdb_dir, media]
 
         # open the output file, it is closed when _handle_consume_queue stops
         try:

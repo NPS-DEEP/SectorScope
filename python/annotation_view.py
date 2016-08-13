@@ -67,7 +67,7 @@ class AnnotationView():
         annotations = self._data_manager.annotations
         ignored_types = self._annotation_filter.ignored_types
         start_offset = self._histogram_control.start_offset
-        scale = histogram_constants.BUCKET_WIDTH / \
+        scale = float(histogram_constants.BUCKET_WIDTH) / \
                                   self._histogram_control.bytes_per_bucket
         i=0
         for annotation_type, offset, length, text in annotations:
