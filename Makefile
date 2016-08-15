@@ -8,7 +8,7 @@
 # The .nbm file is generated using NetBeans on Windows.
 # Build it on Windows and then use git push to put it into the build directory.
 
-VERSION = 0.7.0-Alpha-1
+VERSION = 0.7.0-Alpha-2
 URL = https://github.com/NPS-DEEP/NPS-SectorScope/wiki
 INFO_FILE = python/info.py
 SOURCES = python/*.py
