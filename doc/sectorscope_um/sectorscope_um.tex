@@ -103,8 +103,8 @@ The \sscope Windows installer installs the \verb+.nbm+ \sscope \aut plug-in modu
 \begin{enumerate}
 \item Open \aut. From the \aut menu, select \verb+Tools | Plugins+.
 \item Open the \verb+Downloaded+ tab and click the \verb+Add Plugins...+ button.
-\item From the \verb+Add Plugins+ window, navigate to the \verb+.nbm+ module file that was installed onto the desktop, and open it.
-\item Click \verb+Install+ and follow the wizard. Please note that it may be difficult to replace an old module of NPS-Autopsy-hashdb already installed in \aut. If the error \verb+Some plugins require plugin org.jdesktop.beansbinding to be installed+ appears, it may be necessary to uninstall and reinstall \aut.
+\item From the \verb+Add Plugins+ window, navigate to the \verb+.nbm+ module file that was installed onto the desktop, and open it. It may be at \verb+C:\Users\Public\Public Desktop+.
+\item Click \verb+Install+ and follow the wizard.
 \end{enumerate}
 
 \subsubsection{Configuring the \sscope \aut Plug-in Module}
@@ -450,5 +450,11 @@ to open the Open Scan File window which opens the scan data into \sscope.
 \item In \verb+Add Data Source+ Step 3, click finish.
 \item When processing completes, click on Reports in the tree on the left to show the Reports table. In the Reports table, click on the \verb+Block Hash Blacklist+ cell to open \sscope.
 \end{enumerate}
+
+\section{Alternate Configurations}
+\begin{itemize}
+\item \textbf{Alternate Hash Algorithm}\\
+\sscope calculates MD5 hashes when showing block hash values in the hex view. If your use-case requires a hash algorithm other than MD5, please see source code file \verb+NPS-SectorScope/python/media_hex_window.py+ for instructions on changing this algorithm.
+\end{itemize}
 
 \end{document}

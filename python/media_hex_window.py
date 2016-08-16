@@ -8,8 +8,10 @@ except ImportError:
     import Tkinter as tkinter
 
 class MediaHexWindow():
-    """Provides a window to show a hex dump of specified bytes of a
-    media image.
+    """Provides a window to show the block hash and hex dump of specified
+    bytes of a media image.  Users requiring a hash algorithm other than MD5
+    may replace "md5()" with their alternative, please see the Python hashlib
+    module for available alternatives.
     """
 
     BUFSIZE = 16384 # 2^14
@@ -36,9 +38,9 @@ class MediaHexWindow():
         self._annotation_label = tkinter.Label(self._root_window)
         self._annotation_label.pack(side=tkinter.TOP)
 
-        # add the MD5 value label
-        self._md5_label = tkinter.Label(self._root_window)
-        self._md5_label.pack(side=tkinter.TOP)
+        # add the block hash value label
+        self._block_hash_label = tkinter.Label(self._root_window)
+        self._block_hash_label.pack(side=tkinter.TOP)
 
         # add the frame to contain the media hex table
         self._media_hex_table = MediaHexTable(self._root_window, data_manager,
@@ -74,7 +76,7 @@ class MediaHexWindow():
             raise RuntimeError("bad: %s" % error_message)
             return
 
-        # calculate the MD5 from the block of data in buf
+        # calculate the block hash from the block of data in buf
         m = hashlib.md5()
         m.update(buf[:self._data_manager.hash_block_size])
         if len(buf) < self._data_manager.hash_block_size:
@@ -112,8 +114,8 @@ class MediaHexWindow():
         # set annotation text
         self._annotation_label["text"] = text
 
-        # set MD5 label
-        self._md5_label["text"]='MD5: %s' % block_hash
+        # set block hash label
+        self._block_hash_label["text"]='Block hash: %s' % block_hash
 
         # set hex table
         self._media_hex_table.set_view(block_hash_offset, buf, is_in)
@@ -123,8 +125,8 @@ class MediaHexWindow():
         # clear annotation text
         self._annotation_label["text"] = "Status: No selection."
 
-        # clear MD5 label
-        self._md5_label["text"]='MD5: No selection.'
+        # clear block hash label
+        self._block_hash_label["text"]='Block hash: No selection.'
 
         # clear hex table
         self._media_hex_table.clear_view()
