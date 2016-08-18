@@ -8,10 +8,13 @@ def _run_cmd(cmd):
         p = subprocess.Popen(cmd, stdout=subprocess.PIPE)
         lines = p.communicate()[0].decode('utf-8').split("\n")
     except Exception as e:
-        raise RuntimeError("annoation failure running cmd: %s: %s" % (cmd, e))
+        raise RuntimeError("Annoation failure running cmd: %s: %s\n"
+                           "Please check that TSK is installed and that "
+                           "PATH is set, if needed, to find TSK tools." %
+                           (cmd, e))
     if p.returncode != 0:
-        raise RuntimeError("annoation failure running cmd: "
-                           "%s: lines:\n%s\nAborting." % (cmd, lines))
+        raise RuntimeError("Annoation failure running cmd: "
+                           "%s\nResponse: %s\nAborting." % (cmd, lines))
     return lines
 
 def _read_mmls_annotations(media_filename, sector_size,
