@@ -15,8 +15,8 @@ SOURCES = python/*.py
 ICONS = python/icons/*.gif
 UM_DIR = doc/sectorscope_um
 UM = doc/sectorscope_um/sectorscope_um.pdf
-TEMP_ZIP_DIR = build/temp_zip_dir
-ZIP = build/SectorScope-$(VERSION).zip
+ZIP_DIR = SectorScope-$(VERSION)
+ZIP = $(ZIP_DIR).zip
 NBM = build/SectorScope-$(VERSION).nbm
 RELATIVE_WIN_INSTALLER = SectorScope-$(VERSION)-windowsinstaller.exe
 WIN_INSTALLER = build/SectorScope-$(VERSION)-windowsinstaller.exe
@@ -31,14 +31,16 @@ $(INFO_FILE): Makefile
 $(UM):
 	cd doc/sectorscope_um; make
 
-$(ZIP): $(SOURCES)
-	rm -rf $(TEMP_ZIP_DIR)
-	mkdir $(TEMP_ZIP_DIR)
-	cp $(SOURCES) $(TEMP_ZIP_DIR)
-	mkdir $(TEMP_ZIP_DIR)/icons
-	cp $(ICONS) $(TEMP_ZIP_DIR)/icons
-	zip -r9 $(ZIP) $(TEMP_ZIP_DIR)
-	rm -rf $(TEMP_ZIP_DIR)
+$(ZIP): $(SOURCES) $(ICONS) $(UM)
+	rm -rf $(ZIP_DIR) build/$(ZIP)
+	mkdir $(ZIP_DIR)
+	cp $(SOURCES) $(ZIP_DIR)
+	mkdir $(ZIP_DIR)/icons
+	cp $(ICONS) $(ZIP_DIR)/icons
+	mkdir $(ZIP_DIR)/doc
+	cp $(UM) $(ZIP_DIR)/doc
+	zip -r build/$(ZIP) $(ZIP_DIR)
+	rm -rf $(ZIP_DIR)
 
 $(NBM):
 	@echo Please provide the current .nbm file by building it on Windows
