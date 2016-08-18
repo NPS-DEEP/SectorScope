@@ -6,9 +6,9 @@
 #
 # Prerequisites:
 # The .nbm file is generated using NetBeans on Windows.
-# Build it on Windows and then use git push to put it into the build directory.
+# Build it on Windows and then use git push to update it.
 
-VERSION = 0.7.0-Alpha-2
+VERSION = 0.7.0-Alpha-3
 URL = https://github.com/NPS-DEEP/NPS-SectorScope/wiki
 INFO_FILE = python/info.py
 SOURCES = python/*.py
@@ -17,9 +17,8 @@ UM_DIR = doc/sectorscope_um
 UM = doc/sectorscope_um/sectorscope_um.pdf
 ZIP_DIR = SectorScope-$(VERSION)
 ZIP = $(ZIP_DIR).zip
-NBM = build/SectorScope-$(VERSION).nbm
-RELATIVE_WIN_INSTALLER = SectorScope-$(VERSION)-windowsinstaller.exe
-WIN_INSTALLER = build/SectorScope-$(VERSION)-windowsinstaller.exe
+NBM = autopsy_plugin/build/edu-nps-sectorscope.nbm
+WIN_INSTALLER = SectorScope-$(VERSION)-windowsinstaller.exe
 
 all: $(INFO_FILE) $(UM) $(ZIP) $(NBM) $(WIN_INSTALLER)
 
@@ -32,29 +31,27 @@ $(UM):
 	cd doc/sectorscope_um; make
 
 $(ZIP): $(SOURCES) $(ICONS) $(UM)
-	rm -rf $(ZIP_DIR) build/$(ZIP)
+	rm -rf $(ZIP_DIR) $(ZIP)
 	mkdir $(ZIP_DIR)
 	cp $(SOURCES) $(ZIP_DIR)
 	mkdir $(ZIP_DIR)/icons
 	cp $(ICONS) $(ZIP_DIR)/icons
 	mkdir $(ZIP_DIR)/doc
 	cp $(UM) $(ZIP_DIR)/doc
-	zip -r build/$(ZIP) $(ZIP_DIR)
+	zip -r $(ZIP) $(ZIP_DIR)
 	rm -rf $(ZIP_DIR)
 
 $(NBM):
-	@echo Please provide the current .nbm file by building it on Windows
-	@echo and installing it using git push.
+	@echo Please provide the current .nbm file by exporting it on Windows
+	@echo and updating it using git push.
 
 $(WIN_INSTALLER): build_installer.nsi EnvVarUpdate.nsi $(UM) $(SOURCES)
 	@echo Making $(WIN_INSTALLER)
 	makensis -DVERSION=$(VERSION) build_installer.nsi
-	mv $(RELATIVE_WIN_INSTALLER) $(WIN_INSTALLER)
 	@echo '**************** WINDOWS INSTALLER IS MADE ****************'
 
-# do not remove archives from build
 clean:
-	/bin/rm -rf $(INFO_FILE) $(UM) $(ZIP) $(WIN_INSTALLER)
+	/bin/rm -rf $(INFO_FILE) $(ZIP) $(WIN_INSTALLER)
 
 .PHONY: clean
 

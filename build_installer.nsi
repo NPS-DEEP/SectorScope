@@ -150,7 +150,7 @@ FunctionEnd
 
 Section "SectorScope Autopsy Plug-in (to desktop)"
 	setOutPath "$DESKTOP"
-	file "build/${PLUGINNAME}"
+	file "/oname=${PLUGINNAME}" "autopsy_plugin/build/edu-nps-sectorscope.nbm"
 sectionEnd
 
 section "uninstall"

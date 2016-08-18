@@ -14,7 +14,8 @@ sectorscope_um.toc
 structure.aux
 
 # created content
-temp_image_annotations_dir
+*.exe
+*.zip
 
 # generated installer and zip
 install/NPS-SectorScope*.exe
