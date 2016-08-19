@@ -1,4 +1,4 @@
-from forensic_path import size_string, offset_string
+from helpers import size_string, offset_string
 import colors
 import helpers
 try:
@@ -77,6 +77,14 @@ class ScanStatisticsWindow():
         # start with window hidden
         self._root_window.withdraw()
 
+    def _round_up_to_block(self, size):
+        sector_size = self._data_manager.sector_size
+        if sector_size == 0:
+            return 0
+        if size % sector_size == 0:
+            return size
+        return size + sector_size - (size % sector_size)
+
     # this function is registered to and called by IdentifiedData
     def _handle_data_manager_change(self, *args):
         if self._data_manager.media_filename:
@@ -87,7 +95,8 @@ class ScanStatisticsWindow():
                                self._data_manager.media_filename
             self._media_size_text["text"] = 'Media size: %s  (%s)' % (
                                size_string(self._data_manager.media_size),
-                               offset_string(self._data_manager.media_size,
+                               offset_string(self._round_up_to_block(
+                                             self._data_manager.media_size),
                                       self._preferences.offset_format,
                                       self._data_manager.sector_size))
             self._database_text["text"] = 'Database: %s' % \
@@ -97,7 +106,7 @@ class ScanStatisticsWindow():
             self._hash_block_size_text["text"] = 'Hash block size: %s' % (
                                       self._data_manager.hash_block_size)
             self._matched_paths_text["text"] = 'Matched paths: %s' % (
-                                      self._data_manager.len_forensic_paths)
+                                      self._data_manager.len_media_offsets)
             self._matched_hashes_text["text"] = 'Matched hashes: %s' % (
                                       self._data_manager.len_hashes)
             self._matched_sources_text["text"] = 'Matched sources: %s' % (

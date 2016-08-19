@@ -106,3 +106,56 @@ def read_hashdb_version():
         else:
             return "hashdb is not available."
 
+"""Convert a byte offset to a printable formatted string.
+"""
+def offset_string(offset, offset_format, sector_size):
+    """
+    Args:
+      offset (int): the offset to be formatted
+    Returns:
+      formatted offset string
+    """
+    if offset_format == "hex":
+        return "0x%08x" % offset
+    elif offset_format == "decimal":
+        return "%s" % offset
+    elif offset_format == "sector":
+        # return 0 if not initialized
+        if sector_size == 0:
+            return "0 s"
+
+        # Offsets are usually sector aligned, but offsets under a recursion
+        # path may not be.
+        # program error if not sector aligned or one less than sector aligned
+        if float(offset) / sector_size == offset // sector_size or \
+            float(offset+1) / sector_size == (offset+1) // sector_size:
+
+            # this offset is sector aligned
+            return "%d s" % (offset // sector_size)
+
+        else:
+            # not sector aligned
+            return "%3.1f s" % (offset / sector_size)
+    else:
+        raise RuntimeError("program error")
+
+"""Scale an integer as a printable formatted string.
+"""
+def int_string(value):
+    if value < 1000:
+        return value
+    if value < 1000000:
+        return "%sK" % (value//1000)
+    return "%sM" % (value//1000000)
+
+"""Scale a byte offset as a printable formatted string.
+"""
+# from http://stackoverflow.com/questions/1094841/
+# reusable-library-to-get-human-readable-version-of-file-size
+def size_string(num, suffix='B'):
+    for unit in ['','Ki','Mi','Gi','Ti','Pi','Ei','Zi']:
+        if abs(num) < 1024.0:
+            return "%3.1f%s%s" % (num, unit, suffix)
+        num /= 1024.0
+    return "%.1f%s%s" % (num, 'Yi', suffix)
+

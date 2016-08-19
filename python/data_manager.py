@@ -1,6 +1,6 @@
 from collections import defaultdict
 from math import floor
-from forensic_path import size_string
+from helpers import size_string
 from copy import copy
 from timestamp import ts0, ts
 try:
@@ -22,11 +22,11 @@ class DataManager():
     hashdb_dir = ""
     sector_size = 0
     hash_block_size = 0
-    forensic_paths = dict()
+    media_offsets = list()
     hashes = dict()
     sources = dict()
  
-    len_forensic_paths = 0
+    len_media_offsets = 0
     len_hashes = 0
     len_sources = 0
 
@@ -56,10 +56,10 @@ class DataManager():
         self.hashdb_dir = data_reader.hashdb_dir
         self.sector_size = data_reader.sector_size
         self.hash_block_size = data_reader.hash_block_size
-        self.forensic_paths = data_reader.forensic_paths
+        self.media_offsets = data_reader.media_offsets
         self.hashes = data_reader.hashes
         self.sources = data_reader.sources
-        self.len_forensic_paths = len(data_reader.forensic_paths)
+        self.len_media_offsets = len(data_reader.media_offsets)
         self.len_hashes = len(data_reader.hashes)
         self.len_sources = len(data_reader.sources)
 
@@ -168,7 +168,7 @@ class DataManager():
 
 
         # calculate the histogram
-        for offset, block_hash in self.forensic_paths.items():
+        for offset, block_hash in self.media_offsets:
             bucket = int((offset - start_offset) // bytes_per_bucket)
 
             if bucket < 0 or bucket >= num_buckets:
@@ -216,10 +216,10 @@ class DataManager():
             ts("data_manager.calculate_sources_and_hashes_in_range.none", t0)
             return(sources_in_range, hashes_in_range)
 
-        # iterate through forensic paths and gather data about the range
+        # iterate through media_offsets and gather data about the range
         hashes = self.hashes
-        for forensic_path, block_hash in self.forensic_paths.items():
-            offset = int(forensic_path)
+        for media_offset, block_hash in self.media_offsets:
+            offset = int(media_offset)
 
             # skip if not in range
             if offset < start_byte or offset >= stop_byte:

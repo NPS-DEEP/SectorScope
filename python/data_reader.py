@@ -24,8 +24,8 @@ class DataReader():
       hashdb_dir (str): Full path to the hash database directory.
       sector_size(int): The sector size to view.
       hash_block_size(int): The size of the hashed blocks.
-      forensic_paths (list<forensic path int, hash hexcode str>): List
-        of int forensic paths and their hash hexcode.
+      media_offsets (list<media_offset int, hash hexcode str>): List
+        of int offsets and their hash hexcode.
       hashes (dict<hash hexcode str, whole json data plus source_hashes>)
         where source_hashes is the set of source hexcodes associated with
         the hash, composed from every third source_offset.
@@ -50,7 +50,7 @@ class DataReader():
         self.hashdb_dir = ""
         self.sector_size = 0
         self.hash_block_size = 0
-        self.forensic_paths = list()
+        self.media_offsets = list()
         self.hashes = dict()
         self.sources = dict()
         self.annotation_types = list()
@@ -89,7 +89,7 @@ class DataReader():
         t0 = ts0("data_reader.read start")
 
         # read scan file
-        (forensic_paths, hashes, sources) = \
+        (media_offsets, hashes, sources) = \
                                self._read_hash_scan_file(scan_file)
         t1 = ts("data_reader.read finished read identified_blocks", t0)
 
@@ -105,7 +105,7 @@ class DataReader():
         self.hashdb_dir = hashdb_dir
         self.sector_size = sector_size
         self.hash_block_size = hash_block_size
-        self.forensic_paths = forensic_paths
+        self.media_offsets = media_offsets
         self.hashes = hashes
         self.sources = sources
         self.annotation_types = annotation_types
@@ -116,7 +116,7 @@ class DataReader():
         return("DataReader("
               "scan_file: '%s', Media size: %d, Media filename: '%s', "
               "hashdb directory: '%s', Sector size: %d, Block size: %d "
-              "Number of forensic paths: %d, Number of hashes: %d, "
+              "Number of media offsets: %d, Number of hashes: %d, "
               "Number of sources: %d, "
               "Number of media image annotation types: %d, "
               "Number of media image annotations: %d)"
@@ -127,7 +127,7 @@ class DataReader():
                         self.hashdb_dir,
                         self.sector_size,
                         self.hash_block_size,
-                        len(self.forensic_paths),
+                        len(self.media_offsets),
                         len(self.hashes),
                         len(self.sources),
                         len(self.annotation_types),
@@ -136,12 +136,12 @@ class DataReader():
 
     def _read_hash_scan_file(self, scan_file):
 
-        """Read hash scan file into forensic_paths, hashes, and sources
+        """Read hash scan file into media_offsets, hashes, and sources
         data structures.  Also add source_hashes set into hashes dictionary.
         """
 
         # read each line
-        forensic_paths = dict()
+        media_offsets = list()
         hashes = dict()
         sources = dict()
         with open(scan_file, 'r') as f:
@@ -155,10 +155,17 @@ class DataReader():
 
                     # get line parts
                     parts = line.split("\t")
-                    (forensic_path, block_hash, json_string) = parts
+                    (offset, block_hash, json_string) = parts
 
-                    # store hash at forensic path
-                    forensic_paths[int(forensic_path)] = block_hash
+                    # get media offset, stripping any recursion path
+                    if '-' in offset:
+                        # take everything before the first '-'
+                        media_offset = int(offset[:offset.find('-')])
+                    else:
+                        media_offset = int(offset)
+
+                    # store media_offset, hash pair
+                    media_offsets.append((media_offset, block_hash))
 
                     # store hash information if present
                     # get json data
@@ -187,5 +194,5 @@ class DataReader():
                              "this file was made using the hashdb "
                              "scan_media command." % (scan_file, i, line, e))
 
-        return (forensic_paths, hashes, sources)
+        return (media_offsets, hashes, sources)
 

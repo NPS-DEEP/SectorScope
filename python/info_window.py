@@ -1,4 +1,3 @@
-from forensic_path import size_string, offset_string
 import colors
 import helpers
 import info

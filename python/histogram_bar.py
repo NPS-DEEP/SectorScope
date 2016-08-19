@@ -2,7 +2,7 @@ import colors
 import histogram_constants
 from sys import platform
 from sys import maxsize
-from forensic_path import offset_string, size_string, int_string
+from helpers import offset_string, size_string, int_string
 from icon_path import icon_path
 from tooltip import Tooltip
 from math import log, floor, log10, pow, ceil
@@ -330,7 +330,7 @@ class HistogramBar():
                               self._histogram_control.cursor_offset):
             # bucket count at cursor
             self._bucket_count_label["text"] = \
-                          "Bar matches: %s, h=%s, i=%s" % (
+                          "Bar matches: %s, H=%s, I=%s" % (
                              self._source_buckets[
                              self._histogram_control.offset_to_bucket(
                                       self._histogram_control.cursor_offset)],
@@ -349,7 +349,7 @@ class HistogramBar():
         # range selection text
         if self._histogram_control.is_valid_range:
             self._range_selection_label["text"] = \
-                           "Range: %s \u2014 %s  (%s)" % (
+                           u"Range: %s \u2014 %s  (%s)" % (
                            # start_offset
                            offset_string(self._histogram_control.bound_offset(
                                          self._histogram_control.range_start),

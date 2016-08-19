@@ -2,7 +2,6 @@ import colors
 import histogram_constants
 from sys import platform
 from sys import maxsize
-from forensic_path import offset_string, size_string
 from icon_path import icon_path
 from tooltip import Tooltip
 from math import log, floor, log10, pow, ceil
@@ -96,7 +95,7 @@ class HistogramControl():
         # zoom fully out
         self.start_offset = 0
         self.bytes_per_bucket = self._round_up_to_block(
-                                   float(self.media_size) / self.num_buckets)
+                       float(self.media_size) / self.num_buckets)
 
         # clear any selected range
         self.is_valid_range = False
@@ -247,7 +246,7 @@ class HistogramControl():
         return (bucket >= 0 and bucket <= self.num_buckets and
                 bucket >= self.offset_to_bucket(0) and
                 bucket <= self.offset_to_bucket(self._round_up_to_block(
-                                                   self.media_size - 1)) + 1)
+                                        self.media_size - 1)) + 1)
 
     def offset_is_on_bucket(self, offset):
         """ the offset maps onto a bucket."""
@@ -256,12 +255,12 @@ class HistogramControl():
         return (bucket >= 0 and bucket < self.num_buckets and
                 bucket >= self.offset_to_bucket(0) and
                 bucket <= self.offset_to_bucket(self._round_up_to_block(
-                                                       self.media_size - 1)))
+                                            self.media_size - 1)))
 
     def valid_bucket_range(self):
         leftmost_bucket = self.offset_to_bucket(0)
         rightmost_bucket = self.offset_to_bucket(
-                                 self._round_up_to_block(self.media_size -1))
+                      self._round_up_to_block(self.media_size -1))
         return leftmost_bucket, rightmost_bucket
 
     # round up to aligned block
@@ -313,7 +312,7 @@ class HistogramControl():
             if self.media_size == 0:
                 return 0
             else:
-                return self.media_size - 1
+                return self._round_up_to_block(self.media_size - 1)
         return offset
 
     def _fire_change(self, change_type):
@@ -330,7 +329,7 @@ class HistogramControl():
 
     def fit_media(self):
         self._set_plot_region(0, self._round_up_to_block(
-                                 float(self.media_size) / self.num_buckets))
+                       float(self.media_size) / self.num_buckets))
 
     def fit_range(self):
         """Fit view to range selection."""

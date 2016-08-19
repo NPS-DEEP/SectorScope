@@ -52,7 +52,7 @@ class MediaExportWindow():
 
     def _make_required_frame(self, master):
         required_frame = tkinter.LabelFrame(master,
-                                            text="Ingest",
+                                            text="Export",
                                             padx=8, pady=8)
 
         # export_filename label
