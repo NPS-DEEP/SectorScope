@@ -100,7 +100,7 @@ class HistogramView():
                               activebackground=colors.ACTIVEBACKGROUND,
                               highlightthickness=0)
         show_export_window_button.pack(side=tkinter.LEFT, padx=2)
-        Tooltip(show_export_window_button, "Export media range to file...")
+        Tooltip(show_export_window_button, "Export media range to file")
 
         # button to view annotations
         self._view_annotations_icon = tkinter.PhotoImage(file=icon_path(
