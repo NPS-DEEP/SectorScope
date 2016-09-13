@@ -121,7 +121,7 @@ class DataManager():
         for block_hash, hash_data in self.hashes.items():
 
             count = hash_data["count"]
-            entropy = hash_data["entropy"]
+            entropy = hash_data["k_entropy"] / 1000.0
             hash_counts[block_hash] = (
                 # count
                 count,
@@ -343,7 +343,7 @@ class DataManager():
             # skip ignored hashes
 
             # skip entropy outside range
-            entropy = hash_data["entropy"]
+            entropy = hash_data["k_entropy"] / 1000.0
             if ignore_entropy_below != 0 and entropy < ignore_entropy_below:
                 continue
             if ignore_entropy_above != 0 and entropy > ignore_entropy_above:
