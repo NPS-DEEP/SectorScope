@@ -363,9 +363,9 @@ class DataManager():
                 continue
 
             # track sources
-            source_offsets = hash_data["source_offsets"]
-            for source_hash, sub_count in zip(source_offsets[0::3],
-                                              source_offsets[1::3]):
+            source_sub_counts = hash_data["source_sub_counts"]
+            for source_hash, sub_count in zip(source_sub_counts[0::2],
+                                              source_sub_counts[1::2]):
 
                 # track sources not in ignored sources
                 if source_hash not in ignored_sources:

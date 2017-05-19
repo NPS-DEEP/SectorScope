@@ -37,9 +37,9 @@ class DataReader():
       annotation_load_status (str): status of the annotation load or none
         if okay.
 
-    Note: this may be used to access source_offsets:
-      for src, sub_count, off in zip(source_offsets[0::3],
-                            source_offsets[1::3], source_offsets[2::3]):
+    Note: this may be used to access source_sub_counts:
+      for src, sub_count in zip(source_sub_counts[0::2],
+                                source_sub_counts[1::2]):
     """
 
     def __init__(self):
@@ -171,14 +171,14 @@ class DataReader():
                     # get json data
                     json_data = json.loads(json_string)
 
-                    if "source_offsets" in json_data:
+                    if "source_sub_counts" in json_data:
                         # take data for hash
                         hashes[block_hash] = json_data
 
                         # calculate source_hashes
                         source_hashes = set()
-                        source_offsets = json_data["source_offsets"]
-                        for file_hash in source_offsets[0::3]:
+                        source_sub_counts = json_data["source_sub_counts"]
+                        for file_hash in source_sub_counts[0::2]:
                             source_hashes.add(file_hash)
 
                         # add additional source_hashes field

@@ -24,22 +24,18 @@ class IngestWindow():
     """
 
     def __init__(self, master, source_dir="", hashdb_dir="",
-                 block_size=512, step_size=512, byte_alignment=512,
-                 repository_name=""):
+                 block_size=512, step_size=512, repository_name=""):
         """Args:
           source_dir(str): The directory to ingest from.
           hashdb_dir(str): The new hashdb directory to create and ingest into.
           block_size(int): The block size to hash when ingesting hashes.
           step_size(int): The amount to increment along while ingesting.
-          byte_alignment(int): The largest alignment value divisible by step
-                       size, usually step size.
         """
         # input parameters
         self._source_dir = source_dir
         self._hashdb_dir = hashdb_dir
         self._block_size = block_size
         self._step_size = step_size
-        self._byte_alignment = byte_alignment
         self._repository_name = repository_name
 
         # the queue for ingest text
@@ -155,16 +151,6 @@ class IngestWindow():
         self._block_size_entry = tkinter.Entry(optional_frame, width=8)
         self._block_size_entry.grid(row=1, column=1, sticky=tkinter.W, padx=8)
         self._block_size_entry.insert(0, self._block_size)
-
-        # byte alignment label
-        tkinter.Label(optional_frame, text="Byte Alignment") \
-                          .grid(row=2, column=0, sticky=tkinter.W)
-
-        # byte alignment entry
-        self._byte_alignment_entry = tkinter.Entry(optional_frame, width=8)
-        self._byte_alignment_entry.grid(
-                                    row=2, column=1, sticky=tkinter.W, padx=8)
-        self._byte_alignment_entry.insert(0, self._byte_alignment)
 
         return optional_frame
 
@@ -285,11 +271,9 @@ class IngestWindow():
         if self._is_new_int_var.get():
             # enable New DB fields
             self._block_size_entry.config(state=tkinter.NORMAL)
-            self._byte_alignment_entry.config(state=tkinter.NORMAL)
         else:
             # disable New DB fields
             self._block_size_entry.config(state=tkinter.DISABLED)
-            self._byte_alignment_entry.config(state=tkinter.DISABLED)
 
     def _handle_consume_queue(self):
         is_done = self._command_runner.is_done()
@@ -360,18 +344,8 @@ class IngestWindow():
                                       self._block_size_entry.get())
                 return
 
-            # get byte alignment
-            try:
-                byte_alignment = int(self._byte_alignment_entry.get())
-            except ValueError:
-                self._set_status_text(
-                                 "Error: invalid byte alignmentvalue: '%s'." %
-                                      self._byte_alignment_entry.get())
-                return
-
             # create the new hashdb_dir
-            cmd = ["hashdb", "create", "-b", "%d"%block_size,
-                   "-a", "%s"%byte_alignment, hashdb_dir]
+            cmd = ["hashdb", "create", "-b", "%d"%block_size, hashdb_dir]
             error_message, lines = helpers.run_short_command(cmd)
             if error_message:
                 self._set_status_text("Error with command issued to hashdb")
